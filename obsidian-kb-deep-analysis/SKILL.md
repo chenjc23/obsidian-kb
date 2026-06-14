@@ -53,6 +53,9 @@ For each function include:
 - Whether it contains conditional branches and how many.
 - Whether it performs external calls: RPC, DB, MQ, filesystem, network, subprocess.
 - Whether it crosses a protocol, message, event, topic, socket, or TLV boundary.
+- Links to generated branch analysis pages when a call-tree node is expanded in
+  Phase 2, such as `[[分支主题]]`. If the branch page is generated after
+  `调用树.md`, return to `调用树.md` and add the link.
 
 Tree format:
 
@@ -124,16 +127,37 @@ Forbidden shortcuts:
 3. Sort all discovered branches by importance and risk.
 4. Analyze every key branch completely.
 5. Save one file per important branch topic.
+6. Maintain bidirectional links among `调用树.md`, `主干流程.md`, and every branch
+   file generated in Phase 2.
 
 Do not limit Phase 2 to only the obvious branches on the main path. Do not skip important branches because they are numerous, nested, or outside the first-pass happy path. If there are many key branches, split them into multiple branch files and continue until all high-risk or business-critical branches are covered.
 
 For each branch include:
 
+- Source links:
+  - The originating `[[主干流程#Step ...]]` branch marker when the branch comes
+    from the main path.
+  - The related `[[调用树]]` node or function name that proves where the branch
+    appears in the call graph.
+  - Links back to sibling or nested branch files when control can move between
+    them.
 - Exact condition expression from code.
 - Full logic chain after entering the branch.
 - Merge point.
 - Nested branches.
 - Whether any sub-branch remains uncovered.
+
+Link closure rules:
+
+- `主干流程.md` branch markers must link to the corresponding Phase 2 branch
+  files.
+- Every Phase 2 branch file must link back to `[[主干流程]]` or a specific
+  `[[主干流程#Step ...]]` section.
+- Every Phase 2 branch file must link back to `[[调用树]]` and name the relevant
+  call-tree function or node.
+- `调用树.md` must link from expanded branch nodes to the generated Phase 2 branch
+  files.
+- Nested branches must link parent-to-child and child-to-parent.
 
 If any sub-branch remains uncovered, explain why with source evidence and record it in `自查报告.md` as a gap. Do not use vague phrases such as "其他分支类似", "暂不展开", "略", or "后续再看" for key branches.
 
@@ -216,6 +240,12 @@ Check:
 - Every Phase 0 call-tree function is covered.
 - Every branch is covered, including default, else, error, and boundary branches.
 - Every key branch flow discovered in Phase 2 is either fully analyzed or explicitly listed as a low-confidence gap with evidence.
+- Every Phase 2 branch file has bidirectional links with `主干流程.md` and
+  `调用树.md`.
+- Every `主干流程.md` branch marker points to its Phase 2 branch file, and every
+  expanded call-tree node in `调用树.md` points to the matching branch file.
+- Every nested branch file links to its parent branch file, and the parent links
+  back to the nested branch file.
 - Every message, protocol, event, topic, socket, RPC, and TLV boundary has either a traced receiver/caller or an explicit low-confidence gap.
 - Data flow is continuous from input to output.
 - No structure appears without construction or disappears without consumption.
@@ -289,6 +319,12 @@ confidence: high | medium | low
 - 输出：`{返回值类型}` — {含义}
 - 跨边界主干追踪：{如果本步骤发送/接收 MQ、RPC、event、socket、TLV、协议消息或进入 handler dispatch，写明边界标识、发送方、接收方入口、接收方主干处理结果；没有则写“无”}
 - 分支：此处有 N 条路径，详见 [[{分支文件}]]
+
+## 分支来源与回链（Phase 2 分支页必填）
+- 调用树：[[调用树]] — {相关函数或节点名称}
+- 主干来源：[[主干流程#Step 1: {步骤名}]]
+- 父分支：{如果是嵌套分支，链接父分支；否则写“无”}
+- 子分支：{如果存在嵌套分支，链接子分支文件；否则写“无”}
 
 ## 异常路径
 {每种异常场景}
