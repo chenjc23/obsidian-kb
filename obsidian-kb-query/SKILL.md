@@ -67,14 +67,13 @@ After finding `{kb-root}`, run the general retrieval protocol below.
 
 Specialized retrieval paths, such as field-change impact analysis, are refinements of this general protocol rather than separate entry conditions.
 
-## Output Modes
+## Output Format
 
-Use one shared retrieval kernel and choose output mode:
+Always return one YAML-style context packet.
 
-- `agent-context`: default for development workflows.
-- `human-report`: use when the user explicitly asks for an explanation or readable report.
-
-Default to `agent-context` when the user is analyzing requirements, designing a solution, preparing code changes, debugging, reviewing, testing, or assessing impact.
+Do not switch to a separate human-report Markdown format. Even when the user asks
+for an explanation, use the same structured YAML format and put the readable
+answer in `key_findings`, with evidence and gaps listed explicitly.
 
 ## Task Stages
 
@@ -172,12 +171,12 @@ node {using-obsidian-skill-root}/scripts/obsidian-kb.mjs links <target> --json
 
 If the helper cannot be located in the current agent environment, compute incoming and outgoing links by scanning wikilinks in `{kb-root}` manually and report that the helper was unavailable.
 
-## Agent Context Output
+## Query Output
 
-Use this structure for `agent-context`:
+Use this structure for every query response:
 
 ```yaml
-query_mode: agent-context
+query_mode: context
 task_stage: design-context
 depth: standard-context
 confidence: medium
@@ -213,26 +212,10 @@ suggested_actions:
 side_effects: none
 ```
 
-Keep `agent-context` compact. Prefer `relevant_pages` over separate domain,
+Keep the output compact. Prefer `relevant_pages` over separate domain,
 flow, contract, module, risk, and coupling lists unless the user explicitly asks
 for a full report. Put the reasoning payload in `key_findings`, backed by
 `kb_evidence` and `source_evidence`.
-
-## Human Report Output
-
-Use this structure for `human-report`:
-
-```markdown
-## 结论
-## 涉及业务域
-## 主流程
-## 跨仓契约
-## 相关模块
-## 依赖与耦合
-## 风险点
-## 证据
-## 知识库缺口
-```
 
 ## Evidence Rules
 
