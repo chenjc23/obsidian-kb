@@ -1,0 +1,556 @@
+#!/usr/bin/env node
+
+import { existsSync } from 'node:fs';
+import { mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
+import path from 'node:path';
+import { fileURLToPath, pathToFileURL } from 'node:url';
+
+const REQUIRED_PROPERTIES = ['title', 'type', 'scope', 'repo', 'created', 'updated', 'confidence', 'status', 'sources'];
+const VALID_TYPES = new Set([
+  'product-line',
+  'glossary',
+  'domain',
+  'flow',
+  'contract',
+  'module',
+  'repo-overview',
+  'architecture',
+  'api',
+  'data-model',
+  'config',
+  'implementation',
+  'risk',
+  'index',
+  'log',
+]);
+const VALID_CONFIDENCE = new Set(['high', 'medium', 'low']);
+const VALID_STATUS = new Set(['active', 'stale', 'draft', 'deprecated']);
+
+const SEED_FILES = new Map([
+  ['index.md', seedPage('Code Knowledge Base', 'index', 'product-line', 'global')],
+  ['product-line.md', seedPage('Product Line', 'product-line', 'product-line', 'global')],
+  ['glossary.md', seedPage('Glossary', 'glossary', 'product-line', 'global')],
+  ['global/system-architecture.md', seedPage('System Architecture', 'architecture', 'product-line', 'global')],
+  ['global/dependency-graph.md', seedPage('Dependency Graph', 'architecture', 'product-line', 'global')],
+  ['global/business-domain-map.md', seedPage('Business Domain Map', 'index', 'product-line', 'global')],
+  ['global/contract-map.md', seedPage('Contract Map', 'index', 'product-line', 'global')],
+  ['global/data-flow.md', seedPage('Data Flow', 'architecture', 'product-line', 'global')],
+  ['global/risk-map.md', seedPage('Risk Map', 'risk', 'product-line', 'global')],
+  ['global/shared-patterns.md', seedPage('Shared Patterns', 'architecture', 'product-line', 'global')],
+  ['global/cross-repo-concerns.md', seedPage('Cross Repo Concerns', 'architecture', 'product-line', 'global')],
+  ['indexes/domain-index.md', seedPage('Domain Index', 'index', 'product-line', 'global')],
+  ['indexes/flow-index.md', seedPage('Flow Index', 'index', 'product-line', 'global')],
+  ['indexes/module-index.md', seedPage('Module Index', 'index', 'product-line', 'global')],
+  ['indexes/contract-index.md', seedPage('Contract Index', 'index', 'product-line', 'global')],
+  ['indexes/term-index.md', seedPage('Term Index', 'index', 'product-line', 'global')],
+  ['indexes/source-index.md', seedPage('Source Index', 'index', 'product-line', 'global')],
+  ['log.md', seedPage('Knowledge Base Log', 'log', 'product-line', 'global')],
+]);
+
+function today() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function seedPage(title, type, scope, repo) {
+  return `---
+title: ${title}
+type: ${type}
+scope: ${scope}
+repo: ${repo}
+domain: []
+tags:
+  - code-kb/${type}
+aliases: []
+created: ${today()}
+updated: ${today()}
+sources: []
+confidence: low
+status: draft
+---
+# ${title}
+
+> This page was initialized by the Obsidian KB helper. Replace this seed text with product-line knowledge.
+`;
+}
+
+export function parseArgs(args = []) {
+  const parsed = { positional: [], json: false, kbRoot: undefined };
+  for (let index = 0; index < args.length; index += 1) {
+    const value = args[index];
+    if (value === '--json') {
+      parsed.json = true;
+    } else if (value === '--kb-root') {
+      parsed.kbRoot = args[index + 1];
+      index += 1;
+    } else {
+      parsed.positional.push(value);
+    }
+  }
+  return parsed;
+}
+
+export function resolveContext({ cwd = process.cwd(), args = [] } = {}) {
+  const parsed = parseArgs(args);
+  const kbRoot = parsed.kbRoot ? path.resolve(cwd, parsed.kbRoot) : path.join(cwd, 'code-kb');
+  return {
+    workspaceRoot: cwd,
+    kbRoot,
+    json: parsed.json,
+    positional: parsed.positional,
+  };
+}
+
+export async function initKnowledgeBase({ kbRoot }) {
+  await mkdir(kbRoot, { recursive: true });
+  for (const directory of ['global', 'domains', 'flows', 'contracts', 'repos', 'indexes']) {
+    await mkdir(path.join(kbRoot, directory), { recursive: true });
+  }
+
+  const created = [];
+  for (const [relativePath, content] of SEED_FILES) {
+    const fullPath = path.join(kbRoot, relativePath);
+    await mkdir(path.dirname(fullPath), { recursive: true });
+    if (!existsSync(fullPath)) {
+      await writeFile(fullPath, content, 'utf8');
+      created.push(relativePath);
+    }
+  }
+  return { kbRoot, created };
+}
+
+export async function collectMarkdownFiles(root) {
+  const files = [];
+
+  async function walk(current) {
+    if (!existsSync(current)) return;
+    const entries = await readdir(current, { withFileTypes: true });
+    for (const entry of entries) {
+      const fullPath = path.join(current, entry.name);
+      if (entry.isDirectory()) {
+        await walk(fullPath);
+      } else if (entry.isFile() && entry.name.endsWith('.md')) {
+        files.push(fullPath);
+      }
+    }
+  }
+
+  await walk(root);
+  return files.sort();
+}
+
+export function parseFrontmatter(markdown) {
+  const normalized = markdown.replace(/\r\n/g, '\n');
+  if (!normalized.startsWith('---\n')) {
+    return { data: {}, body: markdown };
+  }
+  const end = normalized.indexOf('\n---', 4);
+  if (end === -1) {
+    return { data: {}, body: markdown };
+  }
+
+  const raw = normalized.slice(4, end).trimEnd();
+  const body = normalized.slice(end + 4).replace(/^\n/, '');
+  return { data: parseSimpleYaml(raw), body };
+}
+
+function parseSimpleYaml(raw) {
+  const data = {};
+  const lines = raw.split(/\r?\n/);
+  let activeKey = null;
+
+  for (const line of lines) {
+    if (!line.trim()) continue;
+    const listMatch = line.match(/^\s+-\s*(.*)$/);
+    if (listMatch && activeKey) {
+      if (!Array.isArray(data[activeKey])) data[activeKey] = [];
+      data[activeKey].push(stripQuotes(listMatch[1].trim()));
+      continue;
+    }
+
+    const keyMatch = line.match(/^([A-Za-z0-9_-]+):\s*(.*)$/);
+    if (!keyMatch) continue;
+    const [, key, rawValue] = keyMatch;
+    activeKey = key;
+
+    if (rawValue === '' || rawValue === '[]') {
+      data[key] = [];
+    } else if (rawValue.startsWith('[') && rawValue.endsWith(']')) {
+      data[key] = rawValue
+        .slice(1, -1)
+        .split(',')
+        .map((item) => stripQuotes(item.trim()))
+        .filter(Boolean);
+    } else {
+      data[key] = stripQuotes(rawValue.trim());
+    }
+  }
+
+  return data;
+}
+
+function stripQuotes(value) {
+  return value.replace(/^['"]|['"]$/g, '');
+}
+
+export function extractWikiLinks(markdown) {
+  const links = [];
+  const regex = /!?\[\[([^\]|#]+)(?:#[^\]|]+)?(?:\|[^\]]+)?\]\]/g;
+  for (const match of markdown.matchAll(regex)) {
+    const target = match[1].trim();
+    if (target) links.push(target);
+  }
+  return [...new Set(links)];
+}
+
+export async function buildIndex({ kbRoot, writeIndexes = true }) {
+  const files = await collectMarkdownFiles(kbRoot);
+  const pages = [];
+  const incomingLinks = new Map();
+
+  for (const fullPath of files) {
+    const markdown = await readFile(fullPath, 'utf8');
+    const relativePath = path.relative(kbRoot, fullPath).replace(/\\/g, '/');
+    const parsed = parseFrontmatter(markdown);
+    const page = {
+      relativePath,
+      title: parsed.data.title || path.basename(relativePath, '.md'),
+      type: parsed.data.type || '',
+      scope: parsed.data.scope || '',
+      repo: parsed.data.repo || '',
+      created: parsed.data.created || '',
+      updated: parsed.data.updated || '',
+      domain: arrayValue(parsed.data.domain),
+      aliases: arrayValue(parsed.data.aliases),
+      tags: arrayValue(parsed.data.tags),
+      sources: arrayValue(parsed.data.sources),
+      confidence: parsed.data.confidence || '',
+      status: parsed.data.status || '',
+      outgoingLinks: extractWikiLinks(markdown),
+    };
+    pages.push(page);
+  }
+
+  for (const page of pages) {
+    for (const link of page.outgoingLinks) {
+      const target = normalizeTarget(link);
+      const incoming = incomingLinks.get(target) || [];
+      incoming.push(page.relativePath);
+      incomingLinks.set(target, incoming.sort());
+    }
+  }
+
+  const index = { kbRoot, pages, incomingLinks };
+  if (writeIndexes) {
+    await writeIndexPages(index);
+  }
+  return index;
+}
+
+function arrayValue(value) {
+  if (Array.isArray(value)) return value;
+  if (value === undefined || value === null || value === '') return [];
+  return [value];
+}
+
+function normalizeTarget(target) {
+  const normalized = target.replace(/\\/g, '/').replace(/^\.\//, '');
+  return normalized.endsWith('.md') ? normalized : `${normalized}.md`;
+}
+
+async function writeIndexPages(index) {
+  const byType = new Map();
+  for (const page of index.pages) {
+    const list = byType.get(page.type) || [];
+    list.push(page);
+    byType.set(page.type, list);
+  }
+
+  await writeGeneratedIndex(index.kbRoot, 'indexes/domain-index.md', 'Domain Index', byType.get('domain') || []);
+  await writeGeneratedIndex(index.kbRoot, 'indexes/flow-index.md', 'Flow Index', byType.get('flow') || []);
+  await writeGeneratedIndex(index.kbRoot, 'indexes/module-index.md', 'Module Index', byType.get('module') || []);
+  await writeGeneratedIndex(index.kbRoot, 'indexes/contract-index.md', 'Contract Index', byType.get('contract') || []);
+  await writeGeneratedIndex(index.kbRoot, 'indexes/source-index.md', 'Source Index', index.pages.filter((page) => page.sources.length > 0));
+  await writeTermIndex(index);
+}
+
+async function writeGeneratedIndex(kbRoot, relativePath, title, pages) {
+  const lines = [
+    '---',
+    `title: ${title}`,
+    'type: index',
+    'scope: product-line',
+    'repo: global',
+    'domain: []',
+    'tags:',
+    '  - code-kb/index',
+    'aliases: []',
+    `created: ${today()}`,
+    `updated: ${today()}`,
+    'sources: []',
+    'confidence: medium',
+    'status: active',
+    '---',
+    `# ${title}`,
+    '',
+    ...pages.map((page) => `- [[${page.relativePath.replace(/\.md$/, '')}|${page.title}]] - ${page.type || 'unknown'}`),
+    '',
+  ];
+  await writeFile(path.join(kbRoot, relativePath), lines.join('\n'), 'utf8');
+}
+
+async function writeTermIndex(index) {
+  const rows = [];
+  for (const page of index.pages) {
+    for (const alias of page.aliases) {
+      rows.push(`- ${alias} -> [[${page.relativePath.replace(/\.md$/, '')}|${page.title}]]`);
+    }
+  }
+
+  const lines = [
+    '---',
+    'title: Term Index',
+    'type: index',
+    'scope: product-line',
+    'repo: global',
+    'domain: []',
+    'tags:',
+    '  - code-kb/index',
+    'aliases: []',
+    `created: ${today()}`,
+    `updated: ${today()}`,
+    'sources: []',
+    'confidence: medium',
+    'status: active',
+    '---',
+    '# Term Index',
+    '',
+    ...rows,
+    '',
+  ];
+  await writeFile(path.join(index.kbRoot, 'indexes/term-index.md'), lines.join('\n'), 'utf8');
+}
+
+export async function lintKnowledgeBase({ kbRoot }) {
+  const index = await buildIndex({ kbRoot, writeIndexes: false });
+  const issues = [];
+  const existingPages = new Set(index.pages.map((page) => page.relativePath));
+
+  for (const page of index.pages) {
+    for (const property of REQUIRED_PROPERTIES) {
+      const value = page[property];
+      if (value === undefined || value === '') {
+        issues.push({
+          severity: 'error',
+          type: 'frontmatter',
+          page: page.relativePath,
+          message: `Missing required property: ${property}`,
+        });
+      }
+    }
+
+    if (page.confidence && !VALID_CONFIDENCE.has(page.confidence)) {
+      issues.push({
+        severity: 'error',
+        type: 'frontmatter',
+        page: page.relativePath,
+        message: `Invalid confidence: ${page.confidence}`,
+      });
+    }
+
+    if (page.type && !VALID_TYPES.has(page.type)) {
+      issues.push({
+        severity: 'error',
+        type: 'frontmatter',
+        page: page.relativePath,
+        message: `Invalid type: ${page.type}`,
+      });
+    }
+
+    if (page.status && !VALID_STATUS.has(page.status)) {
+      issues.push({
+        severity: 'error',
+        type: 'frontmatter',
+        page: page.relativePath,
+        message: `Invalid status: ${page.status}`,
+      });
+    }
+
+    for (const link of page.outgoingLinks) {
+      const target = normalizeTarget(link);
+      if (!existingPages.has(target)) {
+        issues.push({
+          severity: 'warning',
+          type: 'broken-link',
+          page: page.relativePath,
+          target,
+          message: `Broken wikilink: ${link}`,
+        });
+      }
+    }
+
+    const incoming = index.incomingLinks.get(page.relativePath) || [];
+    if (incoming.length === 0 && page.outgoingLinks.length === 0 && !isIntentionalEntryPage(page.relativePath)) {
+      issues.push({
+        severity: 'warning',
+        type: 'orphan',
+        page: page.relativePath,
+        message: 'Page has no incoming or outgoing wikilinks',
+      });
+    }
+
+    if (page.type === 'flow') {
+      if (page.domain.length === 0) {
+        issues.push({
+          severity: 'warning',
+          type: 'flow-linkage',
+          page: page.relativePath,
+          message: 'Flow page is missing domain metadata',
+        });
+      }
+      if (!page.outgoingLinks.some((link) => link.startsWith('contracts/') || link.includes('/modules/'))) {
+        issues.push({
+          severity: 'warning',
+          type: 'flow-linkage',
+          page: page.relativePath,
+          message: 'Flow page should link related contracts or modules',
+        });
+      }
+    }
+
+    if (page.type === 'contract') {
+      if (!page.outgoingLinks.some((link) => link.startsWith('repos/'))) {
+        issues.push({
+          severity: 'warning',
+          type: 'contract-linkage',
+          page: page.relativePath,
+          message: 'Contract page should link producer or consumer repo/module pages',
+        });
+      }
+    }
+  }
+
+  return { kbRoot, issues };
+}
+
+function isIntentionalEntryPage(relativePath) {
+  return ['index.md', 'product-line.md', 'glossary.md', 'log.md'].includes(relativePath)
+    || relativePath.startsWith('indexes/')
+    || relativePath.startsWith('global/');
+}
+
+export async function getLinks({ kbRoot, target }) {
+  const index = await buildIndex({ kbRoot, writeIndexes: false });
+  const normalizedTarget = normalizeTarget(target);
+  const page = index.pages.find((candidate) => candidate.relativePath === normalizedTarget);
+  return {
+    kbRoot,
+    target: normalizedTarget,
+    incoming: index.incomingLinks.get(normalizedTarget) || [],
+    outgoing: page ? page.outgoingLinks.map(normalizeTarget) : [],
+  };
+}
+
+export async function buildReport({ kbRoot }) {
+  const index = await buildIndex({ kbRoot, writeIndexes: false });
+  const lint = await lintKnowledgeBase({ kbRoot });
+  const byType = countBy(index.pages, 'type');
+  const byConfidence = countBy(index.pages, 'confidence');
+  return {
+    kbRoot,
+    pageCount: index.pages.length,
+    issueCount: lint.issues.length,
+    byType,
+    byConfidence,
+  };
+}
+
+function countBy(items, key) {
+  const counts = {};
+  for (const item of items) {
+    const value = item[key] || 'unknown';
+    counts[value] = (counts[value] || 0) + 1;
+  }
+  return counts;
+}
+
+function serializeIndex(index) {
+  return {
+    kbRoot: index.kbRoot,
+    pages: index.pages,
+    incomingLinks: Object.fromEntries(index.incomingLinks),
+  };
+}
+
+function printResult(result, json) {
+  if (json) {
+    console.log(JSON.stringify(result, null, 2));
+  } else if (Array.isArray(result)) {
+    for (const item of result) console.log(item);
+  } else if (result && typeof result === 'object') {
+    for (const [key, value] of Object.entries(result)) {
+      if (Array.isArray(value)) {
+        console.log(`${key}: ${value.length}`);
+        for (const item of value) console.log(`  - ${typeof item === 'string' ? item : JSON.stringify(item)}`);
+      } else if (value && typeof value === 'object') {
+        console.log(`${key}: ${JSON.stringify(value)}`);
+      } else {
+        console.log(`${key}: ${value}`);
+      }
+    }
+  } else {
+    console.log(String(result));
+  }
+}
+
+async function runCli() {
+  const [command = 'help', ...rest] = process.argv.slice(2);
+  const context = resolveContext({ args: rest });
+
+  if (command === 'resolve') {
+    printResult(context, context.json);
+    return;
+  }
+
+  if (command === 'init') {
+    printResult(await initKnowledgeBase({ kbRoot: context.kbRoot }), context.json);
+    return;
+  }
+
+  if (command === 'index') {
+    const index = await buildIndex({ kbRoot: context.kbRoot, writeIndexes: true });
+    printResult(serializeIndex(index), context.json);
+    return;
+  }
+
+  if (command === 'lint') {
+    printResult(await lintKnowledgeBase({ kbRoot: context.kbRoot }), context.json);
+    return;
+  }
+
+  if (command === 'links') {
+    const target = context.positional[0];
+    if (!target) throw new Error('links requires a target');
+    printResult(await getLinks({ kbRoot: context.kbRoot, target }), context.json);
+    return;
+  }
+
+  if (command === 'report') {
+    printResult(await buildReport({ kbRoot: context.kbRoot }), context.json);
+    return;
+  }
+
+  printResult({
+    usage: 'node skills/using-obsidian/scripts/obsidian-kb.mjs <resolve|init|index|lint|links|report> [--kb-root <path>] [--json]',
+  }, context.json);
+}
+
+const isMain = process.argv[1]
+  && import.meta.url === pathToFileURL(fileURLToPath(import.meta.url)).href
+  && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href;
+
+if (isMain) {
+  runCli().catch((error) => {
+    console.error(error.message);
+    process.exitCode = 1;
+  });
+}
