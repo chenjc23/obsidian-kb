@@ -29,13 +29,13 @@ Always combine with `obsidian-kb-authoring` when writing notes.
 
 Use this mapping:
 
-- Route/controller/proto changes → `api-surface.md`, related `flows/`, related modules.
-- TLV/protocol/message-code/command-code changes → related `contracts/`, `api-surface.md`, `data-models.md`, related deep flow folders, `跨边界数据流.md`, and `global/data-flow.md`.
-- MQ topic/producer/consumer changes → related `contracts/`, producer and consumer modules, related `flows/`, related deep flow folders, `跨边界数据流.md`, and `global/data-flow.md`.
+- Route/controller/proto changes → `api-surface.md`, related repo-local `flows/`, related modules.
+- TLV/protocol/message-code/command-code changes → related `contracts/`, `api-surface.md`, `data-models.md`, related repo-local deep flow folders, `跨边界数据流.md`, and `global/data-flow.md`.
+- MQ topic/producer/consumer changes → related `contracts/`, producer and consumer modules, related repo-local `flows/`, related deep flow folders, `跨边界数据流.md`, and `global/data-flow.md`.
 - Socket/frame/parser/encoder/decoder changes → related `contracts/`, `data-models.md`, related deep flow folders, `跨边界数据流.md`, `error-handling.md`, and `global/data-flow.md`.
-- Event emit/listen/subscriber changes → related `contracts/`, producer and consumer modules, related `flows/`, related deep flow folders, `跨边界数据流.md`, and `global/data-flow.md`.
+- Event emit/listen/subscriber changes → related `contracts/`, producer and consumer modules, related repo-local `flows/`, related deep flow folders, `跨边界数据流.md`, and `global/data-flow.md`.
 - Handler registry/dispatch table changes → `api-surface.md`, related `contracts/`, affected flow pages, related deep flow folders, `跨边界数据流.md`, and `global/cross-repo-concerns.md`.
-- RPC client/server/interface changes → `contracts/`, `api-surface.md`, producer and consumer modules, related `flows/`, related deep flow folders, `跨边界数据流.md`, and `global/data-flow.md`.
+- RPC client/server/interface changes → `contracts/`, `api-surface.md`, producer and consumer modules, related repo-local `flows/`, related deep flow folders, `跨边界数据流.md`, and `global/data-flow.md`.
 - Type/model/schema changes → `data-models.md`, related flows and modules.
 - Config/env changes → `config-and-env.md`, related flows.
 - Error/retry/fallback changes → `error-handling.md`, related flows and gotchas.

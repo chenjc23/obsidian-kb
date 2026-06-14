@@ -15,8 +15,9 @@ For each repo folder, check required pages:
 
 - `overview.md`
 - `architecture.md`
+- `glossary.md`
 - `modules/` with at least one module page
-- `flows/` with at least one flow page
+- `flows/` with at least one repo-local flow page when the repo has business flows
 - `api-surface.md`
 - `data-models.md`
 - `config-and-env.md`

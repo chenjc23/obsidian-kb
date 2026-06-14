@@ -28,10 +28,8 @@ Resolve `{kb-root}` deterministically:
 A detected knowledge base directory is a directory named `code-kb/` or a directory that contains several of:
 
 - `index.md`
-- `product-line.md`
 - `global/`
 - `repos/`
-- `indexes/`
 - `log.md`
 
 Only ask the user about source repository roots or ingest scope when they cannot be inferred. Never ask where `{kb-root}` should be.
@@ -79,6 +77,9 @@ Do not generate a page for every tiny folder. Prefer pages that match real respo
 
 Generate or update:
 
+- `repos/{repo-name}/glossary.md` from business terms, aliases, domain language,
+  code identifiers with business meaning, status names, protocol terms, and
+  README/domain wording.
 - `repos/{repo-name}/api-surface.md` from routes, proto files, OpenAPI specs, controllers, or message contracts.
 - `repos/{repo-name}/data-models.md` from ORM models, schemas, proto/types, state structures.
 - `repos/{repo-name}/config-and-env.md` from config loading, env vars, feature flags.
@@ -108,6 +109,10 @@ Update:
 - `global/shared-patterns.md`, if common patterns are evident
 - `global/cross-repo-concerns.md`, if shared protocols or contracts are evident
 - `log.md`
+
+Do not generate `indexes/` Markdown pages during ingest. Query-time lookup should
+use page frontmatter, wikilinks, `sources`, helper-built transient indexes, or
+source search instead of maintaining separate thin index notes.
 
 ## Phase 8: Deep Analysis Candidate Confirmation
 

@@ -1,6 +1,6 @@
 # Obsidian Code KB Skill Suite
 
-这是一个面向 agent 的 Obsidian 代码知识库技能套件，用来构建、读取、更新和治理产品线级代码知识库。
+这是一个面向 agent 的 Obsidian 代码知识库技能套件，用来构建、读取、更新和治理多仓代码知识库。
 
 它的目标不是生成普通文档，而是给 agent 提供可检索、可追溯、可用于研发决策的上下文：业务域、架构、模块、接口、协议、关键流程、跨仓依赖、风险点和源码证据。
 
@@ -36,10 +36,8 @@ agent 不应询问用户知识库应该放在哪里。
 
 ```text
 index.md
-product-line.md
 global/
 repos/
-indexes/
 log.md
 ```
 
@@ -56,8 +54,6 @@ log.md
 ```text
 code-kb/
   index.md
-  product-line.md
-  glossary.md
   global/
     system-architecture.md
     dependency-graph.md
@@ -69,14 +65,13 @@ code-kb/
     cross-repo-concerns.md
   domains/
     {业务域}.md
-  flows/
-    {端到端流程}.md
   contracts/
     {契约名}.md
   repos/
     {repo-name}/
       overview.md
       architecture.md
+      glossary.md
       modules/
       flows/
       api-surface.md
@@ -86,13 +81,6 @@ code-kb/
       testing-strategy.md
       key-implementations.md
       gotchas.md
-  indexes/
-    domain-index.md
-    flow-index.md
-    module-index.md
-    contract-index.md
-    term-index.md
-    source-index.md
   log.md
 ```
 
@@ -101,7 +89,7 @@ code-kb/
 ### 1. 初始化
 
 ```text
-Use using-obsidian to initialize a product-line code knowledge base in the current workspace.
+Use using-obsidian to initialize a multi-repository code knowledge base in the current workspace.
 ```
 
 agent 会创建 `code-kb/` 的基础结构和种子页面。
@@ -112,7 +100,7 @@ agent 会创建 `code-kb/` 的基础结构和种子页面。
 Use using-obsidian to ingest the repositories under this workspace into code-kb.
 ```
 
-`obsidian-kb-ingest` 会先做宽度扫描，再生成仓库概览、架构、模块、接口、数据模型、关键流程和全局索引。
+`obsidian-kb-ingest` 会先做宽度扫描，再生成仓库概览、架构、模块、接口、数据模型、关键流程和全局页面。
 
 `depth 2` 只用于快速识别仓库地形，不是业务流程发现上限。agent 必须继续深入扫描入口、接口、handler、协议分发、消息消费、状态机、定时任务和核心 orchestrator。
 
@@ -177,8 +165,8 @@ repos/{repo-name}/flows/{分析主题}/
 1. 自动发现 `{kb-root}`。
 2. 判断任务阶段。
 3. 抽取用户提到的业务词、类、字段、接口、协议、消息、模块、文件等实体。
-4. 优先读取 `indexes/`。
-5. 读取相关 `domains/`、`flows/`、`contracts/`、`repos/`、`global/` 页面。
+4. 用 helper `search` 或 `rg` 在 frontmatter、标题、别名、正文、wikilinks 和 `sources` 中快速定位候选页面。
+5. 读取相关 `domains/`、`contracts/`、`repos/{repo-name}/flows/`、`repos/`、`global/` 页面。
 6. 沿 wikilinks/backlinks 查找上下游影响。
 7. 必要时读取源码验证。
 8. 输出受影响流程、契约、模块、数据结构、跨边界消息、风险、证据和知识库缺口。
@@ -248,7 +236,7 @@ Use using-obsidian to lint the current code-kb.
 ---
 title: 页面标题
 type: flow
-scope: product-line
+scope: workspace
 repo: global
 created: 2026-06-12
 updated: 2026-06-12
@@ -278,7 +266,7 @@ using-obsidian/scripts/obsidian-kb.mjs
 ```bash
 node using-obsidian/scripts/obsidian-kb.mjs resolve --json
 node using-obsidian/scripts/obsidian-kb.mjs init
-node using-obsidian/scripts/obsidian-kb.mjs index
+node using-obsidian/scripts/obsidian-kb.mjs search "业务开通" --json
 node using-obsidian/scripts/obsidian-kb.mjs lint
 node using-obsidian/scripts/obsidian-kb.mjs links contracts/AllocateResource.md --json
 node using-obsidian/scripts/obsidian-kb.mjs report --json
@@ -289,7 +277,7 @@ helper 只是确定性辅助工具，不改变 skill 的权限规则。只读查
 ## 常用提示词
 
 ```text
-使用 using-obsidian，在当前 workspace 初始化一个产品线级代码知识库。
+使用 using-obsidian，在当前 workspace 初始化一个多仓代码知识库。
 ```
 
 ```text

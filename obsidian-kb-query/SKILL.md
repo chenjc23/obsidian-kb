@@ -1,6 +1,6 @@
 ---
 name: obsidian-kb-query
-description: Use to retrieve read-only business, architecture, flow, contract, module, dependency, risk, and source evidence context from a product-line Obsidian code knowledge base for agents at any development stage.
+description: Use to retrieve read-only business, architecture, flow, contract, module, dependency, risk, and source evidence context from a multi-repository Obsidian code knowledge base for agents at any development stage.
 ---
 
 # Obsidian KB Query: Read-Only Agent Context Retrieval
@@ -38,7 +38,7 @@ Use this order:
 3. `{cwd}/code-kb`.
 4. Nearest ancestor `code-kb`.
 5. Immediate workspace child named `code-kb`.
-6. Best structural match containing `index.md`, `product-line.md`, `global/`, `repos/`, `indexes/`, and `log.md`.
+6. Best structural match containing `index.md`, `global/`, `repos/`, and `log.md`.
 
 Only ask the user for the path when no candidate exists or multiple candidates are equally plausible.
 
@@ -48,11 +48,22 @@ After finding `{kb-root}`, run the general retrieval protocol below.
 
 1. Classify the task stage: `intent-context`, `design-context`, `implementation-context`, `impact-context`, or `gap-check`.
 2. Extract user-mentioned entities: business terms, classes, structs, fields, APIs, files, modules, repos, contracts, protocols, messages, topics, errors, configs, and aliases.
-3. Read indexes first: `term-index.md`, `domain-index.md`, `flow-index.md`, `contract-index.md`, `module-index.md`, and `source-index.md`.
-4. Use index matches to choose the smallest useful set of pages under `domains/`, `flows/`, `contracts/`, `repos/`, and `global/`.
-5. Follow wikilinks and backlinks for coupling, producer/consumer, domain-to-flow, flow-to-module, and flow-to-contract relationships.
-6. Read source files only when knowledge confidence is low, source verification is needed, or the user asks for implementation-level accuracy.
-7. Return evidence, confidence, affected pages, inferred links, knowledge gaps, suggested actions, and `side_effects: none`.
+3. Find candidate pages directly from durable notes by matching frontmatter, titles,
+   aliases, headings, wikilinks, `sources`, and body text under `domains/`,
+   `contracts/`, `repos/`, `global/`, repo-local `glossary.md`, and root
+   `index.md`.
+4. Prefer fast exact lookup first: use `rg` for user-mentioned business terms,
+   identifiers, APIs, messages, topics, errors, configs, and aliases. If the
+   bundled helper is available, use `links` for backlink expansion after a target
+   page is known.
+5. Use candidate matches to choose the smallest useful set of pages under
+   `domains/`, `contracts/`, `repos/{repo-name}/flows/`, `repos/`, and `global/`.
+6. Follow wikilinks and backlinks for coupling, producer/consumer, domain-to-flow,
+   flow-to-module, and flow-to-contract relationships.
+7. Apply the Answer Sufficiency Gate below. If KB evidence is insufficient, read
+   targeted source files before giving the final answer.
+8. Return evidence, confidence, affected pages, inferred links, knowledge gaps,
+   suggested actions, and `side_effects: none`.
 
 Specialized retrieval paths, such as field-change impact analysis, are refinements of this general protocol rather than separate entry conditions.
 
@@ -81,11 +92,38 @@ For "modify a class field / struct field / schema field / message field" questio
 
 Choose the smallest useful depth:
 
-- `quick-context`: indexes plus one to three highly relevant pages.
-- `standard-context`: indexes, domains, flows, contracts, modules, and risk pages.
+- `quick-context`: exact page matches plus one to three highly relevant pages.
+- `standard-context`: matched domains, flows, contracts, modules, and risk pages.
 - `deep-context`: standard context plus source-code verification.
 
 Use `deep-context` when preparing code changes, when confidence is low, or when contract/risk impact is high.
+
+## Answer Sufficiency Gate
+
+Before answering, decide whether knowledge-base evidence is sufficient.
+
+KB evidence is insufficient when:
+
+- no page directly matches the user-mentioned business term, entity, or alias;
+- matched pages have `confidence: low`, `status: stale`, or missing `sources`;
+- matched pages only summarize a topic but do not answer the requested cause,
+  effect, branch behavior, field semantics, state transition, contract payload,
+  producer/consumer logic, or error behavior;
+- the question mentions a class, field, API, message, topic, config, error, or
+  source file that is absent from matched KB pages;
+- linked flow, contract, module, or global pages disagree;
+- a communication boundary is named but either sender or receiver behavior is not
+  described with evidence.
+
+When evidence is insufficient, read targeted source files before giving the final
+answer. Use `sources` from matched pages first, then search the repository with
+`rg` for the extracted entities. Keep this read-only and report both
+`kb_evidence` and `source_evidence`.
+
+If source lookup still cannot produce a complete answer, answer with explicit
+uncertainty instead of compressing the gap into a brief conclusion. Set
+`answer_sufficiency: partial` or `answer_sufficiency: insufficient`, list what is
+missing, and include suggested next actions.
 
 ## Context Checkpoints
 
@@ -104,19 +142,23 @@ Use this skill before:
 
 Read in this order:
 
-1. `indexes/term-index.md`
-2. `indexes/domain-index.md`
-3. `indexes/flow-index.md`
-4. `indexes/contract-index.md`
-5. `indexes/module-index.md`
-6. `global/risk-map.md` and relevant `gotchas.md`
-7. Relevant pages under `domains/`, `flows/`, `contracts/`, and `repos/`
-8. `indexes/source-index.md` and source files only when verification is needed
+1. Exact matches in frontmatter, title, aliases, headings, wikilinks, `sources`,
+   and body text using `rg`, or the bundled helper `search` command when
+   available.
+2. Relevant pages under `domains/`, `contracts/`, `repos/{repo-name}/flows/`, `repos/`, `global/`,
+   repo-local `glossary.md`, and root `index.md`.
+3. Backlinks and outgoing links using the bundled helper `links` when available,
+   or manual wikilink scanning when unavailable.
+4. `global/risk-map.md` and relevant `gotchas.md` when the task involves design,
+   implementation, impact, debugging, review, or testing.
+5. Source files from matched page `sources`.
+6. Additional source files found by `rg` when the Answer Sufficiency Gate fails.
 
 For field-change impact questions:
 
 1. Identify the class, struct, schema, proto message, TLV field, DTO, entity, or config object.
-2. Search `indexes/source-index.md`, `indexes/module-index.md`, `indexes/flow-index.md`, and `indexes/contract-index.md` for the type name, field name, source file, and aliases.
+2. Search durable KB pages and frontmatter for the type name, field name, source
+   file, and aliases.
 3. Read matching `data-models.md`, `api-surface.md`, contract pages, related flow pages, and related deep flow folders.
 4. If communication boundaries are involved, read `跨边界数据流.md`, `global/data-flow.md`, and producer/consumer module pages.
 5. Verify against source files when confidence is low or when the field crosses protocol, MQ, RPC, event, socket, or TLV boundaries.
@@ -139,56 +181,42 @@ query_mode: agent-context
 task_stage: design-context
 depth: standard-context
 confidence: medium
-matched_terms:
-  - term: 业务开通
-    aliases:
-      - Service Provisioning
-    pages:
-      - [[glossary#业务开通]]
-domains:
-  - name: 业务开通
-    page: [[domains/业务开通]]
+answer_sufficiency: partial
+source_lookup_performed: true
+source_lookup_reason: 知识库缺少资源回滚分支的字段消费证据
+matched_entities:
+  - 业务开通
+  - AllocateResource
+relevant_pages:
+  - page: [[repos/order-service/glossary#业务开通]]
+    role: term
     relevance: high
-flows:
-  - name: 业务开通端到端流程
-    page: [[flows/业务开通端到端流程]]
+  - page: [[repos/order-service/flows/业务开通端到端流程]]
+    role: flow
     relevance: high
-    role: 主流程
-contracts:
-  - name: AllocateResource
-    page: [[contracts/AllocateResource]]
-    kind: rpc
-    producer:
-      - resource-service
-    consumers:
-      - order-service
-    risk: high
-modules:
-  - repo: order-service
-    module: 订单编排
-    page: [[repos/order-service/modules/订单编排]]
-    role: 入口编排
-coupling_points:
-  - [[contracts/AllocateResource]]
-risks:
-  - [[global/risk-map#资源预占一致性]]
+  - page: [[contracts/AllocateResource]]
+    role: contract
+    relevance: medium
+key_findings:
+  - AllocateResource 可能影响订单开通主流程。
+  - 资源回滚分支证据不足，需要源码或 deep-analysis 补足。
 kb_evidence:
-  - [[indexes/flow-index]]
-  - [[flows/业务开通端到端流程]]
+  - [[repos/order-service/flows/业务开通端到端流程]]
 source_evidence:
   - repos/order-service/src/orders/create.ts:createOrder()
-inferred_from_links:
-  - statement: AllocateResource 可能影响订单开通主流程
-    evidence:
-      - [[flows/业务开通端到端流程]]
-      - [[contracts/AllocateResource]]
-    confidence: medium
+missing_for_complete_answer:
+  - 资源回滚分支缺少 deep-analysis 页面
 knowledge_gaps:
   - 资源回滚分支缺少 deep-analysis 页面
 suggested_actions:
   - 用户授权后可对资源回滚路径执行 deep-analysis
 side_effects: none
 ```
+
+Keep `agent-context` compact. Prefer `relevant_pages` over separate domain,
+flow, contract, module, risk, and coupling lists unless the user explicitly asks
+for a full report. Put the reasoning payload in `key_findings`, backed by
+`kb_evidence` and `source_evidence`.
 
 ## Human Report Output
 
@@ -209,11 +237,13 @@ Use this structure for `human-report`:
 ## Evidence Rules
 
 - Do not return only a conclusion.
-- Every knowledge base page, index page, link query, or source file used for judgment must appear in evidence.
+- Every knowledge base page, helper search/link query, or source file used for judgment must appear in evidence.
 - If source code was read, include `source_evidence`.
 - If a conclusion is inferred from links, place it under `inferred_from_links`.
 - If knowledge base notes conflict with source code, source code wins. Report the page as stale in the response; do not edit it.
 - If evidence is insufficient, set `confidence: low`.
+- Always include `answer_sufficiency`, `source_lookup_performed`, and
+  `source_lookup_reason`.
 
 ## When Knowledge Is Missing
 

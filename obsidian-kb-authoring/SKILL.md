@@ -1,16 +1,16 @@
 ---
 name: obsidian-kb-authoring
-description: Use whenever creating, editing, or reviewing product-line Obsidian code knowledge-base pages. Applies Obsidian Markdown syntax through obsidian-markdown and defines the product-line code-kb page schema, properties, source evidence, confidence, status, and bidirectional link contract.
+description: Use whenever creating, editing, or reviewing multi-repository Obsidian code knowledge-base pages. Applies Obsidian Markdown syntax through obsidian-markdown and defines the code-kb page schema, properties, source evidence, confidence, status, and bidirectional link contract.
 ---
 
-# Product-Line Obsidian Code KB Authoring
+# Multi-Repository Obsidian Code KB Authoring
 
 This skill defines the knowledge engineering contract for `code-kb/`.
 
 When writing notes:
 
 1. Follow `obsidian-markdown` for Obsidian syntax.
-2. Follow this skill for product-line code knowledge rules.
+2. Follow this skill for multi-repository code knowledge rules.
 
 ## Default Knowledge Base Root
 
@@ -25,8 +25,6 @@ Use another path only when the user explicitly specifies one.
 ```text
 code-kb/
   index.md
-  product-line.md
-  glossary.md
   global/
     system-architecture.md
     dependency-graph.md
@@ -38,14 +36,13 @@ code-kb/
     cross-repo-concerns.md
   domains/
     {业务域}.md
-  flows/
-    {端到端流程}.md
   contracts/
     {契约名}.md
   repos/
     {repo-name}/
       overview.md
       architecture.md
+      glossary.md
       modules/
         {模块名}.md
       flows/
@@ -57,15 +54,38 @@ code-kb/
       testing-strategy.md
       key-implementations.md
       gotchas.md
-  indexes/
-    domain-index.md
-    flow-index.md
-    module-index.md
-    contract-index.md
-    term-index.md
-    source-index.md
   log.md
 ```
+
+Directory responsibilities:
+
+- `index.md`: knowledge base entry page; links global maps, domains,
+  contracts, and repo overviews.
+- `global/`: workspace-wide architecture, dependency maps, business-domain
+  map, contract map, data-flow map, shared risks, shared patterns, and cross-repo
+  concerns. It summarizes and links; it does not hold detailed flow traces.
+- `domains/`: business-domain pages. A domain page defines business concepts,
+  responsibilities, invariants, and links to repo-local flows that implement the
+  domain.
+- `contracts/`: cross-boundary contracts such as HTTP/RPC APIs, MQ topics,
+  events, protocol messages, TLV/frame definitions, and producer/consumer
+  relationships.
+- `repos/{repo-name}/`: all repository-specific knowledge for one source repo.
+- `repos/{repo-name}/glossary.md`: business terms, aliases, source-backed
+  meanings, and repo-specific vocabulary used by that repo.
+- `repos/{repo-name}/modules/`: module responsibility pages inside that repo.
+- `repos/{repo-name}/flows/`: all business flow pages and deep-analysis flow
+  folders for that repo, including flows that participate in cross-repo behavior.
+- `log.md`: meaningful knowledge-base operations and confidence-impacting
+  changes.
+
+Do not create a separate `indexes/` Markdown directory by default.
+
+The durable knowledge base should stay in readable pages: `domains/`,
+`contracts/`, `repos/`, and `global/` are the source of truth. Agents and helper
+scripts may build transient in-memory indexes from page frontmatter, wikilinks,
+and `sources`, but ingest and deep-analysis should not generate thin Markdown
+index pages such as `flow-index.md` or `source-index.md`.
 
 ## Required Properties
 
@@ -75,7 +95,7 @@ Every page starts with Obsidian properties:
 ---
 title: 业务开通端到端流程
 type: flow
-scope: product-line
+scope: workspace
 repo: global
 domain:
   - 业务开通
@@ -127,7 +147,6 @@ Allowed status values:
 
 ## Page Types
 
-- `product-line`
 - `glossary`
 - `domain`
 - `flow`
@@ -192,7 +211,7 @@ Use Obsidian wikilinks for knowledge base pages:
 
 ```markdown
 [[domains/业务开通]]
-[[flows/业务开通端到端流程]]
+[[repos/order-service/flows/业务开通端到端流程]]
 [[contracts/AllocateResource]]
 [[repos/resource-service/modules/资源分配]]
 [[global/risk-map#资源预占一致性]]

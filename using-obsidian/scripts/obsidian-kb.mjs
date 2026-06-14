@@ -7,7 +7,6 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const REQUIRED_PROPERTIES = ['title', 'type', 'scope', 'repo', 'created', 'updated', 'confidence', 'status', 'sources'];
 const VALID_TYPES = new Set([
-  'product-line',
   'glossary',
   'domain',
   'flow',
@@ -27,24 +26,16 @@ const VALID_CONFIDENCE = new Set(['high', 'medium', 'low']);
 const VALID_STATUS = new Set(['active', 'stale', 'draft', 'deprecated']);
 
 const SEED_FILES = new Map([
-  ['index.md', seedPage('Code Knowledge Base', 'index', 'product-line', 'global')],
-  ['product-line.md', seedPage('Product Line', 'product-line', 'product-line', 'global')],
-  ['glossary.md', seedPage('Glossary', 'glossary', 'product-line', 'global')],
-  ['global/system-architecture.md', seedPage('System Architecture', 'architecture', 'product-line', 'global')],
-  ['global/dependency-graph.md', seedPage('Dependency Graph', 'architecture', 'product-line', 'global')],
-  ['global/business-domain-map.md', seedPage('Business Domain Map', 'index', 'product-line', 'global')],
-  ['global/contract-map.md', seedPage('Contract Map', 'index', 'product-line', 'global')],
-  ['global/data-flow.md', seedPage('Data Flow', 'architecture', 'product-line', 'global')],
-  ['global/risk-map.md', seedPage('Risk Map', 'risk', 'product-line', 'global')],
-  ['global/shared-patterns.md', seedPage('Shared Patterns', 'architecture', 'product-line', 'global')],
-  ['global/cross-repo-concerns.md', seedPage('Cross Repo Concerns', 'architecture', 'product-line', 'global')],
-  ['indexes/domain-index.md', seedPage('Domain Index', 'index', 'product-line', 'global')],
-  ['indexes/flow-index.md', seedPage('Flow Index', 'index', 'product-line', 'global')],
-  ['indexes/module-index.md', seedPage('Module Index', 'index', 'product-line', 'global')],
-  ['indexes/contract-index.md', seedPage('Contract Index', 'index', 'product-line', 'global')],
-  ['indexes/term-index.md', seedPage('Term Index', 'index', 'product-line', 'global')],
-  ['indexes/source-index.md', seedPage('Source Index', 'index', 'product-line', 'global')],
-  ['log.md', seedPage('Knowledge Base Log', 'log', 'product-line', 'global')],
+  ['index.md', seedPage('Code Knowledge Base', 'index', 'workspace', 'global')],
+  ['global/system-architecture.md', seedPage('System Architecture', 'architecture', 'workspace', 'global')],
+  ['global/dependency-graph.md', seedPage('Dependency Graph', 'architecture', 'workspace', 'global')],
+  ['global/business-domain-map.md', seedPage('Business Domain Map', 'index', 'workspace', 'global')],
+  ['global/contract-map.md', seedPage('Contract Map', 'index', 'workspace', 'global')],
+  ['global/data-flow.md', seedPage('Data Flow', 'architecture', 'workspace', 'global')],
+  ['global/risk-map.md', seedPage('Risk Map', 'risk', 'workspace', 'global')],
+  ['global/shared-patterns.md', seedPage('Shared Patterns', 'architecture', 'workspace', 'global')],
+  ['global/cross-repo-concerns.md', seedPage('Cross Repo Concerns', 'architecture', 'workspace', 'global')],
+  ['log.md', seedPage('Knowledge Base Log', 'log', 'workspace', 'global')],
 ]);
 
 function today() {
@@ -69,18 +60,21 @@ status: draft
 ---
 # ${title}
 
-> This page was initialized by the Obsidian KB helper. Replace this seed text with product-line knowledge.
+> This page was initialized by the Obsidian KB helper. Replace this seed text with workspace knowledge.
 `;
 }
 
 export function parseArgs(args = []) {
-  const parsed = { positional: [], json: false, kbRoot: undefined };
+  const parsed = { positional: [], json: false, kbRoot: undefined, limit: 10 };
   for (let index = 0; index < args.length; index += 1) {
     const value = args[index];
     if (value === '--json') {
       parsed.json = true;
     } else if (value === '--kb-root') {
       parsed.kbRoot = args[index + 1];
+      index += 1;
+    } else if (value === '--limit') {
+      parsed.limit = Number.parseInt(args[index + 1], 10);
       index += 1;
     } else {
       parsed.positional.push(value);
@@ -96,13 +90,14 @@ export function resolveContext({ cwd = process.cwd(), args = [] } = {}) {
     workspaceRoot: cwd,
     kbRoot,
     json: parsed.json,
+    limit: Number.isFinite(parsed.limit) && parsed.limit > 0 ? parsed.limit : 10,
     positional: parsed.positional,
   };
 }
 
 export async function initKnowledgeBase({ kbRoot }) {
   await mkdir(kbRoot, { recursive: true });
-  for (const directory of ['global', 'domains', 'flows', 'contracts', 'repos', 'indexes']) {
+  for (const directory of ['global', 'domains', 'contracts', 'repos']) {
     await mkdir(path.join(kbRoot, directory), { recursive: true });
   }
 
@@ -240,9 +235,9 @@ export async function buildIndex({ kbRoot, writeIndexes = true }) {
   }
 
   const index = { kbRoot, pages, incomingLinks };
-  if (writeIndexes) {
-    await writeIndexPages(index);
-  }
+  // `writeIndexes` is retained for backward-compatible callers. The helper now
+  // keeps indexes transient so this never creates Markdown index pages.
+  void writeIndexes;
   return index;
 }
 
@@ -255,79 +250,6 @@ function arrayValue(value) {
 function normalizeTarget(target) {
   const normalized = target.replace(/\\/g, '/').replace(/^\.\//, '');
   return normalized.endsWith('.md') ? normalized : `${normalized}.md`;
-}
-
-async function writeIndexPages(index) {
-  const byType = new Map();
-  for (const page of index.pages) {
-    const list = byType.get(page.type) || [];
-    list.push(page);
-    byType.set(page.type, list);
-  }
-
-  await writeGeneratedIndex(index.kbRoot, 'indexes/domain-index.md', 'Domain Index', byType.get('domain') || []);
-  await writeGeneratedIndex(index.kbRoot, 'indexes/flow-index.md', 'Flow Index', byType.get('flow') || []);
-  await writeGeneratedIndex(index.kbRoot, 'indexes/module-index.md', 'Module Index', byType.get('module') || []);
-  await writeGeneratedIndex(index.kbRoot, 'indexes/contract-index.md', 'Contract Index', byType.get('contract') || []);
-  await writeGeneratedIndex(index.kbRoot, 'indexes/source-index.md', 'Source Index', index.pages.filter((page) => page.sources.length > 0));
-  await writeTermIndex(index);
-}
-
-async function writeGeneratedIndex(kbRoot, relativePath, title, pages) {
-  const lines = [
-    '---',
-    `title: ${title}`,
-    'type: index',
-    'scope: product-line',
-    'repo: global',
-    'domain: []',
-    'tags:',
-    '  - code-kb/index',
-    'aliases: []',
-    `created: ${today()}`,
-    `updated: ${today()}`,
-    'sources: []',
-    'confidence: medium',
-    'status: active',
-    '---',
-    `# ${title}`,
-    '',
-    ...pages.map((page) => `- [[${page.relativePath.replace(/\.md$/, '')}|${page.title}]] - ${page.type || 'unknown'}`),
-    '',
-  ];
-  await writeFile(path.join(kbRoot, relativePath), lines.join('\n'), 'utf8');
-}
-
-async function writeTermIndex(index) {
-  const rows = [];
-  for (const page of index.pages) {
-    for (const alias of page.aliases) {
-      rows.push(`- ${alias} -> [[${page.relativePath.replace(/\.md$/, '')}|${page.title}]]`);
-    }
-  }
-
-  const lines = [
-    '---',
-    'title: Term Index',
-    'type: index',
-    'scope: product-line',
-    'repo: global',
-    'domain: []',
-    'tags:',
-    '  - code-kb/index',
-    'aliases: []',
-    `created: ${today()}`,
-    `updated: ${today()}`,
-    'sources: []',
-    'confidence: medium',
-    'status: active',
-    '---',
-    '# Term Index',
-    '',
-    ...rows,
-    '',
-  ];
-  await writeFile(path.join(index.kbRoot, 'indexes/term-index.md'), lines.join('\n'), 'utf8');
 }
 
 export async function lintKnowledgeBase({ kbRoot }) {
@@ -433,8 +355,7 @@ export async function lintKnowledgeBase({ kbRoot }) {
 }
 
 function isIntentionalEntryPage(relativePath) {
-  return ['index.md', 'product-line.md', 'glossary.md', 'log.md'].includes(relativePath)
-    || relativePath.startsWith('indexes/')
+  return ['index.md', 'log.md'].includes(relativePath)
     || relativePath.startsWith('global/');
 }
 
@@ -448,6 +369,90 @@ export async function getLinks({ kbRoot, target }) {
     incoming: index.incomingLinks.get(normalizedTarget) || [],
     outgoing: page ? page.outgoingLinks.map(normalizeTarget) : [],
   };
+}
+
+export async function searchKnowledgeBase({ kbRoot, query, limit = 10 }) {
+  const terms = tokenizeQuery(query);
+  const files = await collectMarkdownFiles(kbRoot);
+  const results = [];
+
+  for (const fullPath of files) {
+    const markdown = await readFile(fullPath, 'utf8');
+    const relativePath = path.relative(kbRoot, fullPath).replace(/\\/g, '/');
+    const parsed = parseFrontmatter(markdown);
+    const page = {
+      relativePath,
+      title: parsed.data.title || path.basename(relativePath, '.md'),
+      type: parsed.data.type || '',
+      repo: parsed.data.repo || '',
+      domain: arrayValue(parsed.data.domain),
+      aliases: arrayValue(parsed.data.aliases),
+      tags: arrayValue(parsed.data.tags),
+      sources: arrayValue(parsed.data.sources),
+      confidence: parsed.data.confidence || '',
+      status: parsed.data.status || '',
+      outgoingLinks: extractWikiLinks(markdown),
+    };
+    const scored = scorePage(page, parsed.body, terms);
+    if (scored.score > 0) {
+      results.push({ ...page, score: scored.score, matches: scored.matches, excerpt: makeExcerpt(parsed.body, terms) });
+    }
+  }
+
+  results.sort((a, b) => b.score - a.score || a.relativePath.localeCompare(b.relativePath));
+  return { kbRoot, query, results: results.slice(0, limit) };
+}
+
+function tokenizeQuery(query) {
+  return [...new Set(String(query)
+    .toLowerCase()
+    .split(/[^\p{L}\p{N}_./:-]+/u)
+    .map((term) => term.trim())
+    .filter(Boolean))];
+}
+
+function scorePage(page, body, terms) {
+  const matches = [];
+  let score = 0;
+
+  for (const term of terms) {
+    const weightedFields = [
+      ['title', page.title, 12],
+      ['aliases', page.aliases.join(' '), 10],
+      ['relativePath', page.relativePath, 8],
+      ['domain', page.domain.join(' '), 7],
+      ['tags', page.tags.join(' '), 5],
+      ['sources', page.sources.join(' '), 5],
+      ['links', page.outgoingLinks.join(' '), 3],
+      ['body', body, 1],
+    ];
+
+    for (const [field, rawValue, weight] of weightedFields) {
+      const value = String(rawValue).toLowerCase();
+      if (value.includes(term)) {
+        score += weight;
+        matches.push(`${field}:${term}`);
+      }
+    }
+  }
+
+  if (page.status === 'stale') score -= 2;
+  if (page.confidence === 'high') score += 2;
+  if (page.confidence === 'low') score -= 1;
+
+  return { score, matches: [...new Set(matches)] };
+}
+
+function makeExcerpt(body, terms) {
+  const normalized = body.replace(/\s+/g, ' ').trim();
+  if (!normalized) return '';
+  const lower = normalized.toLowerCase();
+  const firstHit = terms
+    .map((term) => lower.indexOf(term))
+    .filter((index) => index >= 0)
+    .sort((a, b) => a - b)[0] ?? 0;
+  const start = Math.max(0, firstHit - 80);
+  return normalized.slice(start, start + 220);
 }
 
 export async function buildReport({ kbRoot }) {
@@ -471,14 +476,6 @@ function countBy(items, key) {
     counts[value] = (counts[value] || 0) + 1;
   }
   return counts;
-}
-
-function serializeIndex(index) {
-  return {
-    kbRoot: index.kbRoot,
-    pages: index.pages,
-    incomingLinks: Object.fromEntries(index.incomingLinks),
-  };
 }
 
 function printResult(result, json) {
@@ -516,12 +513,6 @@ async function runCli() {
     return;
   }
 
-  if (command === 'index') {
-    const index = await buildIndex({ kbRoot: context.kbRoot, writeIndexes: true });
-    printResult(serializeIndex(index), context.json);
-    return;
-  }
-
   if (command === 'lint') {
     printResult(await lintKnowledgeBase({ kbRoot: context.kbRoot }), context.json);
     return;
@@ -534,13 +525,20 @@ async function runCli() {
     return;
   }
 
+  if (command === 'search') {
+    const query = context.positional.join(' ');
+    if (!query) throw new Error('search requires a query');
+    printResult(await searchKnowledgeBase({ kbRoot: context.kbRoot, query, limit: context.limit }), context.json);
+    return;
+  }
+
   if (command === 'report') {
     printResult(await buildReport({ kbRoot: context.kbRoot }), context.json);
     return;
   }
 
   printResult({
-    usage: 'node skills/using-obsidian/scripts/obsidian-kb.mjs <resolve|init|index|lint|links|report> [--kb-root <path>] [--json]',
+    usage: 'node skills/using-obsidian/scripts/obsidian-kb.mjs <resolve|init|lint|links|search|report> [--kb-root <path>] [--limit <n>] [--json]',
   }, context.json);
 }
 

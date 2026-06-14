@@ -6,7 +6,8 @@ It performs deterministic operations that are safer and more repeatable in code 
 
 - Resolve default paths.
 - Initialize `code-kb/`.
-- Build indexes.
+- Build transient in-memory indexes for commands that need page metadata or links.
+- Search durable notes by title, aliases, frontmatter, wikilinks, sources, and body text.
 - Lint properties and links.
 - Inspect incoming and outgoing links.
 - Report knowledge base health.
@@ -18,9 +19,9 @@ From this repository:
 ```bash
 node skills/using-obsidian/scripts/obsidian-kb.mjs resolve --json
 node skills/using-obsidian/scripts/obsidian-kb.mjs init
-node skills/using-obsidian/scripts/obsidian-kb.mjs index
 node skills/using-obsidian/scripts/obsidian-kb.mjs lint
 node skills/using-obsidian/scripts/obsidian-kb.mjs links contracts/AllocateResource.md --json
+node skills/using-obsidian/scripts/obsidian-kb.mjs search "业务开通" --json
 node skills/using-obsidian/scripts/obsidian-kb.mjs report --json
 ```
 

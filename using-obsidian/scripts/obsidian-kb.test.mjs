@@ -13,6 +13,7 @@ import {
   buildIndex,
   lintKnowledgeBase,
   getLinks,
+  searchKnowledgeBase,
   buildReport,
 } from './obsidian-kb.mjs';
 
@@ -49,7 +50,7 @@ test('resolveContext honors --kb-root override', async () => {
   }
 });
 
-test('initKnowledgeBase creates product-line directories without overwriting notes', async () => {
+test('initKnowledgeBase creates workspace directories without overwriting notes or generated indexes', async () => {
   const workspace = await makeTempWorkspace();
   const kbRoot = path.join(workspace, 'code-kb');
   try {
@@ -58,8 +59,9 @@ test('initKnowledgeBase creates product-line directories without overwriting not
     await initKnowledgeBase({ kbRoot });
     const index = await readFile(path.join(kbRoot, 'index.md'), 'utf8');
     assert.equal(index, 'human content');
-    const productLine = await readFile(path.join(kbRoot, 'product-line.md'), 'utf8');
-    assert.match(productLine, /type: product-line/);
+    await assert.rejects(readFile(path.join(kbRoot, 'product-line.md'), 'utf8'));
+    await assert.rejects(readFile(path.join(kbRoot, 'glossary.md'), 'utf8'));
+    await assert.rejects(readFile(path.join(kbRoot, 'indexes', 'flow-index.md'), 'utf8'));
   } finally {
     await rm(workspace, { recursive: true, force: true });
   }
@@ -69,7 +71,7 @@ test('parseFrontmatter reads properties and extractWikiLinks reads wikilinks', (
   const note = `---
 title: Flow A
 type: flow
-scope: product-line
+scope: workspace
 repo: global
 confidence: high
 status: active
@@ -91,7 +93,7 @@ test('parseFrontmatter supports CRLF line endings', () => {
     '---',
     'title: Windows Note',
     'type: flow',
-    'scope: product-line',
+    'scope: workspace',
     'repo: global',
     'confidence: high',
     'status: active',
@@ -116,7 +118,7 @@ test('buildIndex records pages, properties, outgoing links, and incoming links',
     await writeNote(kbRoot, 'domains/Domain A.md', `---
 title: Domain A
 type: domain
-scope: product-line
+scope: workspace
 repo: global
 confidence: high
 status: active
@@ -125,10 +127,10 @@ sources:
 ---
 # Domain A
 `);
-    await writeNote(kbRoot, 'flows/Flow A.md', `---
+    await writeNote(kbRoot, 'repos/repo-a/flows/Flow A.md', `---
 title: Flow A
 type: flow
-scope: product-line
+scope: workspace
 repo: global
 domain:
   - Domain A
@@ -142,9 +144,9 @@ Related to [[domains/Domain A]] and [[contracts/Contract A]].
 `);
     const index = await buildIndex({ kbRoot, writeIndexes: false });
     assert.equal(index.pages.length >= 2, true);
-    const flow = index.pages.find((page) => page.relativePath === 'flows/Flow A.md');
+    const flow = index.pages.find((page) => page.relativePath === 'repos/repo-a/flows/Flow A.md');
     assert.deepEqual(flow.outgoingLinks.sort(), ['contracts/Contract A', 'domains/Domain A']);
-    assert.deepEqual(index.incomingLinks.get('domains/Domain A.md'), ['flows/Flow A.md']);
+    assert.deepEqual(index.incomingLinks.get('domains/Domain A.md'), ['repos/repo-a/flows/Flow A.md']);
   } finally {
     await rm(workspace, { recursive: true, force: true });
   }
@@ -155,7 +157,7 @@ test('lintKnowledgeBase reports missing required properties and orphan pages', a
   const kbRoot = path.join(workspace, 'code-kb');
   try {
     await initKnowledgeBase({ kbRoot });
-    await writeNote(kbRoot, 'flows/Broken.md', '# Broken\n');
+    await writeNote(kbRoot, 'repos/repo-a/flows/Broken.md', '# Broken\n');
     const result = await lintKnowledgeBase({ kbRoot });
     assert.equal(result.issues.some((issue) => issue.type === 'frontmatter'), true);
     assert.equal(result.issues.some((issue) => issue.type === 'orphan'), true);
@@ -187,7 +189,7 @@ test('lintKnowledgeBase validates created, updated, and page type contract', asy
     await writeNote(kbRoot, 'domains/Bad Type.md', `---
 title: Bad Type
 type: unknown-type
-scope: product-line
+scope: workspace
 repo: global
 confidence: high
 status: active
@@ -222,7 +224,7 @@ test('getLinks returns incoming and outgoing links for a target', async () => {
     await writeNote(kbRoot, 'domains/Domain A.md', `---
 title: Domain A
 type: domain
-scope: product-line
+scope: workspace
 repo: global
 confidence: high
 status: active
@@ -231,10 +233,10 @@ sources:
 ---
 # Domain A
 `);
-    await writeNote(kbRoot, 'flows/Flow A.md', `---
+    await writeNote(kbRoot, 'repos/repo-a/flows/Flow A.md', `---
 title: Flow A
 type: flow
-scope: product-line
+scope: workspace
 repo: global
 confidence: high
 status: active
@@ -245,8 +247,38 @@ sources:
 Uses [[domains/Domain A]].
 `);
     const links = await getLinks({ kbRoot, target: 'domains/Domain A.md' });
-    assert.deepEqual(links.incoming, ['flows/Flow A.md']);
+    assert.deepEqual(links.incoming, ['repos/repo-a/flows/Flow A.md']);
     assert.deepEqual(links.outgoing, []);
+  } finally {
+    await rm(workspace, { recursive: true, force: true });
+  }
+});
+
+test('searchKnowledgeBase ranks durable notes without generated markdown indexes', async () => {
+  const workspace = await makeTempWorkspace();
+  const kbRoot = path.join(workspace, 'code-kb');
+  try {
+    await initKnowledgeBase({ kbRoot });
+    await writeNote(kbRoot, 'domains/Provisioning.md', `---
+title: Service Provisioning
+type: domain
+scope: workspace
+repo: global
+aliases:
+  - 业务开通
+confidence: high
+status: active
+sources:
+  - repos/order-service/src/orders/create.ts:createOrder()
+---
+# Service Provisioning
+业务开通负责创建订单、预占资源并触发下游履约。
+`);
+
+    const result = await searchKnowledgeBase({ kbRoot, query: '业务开通', limit: 3 });
+
+    assert.equal(result.results[0].relativePath, 'domains/Provisioning.md');
+    assert.equal(result.results[0].matches.some((match) => match.startsWith('aliases:')), true);
   } finally {
     await rm(workspace, { recursive: true, force: true });
   }

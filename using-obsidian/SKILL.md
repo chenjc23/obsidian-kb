@@ -1,13 +1,13 @@
 ---
 name: using-obsidian
-description: Use when working with a product-line-level Obsidian code knowledge base, including requirements context, solution design context, repo ingest, knowledge updates, read-only agent query, linting, or deep analysis. This is the routing skill for the obsidian-kb-* suite.
+description: Use when working with a multi-repository Obsidian code knowledge base, including requirements context, solution design context, repo ingest, knowledge updates, read-only agent query, linting, or deep analysis. This is the routing skill for the obsidian-kb-* suite.
 ---
 
-# Using Obsidian Product-Line Code Knowledge Skills
+# Using Obsidian Multi-Repository Code Knowledge Skills
 
 Use this as the entry point for the Obsidian/code-kb skill suite.
 
-The suite builds and operates a product-line-level multi-repository knowledge base. The primary consumer is an agent that needs business, architecture, flow, contract, module, dependency, and risk context while doing software work.
+The suite builds and operates a multi-repository knowledge base. The primary consumer is an agent that needs business, architecture, flow, contract, module, dependency, and risk context while doing software work.
 
 ## Default Paths
 
@@ -29,7 +29,7 @@ When no path is provided, discover `{kb-root}` automatically in this order:
 2. If `{current working directory}/code-kb` exists, use it.
 3. Walk upward from the current working directory and use the nearest ancestor `code-kb/`.
 4. Search immediate workspace children for a directory named `code-kb/`.
-5. If multiple candidates exist, choose the one with the strongest product-line structure: `index.md`, `product-line.md`, `global/`, `repos/`, and `indexes/`.
+5. If multiple candidates exist, choose the one with the strongest multi-repo structure: `index.md`, `global/`, `repos/`, and `log.md`.
 6. If ambiguity remains, choose `{current working directory}/code-kb`.
 
 Do not ask the user where the knowledge base is or where it should be created unless the user explicitly asks to choose between candidates.
@@ -37,10 +37,8 @@ Do not ask the user where the knowledge base is or where it should be created un
 A directory is a likely knowledge base when it contains several of:
 
 - `index.md`
-- `product-line.md`
 - `global/`
 - `repos/`
-- `indexes/`
 - `log.md`
 - pages with `type`, `scope`, `repo`, `sources`, `confidence`, and `status` properties
 
@@ -75,8 +73,8 @@ Choose the smallest set of skills that covers the user's intent:
 
 | User intent | Required skills |
 |---|---|
-| Initialize a product-line knowledge base | `obsidian-kb-authoring` and bundled helper `scripts/obsidian-kb.mjs init` |
-| Create a product-line knowledge base from repositories | `obsidian-kb-ingest` + `obsidian-kb-authoring` |
+| Initialize a multi-repository knowledge base | `obsidian-kb-authoring` and bundled helper `scripts/obsidian-kb.mjs init` |
+| Create a multi-repository knowledge base from repositories | `obsidian-kb-ingest` + `obsidian-kb-authoring` |
 | Update existing notes after code changes | `obsidian-kb-update` + `obsidian-kb-authoring` |
 | Retrieve business/code context for agent work | `obsidian-kb-query` |
 | Check completeness, stale pages, or link health | `obsidian-kb-lint` |
@@ -95,7 +93,7 @@ When multiple intents appear in one request, run them in this order:
 
 `obsidian-kb-query` is a read-only context retrieval protocol.
 
-It may read knowledge base pages, generated indexes, link graphs, and source files for verification. It must not run `ingest`, `update`, or `deep-analysis` by default.
+It may read knowledge base pages, transient helper indexes, link graphs, and source files for verification. It must not run `ingest`, `update`, or `deep-analysis` by default.
 
 If query finds a gap that affects development judgment, report:
 
@@ -138,7 +136,6 @@ If sub-agents are unavailable, the main agent must run the confirmed flows one b
 
 After all confirmed deep analyses finish:
 
-- Refresh or recommend bundled helper `index`.
 - Run or recommend `obsidian-kb-lint`.
 - Summarize completed flows, generated pages, cross-boundary messages, evidence confidence, and remaining gaps.
 
@@ -149,7 +146,7 @@ For any task that writes or edits notes, apply `obsidian-kb-authoring`.
 Preserve these invariants:
 
 - Follow `obsidian-markdown` for Obsidian syntax.
-- Follow `obsidian-kb-authoring` for product-line knowledge engineering rules.
+- Follow `obsidian-kb-authoring` for multi-repository knowledge engineering rules.
 - Write knowledge content in Chinese by default.
 - Keep code identifiers, file paths, library names, API names, protocol names, and technical terms in original spelling.
 - Every generated page has Obsidian properties with `title`, `type`, `scope`, `repo`, `created`, `updated`, `sources`, `confidence`, and `status`.
@@ -163,9 +160,9 @@ Preserve these invariants:
 
 1. Resolve `{kb-root}` and source repository roots.
 2. Route to the execution skill.
-3. Read the smallest useful set of indexes, notes, and sources.
+3. Read the smallest useful set of helper search results, notes, and sources.
 4. Write or update notes only when the user requested a write-oriented task.
-5. Run or recommend bundled helper `index` and `lint` after write-oriented tasks.
+5. Run or recommend bundled helper `lint` after write-oriented tasks.
 6. Summarize changed files, evidence, confidence, and remaining uncertainty.
 
 ## Do Not
