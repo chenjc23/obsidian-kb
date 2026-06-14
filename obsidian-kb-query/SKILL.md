@@ -60,8 +60,9 @@ After finding `{kb-root}`, run the general retrieval protocol below.
    `domains/`, `contracts/`, `repos/{repo-name}/flows/`, `repos/`, and `global/`.
 6. Follow wikilinks and backlinks for coupling, producer/consumer, domain-to-flow,
    flow-to-module, and flow-to-contract relationships.
-7. Apply the Answer Sufficiency Gate below. If KB evidence is insufficient, read
-   targeted source files before giving the final answer.
+7. Apply the Answer Sufficiency Gate below. If KB evidence is missing, too
+   shallow, or cannot support a detailed answer to the user's actual question,
+   read targeted source files before giving the final answer.
 8. Return evidence, confidence, affected pages, inferred links, knowledge gaps,
    suggested actions, and `side_effects: none`.
 
@@ -69,11 +70,18 @@ Specialized retrieval paths, such as field-change impact analysis, are refinemen
 
 ## Output Format
 
-Always return one YAML-style context packet.
+Return a compact YAML-style context packet first, then continue with a detailed
+human-readable answer to the user's question.
 
-Do not switch to a separate human-report Markdown format. Even when the user asks
-for an explanation, use the same structured YAML format and put the readable
-answer in `key_findings`, with evidence and gaps listed explicitly.
+The YAML packet is for traceability and should stay short. Do not include
+internal routing metadata in the user-facing packet. In particular, do not emit
+`query_mode`, `task_stage`, `depth`, `answer_sufficiency`,
+`matched_entities`, `relevant_pages`, `key_findings`, or `source_evidence`.
+
+After the YAML packet, add a Markdown section that directly and thoroughly
+answers the user's question. This detailed answer should contain the reasoning,
+affected flows, risks, evidence discussion, uncertainty, and practical next
+steps that would previously have been compressed into structured fields.
 
 ## Task Stages
 
@@ -95,34 +103,44 @@ Choose the smallest useful depth:
 - `standard-context`: matched domains, flows, contracts, modules, and risk pages.
 - `deep-context`: standard context plus source-code verification.
 
-Use `deep-context` when preparing code changes, when confidence is low, or when contract/risk impact is high.
+Use `deep-context` when preparing code changes, when confidence is low, when
+contract/risk impact is high, or when the matched knowledge-base pages are too
+shallow to support a detailed answer without reading source code.
 
 ## Answer Sufficiency Gate
 
 Before answering, decide whether knowledge-base evidence is sufficient.
 
-KB evidence is insufficient when:
+KB evidence is insufficient, or too shallow to answer from alone, when:
 
 - no page directly matches the user-mentioned business term, entity, or alias;
 - matched pages have `confidence: low`, `status: stale`, or missing `sources`;
 - matched pages only summarize a topic but do not answer the requested cause,
   effect, branch behavior, field semantics, state transition, contract payload,
   producer/consumer logic, or error behavior;
+- matched pages describe only module responsibility, high-level architecture, or
+  first-pass flow outlines, while the user's question asks for detailed behavior,
+  impact reasoning, implementation location, data lineage, branch conditions,
+  call order, failure handling, or test strategy;
+- the knowledge base can identify relevant pages but cannot explain the issue in
+  enough detail to produce the required `## 详细分析` section;
 - the question mentions a class, field, API, message, topic, config, error, or
   source file that is absent from matched KB pages;
 - linked flow, contract, module, or global pages disagree;
 - a communication boundary is named but either sender or receiver behavior is not
   described with evidence.
 
-When evidence is insufficient, read targeted source files before giving the final
-answer. Use `sources` from matched pages first, then search the repository with
-`rg` for the extracted entities. Keep this read-only and report both
-`kb_evidence` and `source_evidence`.
+When evidence is insufficient or shallow, read targeted source files before
+giving the final answer. Start from `sources` on the matched KB pages, then
+follow wikilinks/backlinks to nearby pages and read their `sources`, then search
+the repository with `rg` for the extracted entities. Keep this read-only,
+include knowledge-base pages in `kb_evidence`, and discuss any source files read
+in the detailed Markdown answer instead of adding a separate `source_evidence`
+field.
 
 If source lookup still cannot produce a complete answer, answer with explicit
-uncertainty instead of compressing the gap into a brief conclusion. Set
-`answer_sufficiency: partial` or `answer_sufficiency: insufficient`, list what is
-missing, and include suggested next actions.
+uncertainty instead of compressing the gap into a brief conclusion. Explain what
+is missing in the detailed Markdown answer and include suggested next actions.
 
 ## Context Checkpoints
 
@@ -176,57 +194,42 @@ If the helper cannot be located in the current agent environment, compute incomi
 Use this structure for every query response:
 
 ```yaml
-query_mode: context
-task_stage: design-context
-depth: standard-context
 confidence: medium
-answer_sufficiency: partial
 source_lookup_performed: true
-source_lookup_reason: 知识库缺少资源回滚分支的字段消费证据
-matched_entities:
-  - 业务开通
-  - AllocateResource
-relevant_pages:
-  - page: [[repos/order-service/glossary#业务开通]]
-    role: term
-    relevance: high
-  - page: [[repos/order-service/flows/业务开通端到端流程]]
-    role: flow
-    relevance: high
-  - page: [[contracts/AllocateResource]]
-    role: contract
-    relevance: medium
-key_findings:
-  - AllocateResource 可能影响订单开通主流程。
-  - 资源回滚分支证据不足，需要源码或 deep-analysis 补足。
+source_lookup_reason: "{为什么需要或不需要读取源码；如果未读取，写明 not needed}"
 kb_evidence:
-  - [[repos/order-service/flows/业务开通端到端流程]]
-source_evidence:
-  - repos/order-service/src/orders/create.ts:createOrder()
-missing_for_complete_answer:
-  - 资源回滚分支缺少 deep-analysis 页面
+  - "[[path/to/relevant-page]]"
 knowledge_gaps:
-  - 资源回滚分支缺少 deep-analysis 页面
+  - "{知识库缺口；没有则写 []}"
 suggested_actions:
-  - 用户授权后可对资源回滚路径执行 deep-analysis
+  - "{下一步建议；没有则写 []}"
 side_effects: none
 ```
 
-Keep the output compact. Prefer `relevant_pages` over separate domain,
-flow, contract, module, risk, and coupling lists unless the user explicitly asks
-for a full report. Put the reasoning payload in `key_findings`, backed by
-`kb_evidence` and `source_evidence`.
+Then add the detailed answer immediately after the packet:
+
+```markdown
+## 详细分析
+
+{按问题自然组织正文。可以使用“受影响范围”“原因链路”“风险与不确定性”
+“建议”等小标题，但不要固定套用这些标题；如果用户问的是设计、定位、
+调试、测试或概念解释，就使用更贴合问题的标题。}
+
+{如果读取了源码，在正文中列出源码文件和它们支持的判断。}
+```
+
+Keep the YAML packet compact. Put the reasoning payload in the detailed
+Markdown answer, backed by `kb_evidence` and any source files discussed in prose.
 
 ## Evidence Rules
 
 - Do not return only a conclusion.
 - Every knowledge base page, helper search/link query, or source file used for judgment must appear in evidence.
-- If source code was read, include `source_evidence`.
+- If source code was read, mention the source files in the detailed answer.
 - If a conclusion is inferred from links, place it under `inferred_from_links`.
 - If knowledge base notes conflict with source code, source code wins. Report the page as stale in the response; do not edit it.
 - If evidence is insufficient, set `confidence: low`.
-- Always include `answer_sufficiency`, `source_lookup_performed`, and
-  `source_lookup_reason`.
+- Always include `source_lookup_performed` and `source_lookup_reason`.
 
 ## When Knowledge Is Missing
 

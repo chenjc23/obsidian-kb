@@ -70,7 +70,17 @@ Use the Phase 0 call tree as the baseline.
 
 1. Follow the most common/default path from entry to final return.
 2. Analyze every function on that path independently.
-3. Save `repos/{repo-name}/flows/{分析主题}/主干流程.md`.
+3. If the main path reaches a message, protocol, RPC, MQ, event, socket, TLV,
+   topic, command, handler dispatch, callback registration, or other asynchronous
+   boundary, do not stop the main-flow analysis at the sender. Continue tracing
+   across the workspace to the receiver entry and include the receiver-side main
+   processing path in `主干流程.md`.
+4. Save `repos/{repo-name}/flows/{分析主题}/主干流程.md`.
+
+Phase 1 does not replace Phase 3. Phase 1 must keep the main business chain
+continuous across message boundaries; Phase 3 later expands those boundaries into
+complete sender/receiver field mapping, ACK/response, callback, retry, timeout,
+and compensation details.
 
 Each step must include:
 
@@ -79,7 +89,20 @@ Each step must include:
 - Pseudocode-level logic, not a one-sentence summary.
 - Data structures read or mutated.
 - State changes.
+- Boundary trace, when applicable:
+  - Boundary kind and identity: topic, message ID, operation code, route,
+    method, event name, TLV type, command ID, or handler key.
+  - Sender function and send/build call.
+  - Receiver discovery evidence: subscription, registry, route map, dispatch
+    table, decoder, handler binding, naming convention, or source search.
+  - Receiver entry function and receiver-side main processing result.
+  - Confidence if the receiver cannot be found.
 - Branch marker: `此处有 N 条分支路径，将在 Phase 2 展开`.
+
+If the receiver or upstream caller cannot be found during Phase 1, do not invent
+the missing behavior. Mark the step as `confidence: low`, record the exact search
+evidence, keep the main flow honest about the boundary gap, and add the gap to
+`自查报告.md` in Phase 5.
 
 Forbidden shortcuts:
 
@@ -90,6 +113,9 @@ Forbidden shortcuts:
 - "此处省略"
 - "等等"
 - `...` to skip functions or branches
+- "发送消息后结束"
+- "接收方见 Phase 3" when receiver-side main processing is needed to understand
+  the main business chain
 
 ## Phase 2: 分支流程逐个展开
 
@@ -261,6 +287,7 @@ confidence: high | medium | low
   {5-15 行伪代码级别分析}
 - 状态变更：{修改的数据结构和字段}
 - 输出：`{返回值类型}` — {含义}
+- 跨边界主干追踪：{如果本步骤发送/接收 MQ、RPC、event、socket、TLV、协议消息或进入 handler dispatch，写明边界标识、发送方、接收方入口、接收方主干处理结果；没有则写“无”}
 - 分支：此处有 N 条路径，详见 [[{分支文件}]]
 
 ## 异常路径
