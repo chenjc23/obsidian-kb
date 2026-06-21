@@ -5,74 +5,65 @@ description: "Use to inspect an Obsidian code knowledge base for health issues: 
 
 # Obsidian KB Lint
 
-Use this to audit a knowledge base and produce actionable fixes. Combine with `obsidian-kb-authoring` if applying fixes.
+审计知识库健康度，给出可执行的修复项。要应用修复时配合 `obsidian-kb-authoring`。
 
-## Checks
+判定标准全部以 authoring 的 `references/` 为准——结构看 `directory-contract.md`、frontmatter 看 `frontmatter-schema.md`、链接看 `link-contract.md`。本 skill 不重复声明这些规则，只负责怎么查、怎么报。
 
-### 1. Structure Completeness
+机械检查（frontmatter 合法性、断链、孤儿、统计）可用 `using-obsidian/scripts/obsidian-kb.mjs lint` / `report` 跑一遍；脚本不可用时按下面逐项手查。
 
-For each repo folder, check required pages:
+## 检查项
 
-- `overview.md`
-- `architecture.md`
-- `glossary.md`
-- `modules/` with at least one module page
-- `flows/` with at least one repo-local flow page when the repo has business flows
-- `api-surface.md`
-- `data-models.md`
-- `config-and-env.md`
-- `error-handling.md`
-- `testing-strategy.md`
-- `key-implementations.md`
-- `gotchas.md`
+### 1. 结构完整性
 
-Missing optional-looking pages may still be acceptable if the repo truly lacks that concern. Mark as warning, not fatal, when justified.
+每个仓至少要有 `architecture.md`（实现视图 + 仓库路由）。其余仓内页**有该关注点才需要**，缺失多数是 `warning` 而非致命：`glossary.md`、`api-surface.md`、`data-models.md`、`config-and-env.md`、`key-implementations.md`、`runtime-notes.md`、`testing-strategy.md`、`candidate-flow.md`、`modules/`（多模块时）、`flows/{分析主题}/`（有业务流程时）。该仓确实没这个关注点，就不算缺。
 
-### 2. Frontmatter Validity
+工作区层至少要有 `index.md`、`log.md`。聚合页（`architecture/system-architecture.md`、`impact/risk-map.md`、`architecture/dependency-graph.md` 等）按"跨仓真有内容才建"判断，不强制每个都在。
 
-Check every page for:
+### 2. Frontmatter 有效性
 
-- Required fields.
-- Valid `type`.
-- Non-empty `sources`.
-- Valid `confidence`.
-- Current and plausible dates.
+对照 authoring `references/frontmatter-schema.md`：
 
-### 3. Orphan Pages
+- Tier 1 核心字段齐全：`title`、`type`、`created`、`updated`、`sources`、`confidence`、`status`（`view` 缺省时由 `type` 推出，可不写）。
+- `type`、`view`、`confidence`、`status` 取值在枚举内。
+- `sources` 非空（`index`/`log`/`generated` 页例外）。
+- 日期合理、不超前。
+- **禁用字段要报**：`scope`、把已有字段塞进 tag 的写法（`code-kb/{type}`、`domain/{x}`）、与正文双链各自独立手维护的关系字段。
 
-Find pages with no incoming wikilinks. Exclude top-level roots like `index.md` only if they are intentionally entry points.
+### 3. 孤儿页
 
-### 4. Source Staleness
+找没有入链的页。`index.md`、`log.md`、各 `_map.md` 这类入口排除；`status: generated` 的投影页不算孤儿。
 
-For each `sources` entry:
+### 4. 源码陈旧
 
-- Check whether the source file exists.
-- Compare source modified time or Git change status when available.
-- Flag pages whose sources changed after the page `updated` date.
+逐条 `sources`：
 
-### 5. Consistency
+- 源文件是否还存在。
+- 有 Git 信息时比对源文件改动时间/状态。
+- 源码在页面 `updated` 之后改过的，标为陈旧（应交给 `obsidian-kb-update` 刷新）。
 
-Look for contradictions:
+### 5. 一致性
 
-- Two modules claiming the same exclusive responsibility.
-- Flow pages naming a module that no module page describes.
-- `overview.md` dependency claims that conflict with `global/dependency-graph.md`.
-- API pages that conflict with route/proto definitions.
+找矛盾：
 
-### 6. Coverage
+- 两个模块声称同一独占职责。
+- flow 页点名某模块，却没有对应 module 页。
+- `architecture.md` 的依赖声明与 `architecture/dependency-graph.md` 冲突。
+- API 页与实际路由/proto 定义冲突。
 
-Identify important source directories not mentioned by any wiki page:
+### 6. 影响边完整性（影响视图的命门）
 
-- Entry points.
-- Controllers/routes.
-- Services/domain modules.
-- Models/schemas.
-- Config and infrastructure.
-- Tests.
+这几条是影响面计算的图的边，缺一条就静默漏报（见 authoring `references/link-contract.md`）：
 
-## Report Format
+- 契约页缺 `producer` 或 `consumer` → 影响传播断裂。
+- 模块页缺 `depends-on` → 依赖链断裂。
+- flow 页缺 `entry-point` 或 `related-contracts` → 变更点回溯不到流程。
+- 单向链：A 链了 B，B 没有反向链回 A（glossary 索引等明确单向场景除外）。
 
-Use this structure:
+### 7. 覆盖
+
+找重要源码目录没被任何页提及：入口、controller/路由、服务/领域模块、模型/schema、配置/基础设施、测试。
+
+## 报告格式
 
 ```markdown
 # 知识库健康检查
@@ -81,29 +72,29 @@ Use this structure:
 - 状态：通过 / 有警告 / 需要修复
 - 仓库数：N
 - 页面数：N
-- 主要风险：{one sentence}
+- 主要风险：{一句话}
 
 ## 问题列表
 | 严重级别 | 类型 | 位置 | 问题 | 建议动作 |
 |---|---|---|---|---|
 
 ## 孤立页面
-{or "无"}
+{或"无"}
 
 ## 陈旧页面
-{or "无"}
+{或"无"}
 
 ## 覆盖缺口
-{or "无"}
+{或"无"}
 
 ## 建议修复顺序
-1. {highest impact fix}
+1. {影响最大的修复}
 ```
 
-## Applying Fixes
+## 应用修复
 
-Only edit files when the user asks for fixes, or when the current request clearly includes fixing. When fixing:
+只有用户要求修复、或当前请求本身就包含修复时才写文件。修复时：
 
-- Preserve human edits.
-- Prefer adding missing links and metadata over rewriting pages.
-- Record fixes in `log.md` if they materially change the knowledge base.
+- 保留人工编辑。
+- 优先补链接和元数据，少做整页重写。
+- 实质性改动记入 `log.md`。

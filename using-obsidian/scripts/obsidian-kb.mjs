@@ -5,58 +5,53 @@ import { mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
-const REQUIRED_PROPERTIES = ['title', 'type', 'scope', 'repo', 'created', 'updated', 'confidence', 'status', 'sources'];
+// 枚举的唯一权威定义是 obsidian-kb-authoring/references/frontmatter-schema.md。
+// 本脚本是它在代码里的投影，改 schema 时两边一起改。
+const REQUIRED_PROPERTIES = ['title', 'type', 'repo', 'created', 'updated', 'confidence', 'status', 'sources'];
 const VALID_TYPES = new Set([
-  'glossary',
+  'use-case',
   'domain',
+  'glossary',
   'flow',
+  'candidate',
   'contract',
   'module',
-  'repo-overview',
   'architecture',
-  'api',
+  'api-surface',
   'data-model',
   'config',
   'implementation',
+  'runtime-notes',
   'risk',
   'index',
   'log',
 ]);
+const VALID_VIEW = new Set(['usecase', 'logical', 'development', 'runtime', 'contract', 'impact', 'meta']);
 const VALID_CONFIDENCE = new Set(['high', 'medium', 'low']);
-const VALID_STATUS = new Set(['active', 'stale', 'draft', 'deprecated']);
+const VALID_STATUS = new Set(['active', 'stale', 'draft', 'deprecated', 'generated']);
 
+// init 只搭骨架：工作区视图目录 + index/log。聚合页（system-architecture、
+// risk-map、dependency-graph 等）由 ingest/update 在真有内容时才建或投影，init 不预生成。
 const SEED_FILES = new Map([
-  ['index.md', seedPage('Code Knowledge Base', 'index', 'workspace', 'global')],
-  ['global/system-architecture.md', seedPage('System Architecture', 'architecture', 'workspace', 'global')],
-  ['global/dependency-graph.md', seedPage('Dependency Graph', 'architecture', 'workspace', 'global')],
-  ['global/business-domain-map.md', seedPage('Business Domain Map', 'index', 'workspace', 'global')],
-  ['global/contract-map.md', seedPage('Contract Map', 'index', 'workspace', 'global')],
-  ['global/data-flow.md', seedPage('Data Flow', 'architecture', 'workspace', 'global')],
-  ['global/risk-map.md', seedPage('Risk Map', 'risk', 'workspace', 'global')],
-  ['global/shared-patterns.md', seedPage('Shared Patterns', 'architecture', 'workspace', 'global')],
-  ['global/cross-repo-concerns.md', seedPage('Cross Repo Concerns', 'architecture', 'workspace', 'global')],
-  ['log.md', seedPage('Knowledge Base Log', 'log', 'workspace', 'global')],
+  ['index.md', seedPage('Code Knowledge Base', 'index', 'meta', 'global', 'draft')],
+  ['log.md', seedPage('Knowledge Base Log', 'log', 'meta', 'global', 'active')],
 ]);
 
 function today() {
   return new Date().toISOString().slice(0, 10);
 }
 
-function seedPage(title, type, scope, repo) {
+function seedPage(title, type, view, repo, status = 'draft') {
   return `---
 title: ${title}
 type: ${type}
-scope: ${scope}
+view: ${view}
 repo: ${repo}
-domain: []
-tags:
-  - code-kb/${type}
-aliases: []
 created: ${today()}
 updated: ${today()}
 sources: []
 confidence: low
-status: draft
+status: ${status}
 ---
 # ${title}
 
@@ -97,7 +92,7 @@ export function resolveContext({ cwd = process.cwd(), args = [] } = {}) {
 
 export async function initKnowledgeBase({ kbRoot }) {
   await mkdir(kbRoot, { recursive: true });
-  for (const directory of ['global', 'domains', 'contracts', 'repos']) {
+  for (const directory of ['use-cases', 'domains', 'contracts', 'architecture', 'runtime', 'impact', 'repos']) {
     await mkdir(path.join(kbRoot, directory), { recursive: true });
   }
 
@@ -210,7 +205,7 @@ export async function buildIndex({ kbRoot, writeIndexes = true }) {
       relativePath,
       title: parsed.data.title || path.basename(relativePath, '.md'),
       type: parsed.data.type || '',
-      scope: parsed.data.scope || '',
+      view: parsed.data.view || '',
       repo: parsed.data.repo || '',
       created: parsed.data.created || '',
       updated: parsed.data.updated || '',
@@ -288,6 +283,15 @@ export async function lintKnowledgeBase({ kbRoot }) {
       });
     }
 
+    if (page.view && !VALID_VIEW.has(page.view)) {
+      issues.push({
+        severity: 'error',
+        type: 'frontmatter',
+        page: page.relativePath,
+        message: `Invalid view: ${page.view}`,
+      });
+    }
+
     if (page.status && !VALID_STATUS.has(page.status)) {
       issues.push({
         severity: 'error',
@@ -311,7 +315,7 @@ export async function lintKnowledgeBase({ kbRoot }) {
     }
 
     const incoming = index.incomingLinks.get(page.relativePath) || [];
-    if (incoming.length === 0 && page.outgoingLinks.length === 0 && !isIntentionalEntryPage(page.relativePath)) {
+    if (incoming.length === 0 && page.outgoingLinks.length === 0 && page.status !== 'generated' && !isIntentionalEntryPage(page.relativePath)) {
       issues.push({
         severity: 'warning',
         type: 'orphan',
@@ -356,7 +360,7 @@ export async function lintKnowledgeBase({ kbRoot }) {
 
 function isIntentionalEntryPage(relativePath) {
   return ['index.md', 'log.md'].includes(relativePath)
-    || relativePath.startsWith('global/');
+    || relativePath.endsWith('/_map.md');
 }
 
 export async function getLinks({ kbRoot, target }) {

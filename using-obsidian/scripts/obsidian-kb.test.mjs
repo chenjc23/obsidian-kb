@@ -71,7 +71,6 @@ test('parseFrontmatter reads properties and extractWikiLinks reads wikilinks', (
   const note = `---
 title: Flow A
 type: flow
-scope: workspace
 repo: global
 confidence: high
 status: active
@@ -93,7 +92,6 @@ test('parseFrontmatter supports CRLF line endings', () => {
     '---',
     'title: Windows Note',
     'type: flow',
-    'scope: workspace',
     'repo: global',
     'confidence: high',
     'status: active',
@@ -118,7 +116,6 @@ test('buildIndex records pages, properties, outgoing links, and incoming links',
     await writeNote(kbRoot, 'domains/Domain A.md', `---
 title: Domain A
 type: domain
-scope: workspace
 repo: global
 confidence: high
 status: active
@@ -130,7 +127,6 @@ sources:
     await writeNote(kbRoot, 'repos/repo-a/flows/Flow A.md', `---
 title: Flow A
 type: flow
-scope: workspace
 repo: global
 domain:
   - Domain A
@@ -189,7 +185,6 @@ test('lintKnowledgeBase validates created, updated, and page type contract', asy
     await writeNote(kbRoot, 'domains/Bad Type.md', `---
 title: Bad Type
 type: unknown-type
-scope: workspace
 repo: global
 confidence: high
 status: active
@@ -224,7 +219,6 @@ test('getLinks returns incoming and outgoing links for a target', async () => {
     await writeNote(kbRoot, 'domains/Domain A.md', `---
 title: Domain A
 type: domain
-scope: workspace
 repo: global
 confidence: high
 status: active
@@ -236,7 +230,6 @@ sources:
     await writeNote(kbRoot, 'repos/repo-a/flows/Flow A.md', `---
 title: Flow A
 type: flow
-scope: workspace
 repo: global
 confidence: high
 status: active
@@ -262,7 +255,6 @@ test('searchKnowledgeBase ranks durable notes without generated markdown indexes
     await writeNote(kbRoot, 'domains/Provisioning.md', `---
 title: Service Provisioning
 type: domain
-scope: workspace
 repo: global
 aliases:
   - 业务开通

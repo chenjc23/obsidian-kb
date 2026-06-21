@@ -1,202 +1,111 @@
 ---
 name: obsidian-kb-query
-description: Use to retrieve read-only business, architecture, flow, contract, module, dependency, risk, and source evidence context from a multi-repository Obsidian code knowledge base for agents at any development stage.
+description: Use to retrieve read-only business, architecture, flow, contract, module, dependency, risk, and source evidence context from a multi-repository Obsidian code knowledge base for agents at any development stage. Triggers on "这块业务怎么实现的", "在哪改", "改这个字段/接口会影响哪些流程", "trace impact", or any need for context before coding, design, debugging, review, or testing.
 ---
 
-# Obsidian KB Query: Read-Only Agent Context Retrieval
+# Obsidian KB Query：只读上下文检索
 
-This skill is a read-only context retrieval protocol for agents.
+给 agent 用的只读上下文检索协议。不只是回答人类提问——agent 在需求理解、方案设计、定位实现、影响面判断、调试、评审、测试前，凡是需要业务背景、代码流程、模块边界、契约、依赖、风险证据，都先走这里。
 
-It is not only a human question-answering skill. Use it whenever an agent needs business understanding, code flow context, module boundaries, contracts, dependencies, coupling points, risk evidence, or knowledge gaps during software work.
+知识库的结构、frontmatter、页面形状、链接契约全部以 `obsidian-kb-authoring` 的 `references/` 为准，本 skill 只负责**怎么检索**，不重复声明结构。
 
-## Side-Effect Rule
+## 只读铁律
 
-Query is read-only.
+query 只读。默认不跑 ingest / update / deep-analysis，不写任何东西。
 
-Do not run ingest, update, deep-analysis, or any write action by default.
+知识库有缺口时，写进 `knowledge_gaps` 和 `suggested_actions`，不要顺手去补。只有用户明确要求写入类任务时才写。
 
-If the knowledge base has gaps, report them under `knowledge_gaps` and `suggested_actions`.
+每次输出都带 `side_effects: none`。
 
-Only write to the knowledge base when the user explicitly requests a write-oriented task.
+## 找到 `{kb-root}`
 
-Always include:
+不必让用户给路径。按顺序定位：
 
-```yaml
-side_effects: none
+1. 用户显式给的路径。
+2. 当前目录本身就像知识库根。
+3. `{当前工作目录}/code-kb`。
+4. 最近的祖先目录里的 `code-kb`。
+5. 工作区下一级名为 `code-kb` 的目录。
+6. 结构最像的目录：含 `index.md`、`log.md`、`repos/`，以及 `use-cases/`、`domains/`、`contracts/` 至少之一。
+
+只有完全找不到、或多个候选同样可能时才问用户。找到后走下面的检索协议。
+
+## 检索心法：沿脊柱走，不靠目录翻
+
+对 agent 来说目录不是效率杠杆。知识库的导航和影响面判断靠两样东西：**frontmatter 字段查询** + **正文双链遍历**（见 authoring `references/view-model.md`、`references/link-contract.md`）。
+
+所有检索沿这条消费脊柱定向走，而不是平铺撒网：
+
+```text
+use-cases（入口）
+  → domains / contracts（概念 + 接口）
+    → flows / modules（实现）
+      → dependency-graph / 反向双链（影响）
+        → risk-map / runtime-notes（警示）
 ```
 
-## Knowledge Base Discovery
+页面的 `view:` 字段（`usecase`/`logical`/`development`/`runtime`/`contract`/`impact`）就是检索维度：先判断答案落在哪个视图，再决定从脊柱哪一段进、往哪个方向走。命中的页越少越好，只取够回答问题的那几页。
 
-The user does not need to provide `{kb-root}`.
+## 两阶段检索
 
-For any read-only knowledge-base request, first discover the knowledge base path. This includes questions about requirements, design, implementation location, impact, debugging, review, testing, contracts, modules, flows, business terms, fields, protocols, risks, or source evidence.
+**第一阶段·定位（找锚点页）。** 把问题里的实体抽出来——业务词、类/结构、字段、API、文件、模块、仓库、契约、协议、消息、topic、错误码、配置、别名。用 `rg` 在 `{kb-root}` 全文搜这些词，命中 frontmatter（`title`/`aliases`/`sources`/关系字段）、标题、正文。这一步目录无所谓，就是全文 + frontmatter 命中，拿到一到几个锚点页。
 
-Use this order:
+**第二阶段·遍历（沿脊柱扩散）。** 从锚点页开始，靠 `view:` 判方向、靠 frontmatter 关系字段和正文双链逐跳走：
 
-1. Explicit user-provided path.
-2. Current directory if it already looks like `code-kb`.
-3. `{cwd}/code-kb`.
-4. Nearest ancestor `code-kb`.
-5. Immediate workspace child named `code-kb`.
-6. Best structural match containing `index.md`, `global/`, `repos/`, and `log.md`.
+- 关系边（authoring `references/frontmatter-schema.md` Tier 3）：契约页的 `producer`/`consumer`、模块页的 `depends-on`、流程页的 `entry-point`/`related-contracts`/`related-flows`/`related-modules`。
+- 正文双链的**反向链**：谁链向了这页。影响面全押在它身上，缺一条反向链就静默漏报。
 
-Only ask the user for the path when no candidate exists or multiple candidates are equally plausible.
+定位用 `rg`，遍历用人工扫 frontmatter + 双链。
 
-After finding `{kb-root}`, run the general retrieval protocol below.
+## 问题路由表
 
-## General Retrieval Protocol
+先判断问题属于哪一类，直接定位入口和走法，不要从头乱翻：
 
-1. Classify the task stage: `intent-context`, `design-context`, `implementation-context`, `impact-context`, or `gap-check`.
-2. Extract user-mentioned entities: business terms, classes, structs, fields, APIs, files, modules, repos, contracts, protocols, messages, topics, errors, configs, and aliases.
-3. Find candidate pages directly from durable notes by matching frontmatter, titles,
-   aliases, headings, wikilinks, `sources`, and body text under `domains/`,
-   `contracts/`, `repos/`, `global/`, repo-local `glossary.md`, and root
-   `index.md`.
-4. Prefer fast exact lookup first: use `rg` for user-mentioned business terms,
-   identifiers, APIs, messages, topics, errors, configs, and aliases. If the
-   bundled helper is available, use `links` for backlink expansion after a target
-   page is known.
-5. Use candidate matches to choose the smallest useful set of pages under
-   `domains/`, `contracts/`, `repos/{repo-name}/flows/`, `repos/`, and `global/`.
-6. Follow wikilinks and backlinks for coupling, producer/consumer, domain-to-flow,
-   flow-to-module, and flow-to-contract relationships.
-7. Apply the Answer Sufficiency Gate below. If KB evidence is missing, too
-   shallow, or cannot support a detailed answer to the user's actual question,
-   read targeted source files before giving the final answer.
-8. Return evidence, confidence, affected pages, inferred links, knowledge gaps,
-   suggested actions, and `side_effects: none`.
+| 这类问题 | 落在哪个视图 | 从哪进 | 沿脊柱怎么走 |
+|---|---|---|---|
+| **业务问题**：这块业务在干嘛 / 什么是 X / 谁触发 | 用例 + 逻辑 | `use-cases/{场景}`（端到端场景）或 `domains/{域}` + repo `glossary`（概念） | use-case → 它编排的 flows + 涉及的 domains/contracts；概念类：glossary → domain → 实现该域的 flow |
+| **实现定位**：在哪改 / 这功能怎么实现的 / 入口在哪 | 实现 + 运行 | repo `architecture.md`（它本身是仓库路由） | architecture → `modules/{模块}` + `flows/{主题}/`；要细节读 `flows/{主题}/主干流程.md`、`调用树.md`；`entry-point` 字段直接定位代码入口 |
+| **影响面**：改这个接口/字段/消息会影响哪些流程 | 契约 + 影响 | 定位实体 → `repos/{repo}/data-models.md` / `api-surface.md` / `contracts/{X}` | 见下方"影响面遍历" |
+| **调试**：为什么会失败 / 这条链路哪出问题 | 运行 + 影响 | 相关 `flows/{主题}/` | 主干流程 + 分支页 → `runtime-notes`（错误/重试/陷阱）→ `impact/risk-map` |
+| **评审 / 测试**：改得对不对 / 该测什么 | 实现 + 运行 | 相关 module / flow | 走实现定位那条，外加 `repos/{repo}/testing-strategy.md`、`runtime-notes.md` |
 
-Specialized retrieval paths, such as field-change impact analysis, are refinements of this general protocol rather than separate entry conditions.
+### 影响面遍历（改字段 / 改接口的核心）
 
-## Output Format
+这类问题是一次**图遍历**，不是读一两页。
 
-Return a compact YAML-style context packet first, then continue with a detailed
-human-readable answer to the user's question.
+1. 定位被改的类型/字段/消息：在 `data-models.md`、`api-surface.md`、`contracts/{X}` 和 frontmatter 里搜类型名、字段名、源文件、别名。
+2. 沿影响边逐跳扩散：契约页的 `producer`/`consumer`、模块页的 `depends-on`、流程页的 `related-contracts`/`entry-point`，**加上正文双链的反向链**，一路扩到 flows → use-cases。
+3. 读现成的影响索引：`architecture/dependency-graph.md`（从 frontmatter + 双链自动生成的依赖投影，一张现成的爆炸半径图）。
+4. 跨消息边界时，读 `contracts/{X}` + 该流程的 `跨边界数据流.md` + 收发两端模块；字段穿协议、MQ、RPC、event、socket、TLV 边界时尤其要追到接收方。
+5. 收尾读 `impact/risk-map.md` 和相关 `runtime-notes.md`。
+6. 给出：受影响的 flows、契约、模块、数据结构、跨边界消息、测试、风险、知识缺口。
 
-The YAML packet is for traceability and should stay short. Do not include
-internal routing metadata in the user-facing packet. In particular, do not emit
-`query_mode`, `task_stage`, `depth`, `answer_sufficiency`,
-`matched_entities`, `relevant_pages`, `key_findings`, or `source_evidence`.
+## 答案充分性闸门
 
-After the YAML packet, add a Markdown section that directly and thoroughly
-answers the user's question. This detailed answer should contain the reasoning,
-affected flows, risks, evidence discussion, uncertainty, and practical next
-steps that would previously have been compressed into structured fields.
+回答前先判断知识库证据够不够。出现下列情况说明 KB 太浅，要去读源码再答：
 
-## Task Stages
+- 没有页面直接命中用户说的业务词、实体或别名。
+- 命中的页 `confidence: low`、`status: stale`、或缺 `sources`。
+- 命中的页只是概述主题，答不出用户要的原因、效果、分支行为、字段语义、状态迁移、payload、收发逻辑或错误行为。
+- 命中的页只讲了模块职责或高层架构，而问题要的是详细行为、影响推理、实现位置、数据血缘、分支条件、调用顺序、失败处理或测试策略。
+- 问题提到的类、字段、API、消息、topic、配置、错误、源文件在命中页里根本没有。
+- 链到的 flow、契约、模块、工作区页彼此矛盾。
+- 点名了某个通信边界，但收发某一方的行为没有证据支撑。
 
-Classify the task:
+证据不足时，保持只读去读源码：从命中页的 `sources` 起，顺双链到邻近页读它们的 `sources`，再用 `rg` 在仓库里搜抽出的实体。读过的源码在"详细分析"正文里说明，knowledge 页仍列进 `kb_evidence`。
 
-- `intent-context`: requirements understanding.
-- `design-context`: solution design.
-- `implementation-context`: implementation location and coding context.
-- `impact-context`: dependency, coupling, and risk analysis.
-- `gap-check`: knowledge coverage and confidence assessment.
+源码也补不全时，带着明确的不确定性回答，别把缺口压成一句结论——在正文讲清缺什么，并给下一步建议。
 
-For "modify a class field / struct field / schema field / message field" questions, classify as `impact-context`.
+## 输出格式
 
-## Retrieval Depth
+先给一段紧凑的 YAML 上下文包，再接一段直接回答问题的详细 Markdown。
 
-Choose the smallest useful depth:
-
-- `quick-context`: exact page matches plus one to three highly relevant pages.
-- `standard-context`: matched domains, flows, contracts, modules, and risk pages.
-- `deep-context`: standard context plus source-code verification.
-
-Use `deep-context` when preparing code changes, when confidence is low, when
-contract/risk impact is high, or when the matched knowledge-base pages are too
-shallow to support a detailed answer without reading source code.
-
-## Answer Sufficiency Gate
-
-Before answering, decide whether knowledge-base evidence is sufficient.
-
-KB evidence is insufficient, or too shallow to answer from alone, when:
-
-- no page directly matches the user-mentioned business term, entity, or alias;
-- matched pages have `confidence: low`, `status: stale`, or missing `sources`;
-- matched pages only summarize a topic but do not answer the requested cause,
-  effect, branch behavior, field semantics, state transition, contract payload,
-  producer/consumer logic, or error behavior;
-- matched pages describe only module responsibility, high-level architecture, or
-  first-pass flow outlines, while the user's question asks for detailed behavior,
-  impact reasoning, implementation location, data lineage, branch conditions,
-  call order, failure handling, or test strategy;
-- the knowledge base can identify relevant pages but cannot explain the issue in
-  enough detail to produce the required `## 详细分析` section;
-- the question mentions a class, field, API, message, topic, config, error, or
-  source file that is absent from matched KB pages;
-- linked flow, contract, module, or global pages disagree;
-- a communication boundary is named but either sender or receiver behavior is not
-  described with evidence.
-
-When evidence is insufficient or shallow, read targeted source files before
-giving the final answer. Start from `sources` on the matched KB pages, then
-follow wikilinks/backlinks to nearby pages and read their `sources`, then search
-the repository with `rg` for the extracted entities. Keep this read-only,
-include knowledge-base pages in `kb_evidence`, and discuss any source files read
-in the detailed Markdown answer instead of adding a separate `source_evidence`
-field.
-
-If source lookup still cannot produce a complete answer, answer with explicit
-uncertainty instead of compressing the gap into a brief conclusion. Explain what
-is missing in the detailed Markdown answer and include suggested next actions.
-
-## Context Checkpoints
-
-Use this skill before:
-
-1. Requirements understanding.
-2. Solution design.
-3. Code modification.
-4. Impact analysis.
-5. Debugging business or cross-module flows.
-6. Code review.
-7. Test design.
-8. Documentation or knowledge base maintenance.
-
-## Retrieval Order
-
-Read in this order:
-
-1. Exact matches in frontmatter, title, aliases, headings, wikilinks, `sources`,
-   and body text using `rg`, or the bundled helper `search` command when
-   available.
-2. Relevant pages under `domains/`, `contracts/`, `repos/{repo-name}/flows/`, `repos/`, `global/`,
-   repo-local `glossary.md`, and root `index.md`.
-3. Backlinks and outgoing links using the bundled helper `links` when available,
-   or manual wikilink scanning when unavailable.
-4. `global/risk-map.md` and relevant `gotchas.md` when the task involves design,
-   implementation, impact, debugging, review, or testing.
-5. Source files from matched page `sources`.
-6. Additional source files found by `rg` when the Answer Sufficiency Gate fails.
-
-For field-change impact questions:
-
-1. Identify the class, struct, schema, proto message, TLV field, DTO, entity, or config object.
-2. Search durable KB pages and frontmatter for the type name, field name, source
-   file, and aliases.
-3. Read matching `data-models.md`, `api-surface.md`, contract pages, related flow pages, and related deep flow folders.
-4. If communication boundaries are involved, read `跨边界数据流.md`, `global/data-flow.md`, and producer/consumer module pages.
-5. Verify against source files when confidence is low or when the field crosses protocol, MQ, RPC, event, socket, or TLV boundaries.
-6. Return affected flows, contracts, modules, data structures, cross-boundary messages, tests, risks, and knowledge gaps.
-
-For impact questions, use link graph data from:
-
-```bash
-node {using-obsidian-skill-root}/scripts/obsidian-kb.mjs links <target> --json
-```
-
-If the helper cannot be located in the current agent environment, compute incoming and outgoing links by scanning wikilinks in `{kb-root}` manually and report that the helper was unavailable.
-
-## Query Output
-
-Use this structure for every query response:
+YAML 包只为可追溯，保持短，不塞内部路由元数据（不要 `query_mode`/`task_stage`/`depth`/`matched_entities`/`relevant_pages` 之类）。
 
 ```yaml
 confidence: medium
 source_lookup_performed: true
-source_lookup_reason: "{为什么需要或不需要读取源码；如果未读取，写明 not needed}"
+source_lookup_reason: "{为什么需要或不需要读源码；没读写 not needed}"
 kb_evidence:
   - "[[path/to/relevant-page]]"
 knowledge_gaps:
@@ -206,33 +115,27 @@ suggested_actions:
 side_effects: none
 ```
 
-Then add the detailed answer immediately after the packet:
+紧接着给详细回答：
 
-```markdown
+````markdown
 ## 详细分析
 
-{按问题自然组织正文。可以使用“受影响范围”“原因链路”“风险与不确定性”
-“建议”等小标题，但不要固定套用这些标题；如果用户问的是设计、定位、
-调试、测试或概念解释，就使用更贴合问题的标题。}
+{按问题自然组织正文。可用"受影响范围""原因链路""风险与不确定性""建议"等小标题，但不固定套用；问的是设计、定位、调试、测试或概念，就用更贴合的标题。}
 
-{如果读取了源码，在正文中列出源码文件和它们支持的判断。}
-```
+{读了源码就在正文里列出源码文件和它们支撑的判断。}
+````
 
-Keep the YAML packet compact. Put the reasoning payload in the detailed
-Markdown answer, backed by `kb_evidence` and any source files discussed in prose.
+推理放在详细 Markdown 里，由 `kb_evidence` 和正文提到的源码支撑；YAML 包保持紧凑。
 
-## Evidence Rules
+## 证据规则
 
-- Do not return only a conclusion.
-- Every knowledge base page, helper search/link query, or source file used for judgment must appear in evidence.
-- If source code was read, mention the source files in the detailed answer.
-- If a conclusion is inferred from links, place it under `inferred_from_links`.
-- If knowledge base notes conflict with source code, source code wins. Report the page as stale in the response; do not edit it.
-- If evidence is insufficient, set `confidence: low`.
-- Always include `source_lookup_performed` and `source_lookup_reason`.
+- 不要只给结论。
+- 每个用于判断的知识库页、源文件都要出现在证据里：页进 `kb_evidence`，源码在正文说明。
+- 结论是从双链推出来的，就在正文标明"由链接推断"。
+- 知识库与源码冲突时以源码为准；把该页在回答里标为 stale，但**不要改它**。
+- 证据不足时 `confidence: low`。
+- 始终带 `source_lookup_performed` 和 `source_lookup_reason`。
 
-## When Knowledge Is Missing
+## 知识库缺东西时
 
-Return `knowledge_gaps` and `suggested_actions`.
-
-Do not run update or deep-analysis unless the user asks for it.
+写 `knowledge_gaps` 和 `suggested_actions`。不要擅自跑 update 或 deep-analysis，除非用户要求。

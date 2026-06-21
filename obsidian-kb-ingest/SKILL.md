@@ -5,163 +5,142 @@ description: Use to create or refresh the first-pass Obsidian code knowledge bas
 
 # Obsidian KB Ingest
 
-Use this for first-time repository analysis. The goal is to build useful breadth first, then add focused depth.
+首次仓库分析。目标：先建有用的广度，再补聚焦的深度。
 
-Always combine with `obsidian-kb-authoring` when writing notes.
+**始终配合 `obsidian-kb-authoring` 写笔记。** 目录、frontmatter、页面形状、链接契约全部以 authoring 的 `references/` 为准，本 skill **不重复声明**，只负责产出流程。
 
-## Inputs To Identify
+增量铁律（authoring `references/directory-contract.md`）：ingest 每次**只做加法 + 打 stale**——写仓内页、新增只新增页（domains/contracts/use-cases）、给受影响的工作区人工叙事页打 `status: stale`、append `log.md`；**不**全量重建工作区地图。
 
-- Source repository root(s).
-- Repository name for each source repo.
-- Whether the user wants a broad first pass or a specific subset.
+## 输入识别
 
-## Knowledge Base Root Resolution
+- 源仓库根目录。
+- 每个源仓库的名称。
+- 用户要广度首扫还是特定子集。
 
-Do not ask the user where to place the knowledge base.
+## `{kb-root}` 解析
 
-Resolve `{kb-root}` deterministically:
+不要询问用户知识库放哪。确定性解析：
 
-1. If the user explicitly specifies a knowledge base path, use that path.
-2. Otherwise, if the current agent working directory already contains a knowledge base directory, use the detected knowledge base directory.
-3. Otherwise, use `{current agent working directory}/code-kb`.
+1. 用户显式指定路径 → 用之。
+2. 否则当前工作目录已有知识库目录 → 用检测到的。
+3. 否则 → `{当前工作目录}/code-kb`。
 
-A detected knowledge base directory is a directory named `code-kb/` or a directory that contains several of:
+知识库目录 = 名为 `code-kb/` 或包含 `index.md`/`repos/`/`log.md` 等若干结构的目录。仅当源仓库根或摄入范围无法推断时才询问，**永不**问 `{kb-root}` 放哪。
 
-- `index.md`
-- `global/`
-- `repos/`
-- `log.md`
+## Phase 1：仓库地形扫描 → `repos/{repo}/architecture.md`
 
-Only ask the user about source repository roots or ingest scope when they cannot be inferred. Never ask where `{kb-root}` should be.
+1. 信号驱动的快速地形扫描：先读顶层目录 + manifest/构建文件 + 入口文件，再**沿 manifest/build 指向的源码根继续深入**（可能在更深层级），**跳过** `vendor`/`node_modules`/`build`/`dist`/`generated`/`third_party`/`.git` 等目录。目标是建立仓库形状、技术栈、分层、入口区域的认知——不遍历整棵树，也不固定深度。
+2. 读元数据/构建文件（如有，C++ 优先）：`CMakeLists.txt`、`Makefile`、`conanfile.txt`/`conanfile.py`、`vcpkg.json`、Bazel `BUILD`、`README`、`package.json`、`go.mod`、`Cargo.toml`、`pyproject.toml`、`pom.xml`、`build.gradle`、`Dockerfile`、部署清单。
+3. 识别并读入口文件：`main.cpp`、`src/main.cpp`、`app/main.cpp`、`main.go`、`index.ts`、`app.py`、`cmd/*`、`src/main.*`、框架引导模块。
+4. 分析源码目录分层（C++ 常见 `include/` 与 `src/` 分离、`lib/`、`modules/`），读依赖注入/初始化/装配代码：`main()`、`wire.go`、`container.ts`、`AppModule`、服务注册、路由装配、工厂/单例初始化。
+5. 从代码识别真实设计模式，不猜。
+6. 生成 `repos/{repo}/architecture.md`：它同时承担**本仓静态结构（实现视图）+ 仓库路由**（链向 modules / flows / 关键 contracts / data-models），并**包含一张 mermaid 架构图**（`graph`/`flowchart TD`，呈现分层与核心模块依赖）。
 
-## Phase 1: Repository Terrain Scan
+## Phase 2：模块拆解 → `repos/{repo}/modules/{模块名}.md`
 
-1. Read the repo root structure to depth 2 only as a fast terrain scan.
-2. Read metadata files, if present: `README.md`, `package.json`, `go.mod`, `Cargo.toml`, `pyproject.toml`, `pom.xml`, `build.gradle`, `Dockerfile`, deployment manifests.
-3. Identify and read entry files: `main.go`, `index.ts`, `app.py`, `cmd/*`, `src/main.*`, framework bootstrap modules.
-4. Generate `repos/{repo-name}/overview.md`.
+1. 扫核心模块目录，读 index/barrel/export 与公共接口。
+2. 分析模块间 import 依赖。
+3. 每个真实职责边界一页（实现视图，多实例 → 文件夹）。不要给每个小文件夹都建页。
+4. 在 frontmatter `depends-on` + 正文双链记录模块依赖（影响视图的边）。
 
-Depth 2 is not a limit on business-flow discovery. It is only used to understand repository shape, technology stack, and likely entry areas. Continue deeper whenever entry registration, protocol dispatch, module boundaries, or business-flow evidence points into nested source directories.
+## Phase 3：流程发现与分级（不生成浅流程页）
 
-## Phase 2: Architecture Analysis
+1. 从 API 路由、CLI 命令、event handler、job、consumer、协议分发器、消息 handler、状态机迁移、socket/帧解析、公共服务方法等入口开始。
+2. 主动发现所有能从代码证据论证的业务关键流程，包括地形扫描期间发现的。
+3. 搜索入口与接口证据（不限层级）：
+   - HTTP 路由、controller、OpenAPI、RPC/gRPC server、proto/IDL、服务注册。
+   - MQ topic、event 名、producer/consumer/subscriber/handler。
+   - TLV 定义、message ID、command ID、operation code、encode/decode、dispatch map、handler registry。
+   - socket 读写循环、frame parser、packet router、session handler。
+   - CLI 命令、定时任务、worker、task executor。
+   - 公共服务方法、orchestration、状态机入口、workflow 协调器。
+4. 按业务价值、外部接口暴露、跨模块/跨仓耦合、协议复杂度、错误/重试/回滚风险、命名证据**排序并分级**：
+   - **关键流程**：进入 Phase 8a 直接深度分析。
+   - **次关键流程**：写入 `repos/{repo}/candidate-flow.md` 候选清单，等用户在 Phase 8b 确认。
+5. **不生成单文件浅流程页。** 一个 flow 只有两种归宿：已深挖（`flows/{分析主题}/` 文件夹）或候选（`candidate-flow.md` 行）。
 
-1. Analyze source directory structure and identify layering.
-2. Read dependency-injection or initialization code, such as `wire.go`, `container.ts`, `AppModule`, `main`, service registries, or router setup.
-3. Identify real design patterns from code, not guesses.
-4. Generate `repos/{repo-name}/architecture.md`.
+## Phase 4：补充页（有内容才生成）
 
-## Phase 3: Module Decomposition
+- `glossary.md`：**术语→链接索引**，指向 domain/flow/data-model 的真定义，不存第二份定义。
+- `api-surface.md`：路由、proto、OpenAPI、controller、消息契约（契约视图·本仓接口面）。
+- `data-models.md`：ORM 模型、schema、proto/types、状态结构。大了再拆 `data-models/{结构}.md`。
+- `config-and-env.md`：配置加载、env、feature flag。
+- `runtime-notes.md`：**error-handling + gotchas 合并**——异常/错误码/重试/降级/告警 + 非显式约束/隐藏约定/已知陷阱。任一方内容量大时拆回独立页。
+- `key-implementations.md`：复杂算法或重要核心逻辑。
+- `testing-strategy.md`：测试目录、脚本、CI、fixture（视图正交，可选）。
 
-1. Scan core module directories.
-2. Read index/barrel/export files and public interfaces.
-3. Analyze import dependencies between modules.
-4. Generate one page per core module: `repos/{repo-name}/modules/{模块中文名}.md`.
+## Phase 5：业务域与契约提取（修复孤儿视图，只新增页）
 
-Do not generate a page for every tiny folder. Prefer pages that match real responsibility boundaries.
+1. **逻辑视图** → `domains/{业务域}.md`：从 glossary、模块职责、README 领域语言聚类出业务域，定义概念、不变量、状态、相邻域，链向实现该域的流程。
+2. **契约视图** → `contracts/{契约名}.md`：把首扫发现的跨边界契约（HTTP/RPC API、MQ topic、event、协议消息、TLV/frame）提升为独立契约页，记录消息标识、payload schema、producer/consumer、接收方发现证据。
+3. 这两类是**只新增页**：发现新的加一页，不回改已有页。深度的端到端字段映射留给 deep-analysis。
 
-## Phase 4: Flow Tracing
+## Phase 6：双向链接（见 authoring `references/link-contract.md`）
 
-1. Start from API routes, CLI commands, event handlers, jobs, consumers, protocol dispatchers, message handlers, state-machine transitions, or public service methods.
-2. Deliberately discover all business-critical flows the agent can justify from code evidence, including flows found during the earlier terrain scan.
-3. Search beyond depth 2 for entry and interface evidence:
-   - HTTP routes, controllers, OpenAPI files, RPC servers, proto files, IDL files, and service registries.
-   - MQ topics, event names, producers, consumers, subscribers, and handlers.
-   - TLV definitions, protocol message IDs, command IDs, operation codes, encode/decode functions, dispatch maps, and handler registries.
-   - Socket read/write loops, frame parsers, packet routers, and session handlers.
-   - CLI commands, scheduled jobs, timers, workers, and task executors.
-   - Public service methods, orchestration services, state-machine entry points, and workflow coordinators.
-4. Rank candidate flows by business value, external interface exposure, cross-module or cross-repo coupling, protocol complexity, error/retry/rollback risk, and naming evidence from README or domain terms.
-5. Generate `repos/{repo-name}/flows/{流程中文名}.md` for the important first-pass flows. If there are too many flows, cover the highest-value and highest-risk ones first, and record the remaining candidates in the deep-analysis confirmation table.
+1. 模块↔模块依赖：A 依赖 B 则 A 链 `[[modules/B]]`，B 在"被依赖（入）"反向链。
+2. 流程↔模块、流程↔契约、流程↔数据、域↔流程：全部双向。
+3. `architecture.md`（仓库路由）列出核心流程与模块链接。
+4. 检查每个新页至少一条入链。
 
-## Phase 5: Supplementary Pages
+## Phase 7：工作区更新（按维护方式区分处理）
 
-Generate or update:
+按 authoring `references/directory-contract.md` 的三种维护方式处理，**不要手写自动生成页**：
 
-- `repos/{repo-name}/glossary.md` from business terms, aliases, domain language,
-  code identifiers with business meaning, status names, protocol terms, and
-  README/domain wording.
-- `repos/{repo-name}/api-surface.md` from routes, proto files, OpenAPI specs, controllers, or message contracts.
-- `repos/{repo-name}/data-models.md` from ORM models, schemas, proto/types, state structures.
-- `repos/{repo-name}/config-and-env.md` from config loading, env vars, feature flags.
-- `repos/{repo-name}/error-handling.md` from exceptions, error codes, retry, fallback, alert paths.
-- `repos/{repo-name}/testing-strategy.md` from test folders, scripts, CI, fixtures.
-- `repos/{repo-name}/key-implementations.md` for complex algorithms or important core logic.
-- `repos/{repo-name}/gotchas.md` for non-obvious constraints, hidden conventions, and known traps.
+- `index.md`：入口，链向六视图 catalog。
+- `domains/_map.md`、`contracts/_map.md`：**自动生成**，由工具生成，勿手维护详情。
+- `architecture/system-architecture.md`：**人工叙事**，增量时受影响则打 `stale`，不重写。
+- `architecture/dependency-graph.md`、`runtime/data-flow.md`、`architecture/tech-stack.md`：**自动生成**，从 frontmatter + 双链投影，不手写。
+- `impact/risk-map.md`、`architecture/shared-patterns.md`：**人工叙事**，跨仓真有内容才建/才打 stale。
+- `log.md`：append 本次操作。
 
-## Phase 6: Bidirectional Links
+跨仓关注点不单独成页：接口归 `contracts/`、风险归 `impact/risk-map`、依赖归 `dependency-graph`。**不生成** `indexes/` thin 索引页。
 
-1. Module-to-module dependencies: if module A depends on module B, link A to `[[modules/B]]` and add a reverse note in B.
-2. Flow-to-module links: each flow links to participating modules; modules link back under `## 相关流程`.
-3. Flow-to-data links: flow pages link to `[[data-models#结构名]]`; data model sections link back to usage flows.
-4. Flow-to-implementation links: flow pages link to key implementations; key implementation entries link back.
-5. `overview.md` lists core flow links.
-6. Check that new pages have at least one incoming link.
+## Phase 8：深度分析执行 + 用例种子
 
-## Phase 7: Global Updates
+流程已在 Phase 3 分级。深度分析一律**串行**（见下方硬要求）。
 
-Update:
+### 8a：关键流程直接深挖（亮清单，不阻塞确认）
 
-- `index.md`
-- `global/dependency-graph.md`
-- `global/system-architecture.md`
-- `global/tech-stack.md`
-- `global/data-flow.md`, if cross-repo request/data flow is evident
-- `global/shared-patterns.md`, if common patterns are evident
-- `global/cross-repo-concerns.md`, if shared protocols or contracts are evident
-- `log.md`
+1. 先把 Phase 3 标为**关键**的流程清单**亮给用户**（流程名 + 入口/接口 + 推荐原因），说明将逐个深挖。
+2. 不设阻塞式确认，直接按串行模型逐个调用 `obsidian-kb-deep-analysis`（用户可随时打断）。
 
-Do not generate `indexes/` Markdown pages during ingest. Query-time lookup should
-use page frontmatter, wikilinks, `sources`, helper-built transient indexes, or
-source search instead of maintaining separate thin index notes.
+### 8b：次关键流程进候选清单 → 确认 → 深挖
 
-## Phase 8: Deep Analysis Candidate Confirmation
-
-At the end of ingest, produce a confirmation table of every key business flow that should be considered for `obsidian-kb-deep-analysis`.
-
-The table must include flows generated during this ingest and important candidate flows discovered but not deeply expanded.
-
-Use this shape:
+1. 把 Phase 3 标为**次关键**的流程写入 `repos/{repo}/candidate-flow.md`（候选清单页）：
 
 ```markdown
-## Deep Analysis 候选流程确认表
+## Deep Analysis 候选流程清单
 
-| 序号 | 流程名称 | 入口/接口 | 触发方式 | 涉及仓库/模块 | 是否跨消息边界 | 风险等级 | 推荐原因 | 建议分析 |
+| 序号 | 流程名称 | 入口/接口 | 触发方式 | 涉及仓库/模块 | 是否跨消息边界 | 风险等级 | 推荐原因 | 状态 |
 |---|---|---|---|---|---|---|---|---|
-| 1 | {流程名称} | `{文件路径}:{函数或接口}` | HTTP/RPC/MQ/TLV/job/CLI | {repo/module} | 是/否 | high/medium/low | {代码证据和业务原因} | 是/否 |
+| 1 | {流程名称} | `{文件路径}:{函数或接口}` | HTTP/RPC/MQ/TLV/job/CLI | {repo/module} | 是/否 | high/medium/low | {代码证据和业务原因} | 候选 |
 ```
 
-After the table, ask the user whether to run deep analysis for the suggested rows.
+2. 询问用户对哪些候选行运行深度分析；确认后按串行模型逐个深挖，并把对应行 `状态` 更新为 `已深挖`。
 
-Do not start deep analysis automatically during ingest. Wait for user confirmation. If the user confirms, `using-obsidian` must orchestrate the confirmed rows one by one with `obsidian-kb-deep-analysis`.
+### 用例种子
 
-The preferred execution model after confirmation is sub-agent orchestration: the main agent creates a dedicated sub-agent for each confirmed flow, and each sub-agent performs exactly one `obsidian-kb-deep-analysis` task.
+**跨仓/多 flow 的端到端场景**深挖后种子化为 `use-cases/{用例名}.md`（用例视图，编排 + 链接为主）；单 flow 场景不开用例页，只给该深流程打 `view: usecase`。
 
-Only fall back to main-agent execution when sub-agents are unavailable in the current environment.
+### 串行执行模型（硬要求，8a 与 8b 通用）
 
-When multiple rows are confirmed, deep analysis must be serial. This is a hard requirement:
+优先子 agent 编排：主 agent 为每个流程创建一个专职子 agent，每个子 agent 只做一个 `obsidian-kb-deep-analysis` 任务。
 
-1. Create exactly one deep-analysis sub-agent for the first confirmed row.
-2. Give the sub-agent only one flow, its entry/interface evidence, related repositories, `{kb-root}`, and the instruction to use `obsidian-kb-deep-analysis` with `obsidian-kb-authoring`.
-3. Wait for that sub-agent to finish, write its notes, and return a summary.
-4. Review the result for failed writes, missing evidence, or low-confidence gaps.
-5. Only then create the next sub-agent for the next confirmed row.
+1. 为第一个流程创建**唯一**一个子 agent。
+2. 只给它一个流程、入口/接口证据、相关仓库、`{kb-root}`，及"用 `obsidian-kb-deep-analysis` + `obsidian-kb-authoring`"的指令。
+3. 等它完成、写完笔记、返回摘要。
+4. 检查失败写入、缺失证据、低置信缺口。
+5. 然后才创建下一个流程的子 agent。
 
-Do not create sub-agents for later rows before the current sub-agent has fully completed. Do not batch-create sub-agents. Do not use parallel tool calls or parallel orchestration for confirmed deep-analysis rows.
+不得在当前子 agent 完成前为后续流程创建子 agent。不得批量创建。不得并行。深度分析更新共享知识页，并行会产生冲突编辑。
 
-If sub-agents are unavailable:
+子 agent 不可用时，主 agent 串行执行同样流程（一个做完再下一个）。
 
-1. Run the first confirmed row in the main agent.
-2. Wait for that analysis to finish and write its notes.
-3. Review the result for failed writes, missing evidence, or low-confidence gaps.
-4. Only then start the next confirmed row.
+## 质量底线
 
-Do not start multiple deep-analysis sub-agents or main-agent deep-analysis tasks in parallel. Deep analysis updates shared knowledge pages, so parallel execution can create conflicting edits and inconsistent links.
-
-## Quality Bar
-
-- Do not overfit to README claims when code says otherwise.
-- Do not stop business-flow discovery at the depth-2 terrain scan.
-- Do not ignore message, protocol, event, or topic boundaries; record them as deep-analysis candidates when they indicate downstream processing.
-- Mark low confidence when entry points or dependencies are unclear.
-- Keep first ingest idempotent: rerunning on unchanged source should produce equivalent notes.
-- Preserve existing human edits by merging instead of overwriting.
+- 代码与 README 冲突时以代码为准。
+- 业务流程发现不止步于地形扫描。
+- 不忽略消息/协议/事件/topic 边界；指示下游处理时记入 `candidate-flow.md`。
+- 入口或依赖不清时标 `confidence: low`。
+- 首扫幂等：对未变源码重跑应产生等价笔记。
+- 保留人工编辑：合并而非覆盖。

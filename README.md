@@ -36,9 +36,9 @@ agent 不应询问用户知识库应该放在哪里。
 
 ```text
 index.md
-global/
-repos/
 log.md
+repos/
+use-cases/   domains/   contracts/   architecture/   runtime/   impact/
 ```
 
 ## 知识库结构
@@ -49,39 +49,43 @@ log.md
 {workspace-root}/code-kb
 ```
 
-推荐结构：
+推荐结构（完整契约见 `obsidian-kb-authoring/references/directory-contract.md`）：
 
 ```text
 code-kb/
   index.md
-  global/
-    system-architecture.md
-    dependency-graph.md
-    business-domain-map.md
-    contract-map.md
-    data-flow.md
-    risk-map.md
-    shared-patterns.md
-    cross-repo-concerns.md
-  domains/
-    {业务域}.md
-  contracts/
-    {契约名}.md
-  repos/
-    {repo-name}/
-      overview.md
-      architecture.md
-      glossary.md
-      modules/
-      flows/
-      api-surface.md
-      data-models.md
-      config-and-env.md
-      error-handling.md
-      testing-strategy.md
-      key-implementations.md
-      gotchas.md
   log.md
+
+  # 工作区层：顶层目录 ≈ 视图 catalog
+  use-cases/                  # 用例视图：跨仓场景目录（agent 主入口）
+    {用例名}.md
+  domains/                    # 逻辑视图：业务域
+    {业务域}.md
+  contracts/                  # 契约视图：跨边界契约
+    {契约名}.md
+  architecture/               # 实现视图·工作区汇总
+    system-architecture.md
+    dependency-graph.md       # 自动生成
+    tech-stack.md             # 自动生成
+    shared-patterns.md
+  runtime/                    # 运行视图·工作区汇总
+    data-flow.md              # 自动生成
+  impact/                     # 影响视图
+    risk-map.md
+
+  # 仓库层：每仓六视图细节，保持扁平
+  repos/{repo-name}/
+    architecture.md           # 本仓静态结构 + 仓库路由（含架构图）
+    glossary.md
+    api-surface.md
+    data-models.md
+    config-and-env.md
+    key-implementations.md
+    runtime-notes.md          # error-handling + gotchas 合并
+    testing-strategy.md
+    candidate-flow.md         # 次关键流程候选清单
+    modules/{模块名}.md
+    flows/{分析主题}/          # 深挖流程文件夹（deep-analysis 产物）
 ```
 
 ## 推荐工作流
@@ -100,9 +104,9 @@ agent 会创建 `code-kb/` 的基础结构和种子页面。
 Use using-obsidian to ingest the repositories under this workspace into code-kb.
 ```
 
-`obsidian-kb-ingest` 会先做宽度扫描，再生成仓库概览、架构、模块、接口、数据模型、关键流程和全局页面。
+`obsidian-kb-ingest` 会先做仓库地形扫描，再生成架构（仓库路由）、模块、接口、数据模型、关键流程，以及业务域与契约页。
 
-`depth 2` 只用于快速识别仓库地形，不是业务流程发现上限。agent 必须继续深入扫描入口、接口、handler、协议分发、消息消费、状态机、定时任务和核心 orchestrator。
+地形扫描只用于快速识别仓库形状，不固定深度、不是业务流程发现上限。agent 必须继续深入扫描入口、接口、handler、协议分发、消息消费、状态机、定时任务和核心 orchestrator。
 
 摄入结束时必须输出：
 
@@ -158,18 +162,17 @@ repos/{repo-name}/flows/{分析主题}/
 读取知识库，帮我分析修改 OrderRequest.resourceId 字段会影响哪些流程。
 ```
 
-这类请求使用 `obsidian-kb-query`，属于 `impact-context`。
-
-通用检索流程：
+这类请求使用 `obsidian-kb-query`（只读）。检索沿消费脊柱走，分两阶段：
 
 1. 自动发现 `{kb-root}`。
-2. 判断任务阶段。
-3. 抽取用户提到的业务词、类、字段、接口、协议、消息、模块、文件等实体。
-4. 用 helper `search` 或 `rg` 在 frontmatter、标题、别名、正文、wikilinks 和 `sources` 中快速定位候选页面。
-5. 读取相关 `domains/`、`contracts/`、`repos/{repo-name}/flows/`、`repos/`、`global/` 页面。
-6. 沿 wikilinks/backlinks 查找上下游影响。
-7. 必要时读取源码验证。
-8. 输出受影响流程、契约、模块、数据结构、跨边界消息、风险、证据和知识库缺口。
+2. 判断问题落在哪个视图（用例 / 逻辑 / 实现 / 运行 / 契约 / 影响），定位入口。
+3. 定位：抽取实体（业务词、类、字段、接口、协议、消息、模块、文件），用 `rg` 在 frontmatter、标题、别名、正文、`sources` 里搜出锚点页。
+4. 遍历：从锚点页沿 frontmatter 关系字段（`producer`/`consumer`/`depends-on`/`related-*`/`entry-point`）和正文双链（含反向链）逐跳扩散。
+5. 改字段/接口这类影响面问题，读现成的 `architecture/dependency-graph.md`，并追到跨边界的 `contracts/` 与收发两端。
+6. 知识库太浅时读源码验证，保持只读。
+7. 输出受影响流程、契约、模块、数据结构、跨边界消息、风险、证据和知识库缺口。
+
+检索心法与问题路由表见 `obsidian-kb-query`。
 
 查询默认只读，必须返回：
 
@@ -200,11 +203,11 @@ Use using-obsidian to update the knowledge base for these changed files.
 - `repos/{repo-name}/api-surface.md`
 - `repos/{repo-name}/data-models.md`
 - 相关 flow 页面
-- deep flow folder
+- 深流程文件夹
 - `跨边界数据流.md`
-- `global/data-flow.md`
-- `global/cross-repo-concerns.md`
-- `global/risk-map.md`
+- `runtime/data-flow.md`
+- `architecture/dependency-graph.md`
+- `impact/risk-map.md`
 
 ### 6. 检查知识库
 
@@ -236,8 +239,8 @@ Use using-obsidian to lint the current code-kb.
 ---
 title: 页面标题
 type: flow
-scope: workspace
-repo: global
+view: usecase          # 端到端业务场景；缺省时由 type 推出，可不写
+repo: order-service    # 仓内页 = 目录名；工作区页写 global
 created: 2026-06-12
 updated: 2026-06-12
 sources:
@@ -246,6 +249,8 @@ confidence: high
 status: active
 ---
 ```
+
+完整 frontmatter 规范见 `obsidian-kb-authoring/references/frontmatter-schema.md`。
 
 - 不使用源码行号作为长期证据引用。
 - 不编造代码行为。
@@ -289,7 +294,7 @@ helper 只是确定性辅助工具，不改变 skill 的权限规则。只读查
 ```
 
 ```text
-使用 using-obsidian，查询哪些流程、模块或契约依赖 contracts/AllocateResource.md。只返回 impact-context，不要更新知识库。
+使用 using-obsidian，查询哪些流程、模块或契约依赖 contracts/AllocateResource.md。只做只读影响分析，不要更新知识库。
 ```
 
 ```text

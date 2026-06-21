@@ -29,7 +29,7 @@ When no path is provided, discover `{kb-root}` automatically in this order:
 2. If `{current working directory}/code-kb` exists, use it.
 3. Walk upward from the current working directory and use the nearest ancestor `code-kb/`.
 4. Search immediate workspace children for a directory named `code-kb/`.
-5. If multiple candidates exist, choose the one with the strongest multi-repo structure: `index.md`, `global/`, `repos/`, and `log.md`.
+5. If multiple candidates exist, choose the one with the strongest multi-repo structure: `index.md`, `log.md`, `repos/`, and at least one workspace view directory (`use-cases/`, `domains/`, `contracts/`).
 6. If ambiguity remains, choose `{current working directory}/code-kb`.
 
 Do not ask the user where the knowledge base is or where it should be created unless the user explicitly asks to choose between candidates.
@@ -37,10 +37,10 @@ Do not ask the user where the knowledge base is or where it should be created un
 A directory is a likely knowledge base when it contains several of:
 
 - `index.md`
-- `global/`
-- `repos/`
 - `log.md`
-- pages with `type`, `scope`, `repo`, `sources`, `confidence`, and `status` properties
+- `repos/`
+- workspace view directories such as `use-cases/`, `domains/`, `contracts/`
+- pages with `type`, `view`, `repo`, `sources`, `confidence`, and `status` properties
 
 Do not hardcode local paths in examples or generated instructions. Prefer:
 
@@ -93,7 +93,7 @@ When multiple intents appear in one request, run them in this order:
 
 `obsidian-kb-query` is a read-only context retrieval protocol.
 
-It may read knowledge base pages, transient helper indexes, link graphs, and source files for verification. It must not run `ingest`, `update`, or `deep-analysis` by default.
+It may read knowledge base pages, link graphs, and source files for verification. It must not run `ingest`, `update`, or `deep-analysis` by default.
 
 If query finds a gap that affects development judgment, report:
 
@@ -130,7 +130,7 @@ If the user approves multiple rows and sub-agents are available, the main agent 
 4. Review the result for obvious missing files, low-confidence gaps, or failed writes.
 5. Only then create the next sub-agent for the next confirmed flow.
 
-Do not create multiple deep-analysis sub-agents in parallel. Do not batch-create sub-agents. Do not create the next sub-agent until the previous sub-agent has fully completed and returned its result. Cross-flow parallelism is forbidden because deep analyses update shared pages such as `data-models.md`, `overview.md`, `global/data-flow.md`, `global/risk-map.md`, and `log.md`.
+Do not create multiple deep-analysis sub-agents in parallel. Do not batch-create sub-agents. Do not create the next sub-agent until the previous sub-agent has fully completed and returned its result. Cross-flow parallelism is forbidden because deep analyses update shared pages such as `data-models.md`, `architecture.md`, `contracts/`, `runtime/data-flow.md`, `impact/risk-map.md`, and `log.md`.
 
 If sub-agents are unavailable, the main agent must run the confirmed flows one by one in the same serial order.
 
@@ -149,7 +149,7 @@ Preserve these invariants:
 - Follow `obsidian-kb-authoring` for multi-repository knowledge engineering rules.
 - Write knowledge content in Chinese by default.
 - Keep code identifiers, file paths, library names, API names, protocol names, and technical terms in original spelling.
-- Every generated page has Obsidian properties with `title`, `type`, `scope`, `repo`, `created`, `updated`, `sources`, `confidence`, and `status`.
+- Every generated page has Obsidian properties with `title`, `type`, `view`, `repo`, `created`, `updated`, `sources`, `confidence`, and `status`.
 - Do not invent code details. If evidence is incomplete, mark `confidence: low` and explain what is missing.
 - Maintain bidirectional wikilinks for meaningful domain, flow, contract, module, risk, and source relationships.
 - Avoid orphan pages.
@@ -160,7 +160,7 @@ Preserve these invariants:
 
 1. Resolve `{kb-root}` and source repository roots.
 2. Route to the execution skill.
-3. Read the smallest useful set of helper search results, notes, and sources.
+3. Read the smallest useful set of notes and sources.
 4. Write or update notes only when the user requested a write-oriented task.
 5. Run or recommend bundled helper `lint` after write-oriented tasks.
 6. Summarize changed files, evidence, confidence, and remaining uncertainty.
