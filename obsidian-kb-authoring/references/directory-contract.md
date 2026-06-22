@@ -42,7 +42,7 @@ code-kb/
     architecture.md             # 实现:本仓静态结构 + 仓库路由(链向 modules/flows/契约)
     glossary.md                 # 逻辑:术语→链接索引(不存第二份定义)
     api-surface.md              # 契约:本仓对外接口面
-    data-models.md              # 数据:结构(大了再拆 data-models/{结构}.md)
+    data-models.md              # 数据:结构
     config-and-env.md           # 实现/运行:配置与环境
     key-implementations.md      # 实现:复杂算法/核心逻辑
     runtime-notes.md            # 运行:error-handling + gotchas 合并(薄时合并,有量才拆回)

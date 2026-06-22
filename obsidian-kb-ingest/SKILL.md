@@ -40,7 +40,7 @@ description: Use to create or refresh the first-pass Obsidian code knowledge bas
 
 1. 扫核心模块目录，读 index/barrel/export 与公共接口。
 2. 分析模块间 import 依赖。
-3. 每个真实职责边界一页（实现视图，多实例 → 文件夹）。不要给每个小文件夹都建页。
+3. 每个真实职责边界一页（实现视图，多实例 → 文件夹）。不要给每个小文件夹都建页。`{模块名}` 文件名默认用中文，只保留必要英文。
 4. 在 frontmatter `depends-on` + 正文双链记录模块依赖（影响视图的边）。
 
 ## Phase 3：流程发现与分级（不生成浅流程页）
