@@ -17,6 +17,7 @@ ingest 和 deep-analysis 增量时**只做加法 + 打 stale**，从不回改旧
 
 - **人工叙事页**（仅 `system-architecture`）：之前被打了 `status: stale` 的，由 update **重写刷新**回 `active`。
 - **只新增页**（`contracts/`、`domains/`、`use-cases/`）：仍然只在发现新边界/新域/新场景时新增，不回改已有页。
+- **前沿账本**（`architecture/coverage.md`）：update 负责**接合悬挂边**——当某次变更或新 ingest 让 `status: partial` 契约的对端浮现，补全对端两端 + 双向链接、`status` 翻回 `active`、把账本对应行翻成"已接合"。仓挖深了（地形扫描→模块已解析→关键流程已深挖）也在此刷新覆盖度行。这是状态翻转，不是综合改写。
 
 依赖图 / 数据流 / 技术栈 / 影响面**不物化成页**，不进刷新循环——由 query 从 `depends-on` + 反向双链即时遍历得出。
 
@@ -43,7 +44,8 @@ ingest 和 deep-analysis 增量时**只做加法 + 打 stale**，从不回改旧
 6. 刷新 `updated`、`sources`、`confidence`。
 7. 维护或修复双链（见 authoring `references/link-contract.md`，关系字段与正文双链保持一致）。
 8. 刷新之前打了 stale 的 `system-architecture.md`（见上节）。
-9. append 一条精简记录到 `log.md`。
+9. **接合悬挂边**：变更若让某 `partial` 契约的对端浮现，补全对端 + 双向链接、`status` → `active`、`coverage.md` 对应行 → "已接合"（见上节）。
+10. append 一条精简记录到 `log.md`。
 
 ### 影响映射
 
@@ -104,4 +106,5 @@ ingest 和 deep-analysis 增量时**只做加法 + 打 stale**，从不回改旧
 - `sources` 含支撑更新结论的变更文件。
 - 链接仍有效、仍相关；新链引到的已有页有反向链。
 - 之前打 stale 的 `system-architecture.md` 已刷新。
+- 对端已浮现的 `partial` 契约已接合（补全两端 + `coverage.md` 行翻"已接合"）；仍悬挂的留 `partial` 不强接。
 - `log.md` 记了改了什么、为什么。

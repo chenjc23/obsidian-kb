@@ -83,6 +83,40 @@
 
 > 契约页持有**可复用的定义**（schema、标识、producer/consumer）。flow 里的跨边界内容只持有**本场景如何用**，链接回此页，不重抄 schema。
 
+> **单边契约（`status: partial`）**：增量时只先找到一端时照常建页，把已知一端（producer 或 consumer）填上，未知一端留空并写一句"对端待 ingest"，`status: partial`。同时在 `coverage.md` 悬挂边表挂账。等另一端的仓 ingest 进来再补全对端 + 双向链接，`status` 翻回 `active`，账本行翻成"已接合"。
+
+---
+
+## coverage（覆盖度/前沿账本,工作区唯一,只追加）
+
+`architecture/coverage.md`。`type: coverage` `view: meta` `repo: global`。它回答 query 算不出来的两件事：哪些仓还没挖、哪些跨仓边只找到一端。三张表,只 append,不综合改写。
+
+```markdown
+# 工程覆盖度与前沿
+> 当前知识库挖到哪、哪里还没接上、哪里是盲区。做跨子系统/多模块需求分析前先读这页,知道哪能下结论、哪是盲区。
+
+## 仓库覆盖度
+| 仓 | ingest 深度 | 关键流程(已挖/候选) | 最近更新 | 备注 |
+|---|---|---|---|---|
+| order-service | 关键流程已深挖 | 6/9 | 2026-06-12 | — |
+| billing-service | 只地形扫描 | 0/? | 2026-06-12 | 仅 architecture,模块未拆 |
+
+ingest 深度三档:`只地形扫描` · `模块已解析` · `关键流程已深挖`。
+
+## 悬挂的跨仓边(只找到一端)
+| 边类型 | 已知一端 | 缺失另一端 | 证据 | 关联页 | 状态 |
+|---|---|---|---|---|---|
+| 契约 | producer: order-service | consumer 未知(疑在 billing) | `src/mq/publish.cpp:emitOrderPaid()` | [[contracts/OrderPaid]] | 悬挂 |
+| 调用 | caller: order-service/订单编排 | callee 仓未 ingest | `client.call("resource.alloc")` | — | 悬挂 |
+
+状态:`悬挂`(待对端 ingest) → `已接合`(对端已找到、双链补齐)。
+
+## 已知盲区 / 未解析链接
+- {一句话描述盲区:哪个子系统/协议/接口已知存在但完全没解析}
+```
+
+接合一条悬挂边 = 把该行状态改 `已接合`、补全关联 `partial` 契约页的对端与双链。这是个状态翻转,不是重写整页。
+
 ---
 
 ## module（实现视图，多实例）

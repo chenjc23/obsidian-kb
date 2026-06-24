@@ -9,7 +9,7 @@ description: Use for deep analysis of a specific function, algorithm, business f
 
 **始终配合 `obsidian-kb-authoring` 写笔记。** frontmatter、页面形状、目录、链接契约全部以 authoring 的 `references/` 为准，本 skill **不重复声明 schema 或页面骨架**——一律以 authoring 为单一来源。深流程文件夹各页的形状见 authoring `references/page-shapes.md` 的"深流程文件夹"小节。
 
-增量铁律：深度分析也**只做加法 + 打 stale**——写本流程文件夹、把可复用定义提升到对应的定义页、给受影响的工作区人工叙事页打 `status: stale`、append `log.md`；不全量重建工作区地图。
+增量铁律：深度分析也**只做加法 + 打 stale**——写本流程文件夹、把可复用定义提升到对应的定义页、给受影响的工作区人工叙事页打 `status: stale`、append `log.md`；跨边界对端落在未 ingest 的仓时建 `status: partial` 契约并在 `architecture/coverage.md` 挂账；不全量重建工作区地图。
 
 ## 输出位置
 
@@ -97,7 +97,10 @@ Phase 1 不替代 Phase 3：Phase 1 让主业务链跨边界连续；Phase 3 把
 - 发送方→接收方在本场景的字段映射表（值来自本流程的数据来源）。
 - 端到端 `mermaid` `sequenceDiagram`。
 
-找不到对端实现时：相关段落 `confidence: low`，记录精确搜索证据与缺失仓库/接口，缺口加进 `自查报告.md` 和 `log.md`，**不编造**。
+找不到对端实现时，**区分两种缺口、都不编造**：
+
+- **对端落在尚未 ingest 的仓**（不是搜漏，是那仓还没进库）：把契约提升为 `contracts/{X}.md` 但只填已知端、`status: partial`，并在 `architecture/coverage.md` 悬挂边表挂账（边类型/已知端/缺失端指向哪个仓/证据/关联契约页）。等那仓 ingest 后接合。
+- **本该有却没搜到**：相关段落 `confidence: low`，记录精确搜索证据与缺失仓库/接口，缺口加进 `自查报告.md` 和 `log.md`。
 
 ## Phase 4：关键数据结构专题 → `数据结构.md`（瘦身：定义提升）
 
@@ -114,7 +117,7 @@ Phase 1 不替代 Phase 3：Phase 1 让主业务链跨边界连续；Phase 3 把
 - 每个消息/协议/事件/topic/socket/RPC/TLV 边界有已追踪的接收方/调用方，或显式低置信缺口。
 - 数据流从输入到输出连续；无结构凭空出现或消失。
 - payload 字段在有代码证据时从生产源追到接收消费；发送/接收两侧逻辑都分析了（不止识别接口）。
-- 提升到 `contracts/` 的契约、提升到 `data-models.md` 的结构都已加反向链。
+- 提升到 `contracts/` 的契约、提升到 `data-models.md` 的结构都已加反向链；任何 `status: partial` 契约都在 `coverage.md` 悬挂边表有对应挂账行。
 - 每个生成的流程页链到至少两个相关既有页（有则），且被引页反向链回。
 - 每条正文 wikilink 都指向**存在的 KB 页**；指向源码文件（如 `[[x.c]]`）或不存在的页即非法，改成 `sources`/inline 引用或正确的页链接。
 

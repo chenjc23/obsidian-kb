@@ -38,6 +38,15 @@
 - frontmatter 声明的关系，正文应有对应 wikilink；反之亦然。
 - 声明了 `producer`/`consumer` 的契约，两端页面必须有反向链回该契约。
 
+### 单边契约（`status: partial`）的例外
+
+增量逐仓 ingest 时，跨仓边常只先找到一端。这是唯一允许的双向缺口例外：
+
+- `status: partial` 的契约**允许只有一端**（producer 或 consumer 之一），已知端正常双向链回，未知端留空。
+- 代价是**必须在 `architecture/coverage.md` 悬挂边表挂账**——缺口不许静默，要显式可读，query 才能把它当"已知的未接边"报出来，而不是漏报。
+- 对端的仓 ingest 进来后：补全契约对端 + 双向链接、`status` 翻回 `active`、账本行翻成"已接合"。
+- 校验：`status: partial` 的契约**必须**在 coverage 悬挂边表有对应行；`active` 契约则两端齐全、双向闭环（不得停在 partial 装作完整）。
+
 ## wikilink 写法
 
 wikilink **只指向 KB 页面**；引用源码用 `sources` frontmatter 或正文 inline `code`，**绝不**写 `[[l2ss_db.c]]` 这类指向源码文件的 wikilink。

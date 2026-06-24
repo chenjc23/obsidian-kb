@@ -60,7 +60,7 @@ agent 不应询问用户知识库应该放在哪里。
 index.md
 log.md
 repos/
-use-cases/   domains/   contracts/   architecture/   runtime/   impact/
+use-cases/   domains/   contracts/   architecture/
 ```
 
 ## 知识库结构
@@ -86,14 +86,10 @@ code-kb/
   contracts/                  # 契约视图：跨边界契约
     {契约名}.md
   architecture/               # 实现视图·工作区汇总
-    system-architecture.md
-    dependency-graph.md       # 自动生成
-    tech-stack.md             # 自动生成
-    shared-patterns.md
-  runtime/                    # 运行视图·工作区汇总
-    data-flow.md              # 自动生成
-  impact/                     # 影响视图
-    risk-map.md
+    system-architecture.md    # 唯一人工叙事总览（含跨仓架构图）
+    coverage.md               # 覆盖度/前沿账本：已挖到哪、哪条跨仓边还没接上
+  # 运行视图活在 repos/{repo}/flows/ + use-cases，靠 view:runtime 承载，无工作区目录。
+  # 依赖图/数据流/技术栈/影响面不物化成页——由 query 沿 depends-on + 反向双链即时遍历得出。
 
   # 仓库层：每仓六视图细节，保持扁平
   repos/{repo-name}/
@@ -190,8 +186,9 @@ repos/{repo-name}/flows/{分析主题}/
 2. 判断问题落在哪个视图（用例 / 逻辑 / 实现 / 运行 / 契约 / 影响），定位入口。
 3. 定位：抽取实体（业务词、类、字段、接口、协议、消息、模块、文件），用 `rg` 在 frontmatter、标题、别名、正文、`sources` 里搜出锚点页。
 4. 遍历：从锚点页沿 frontmatter 关系字段（`producer`/`consumer`/`depends-on`/`related-*`/`entry-point`）和正文双链（含反向链）逐跳扩散。
-5. 改字段/接口这类影响面问题，读现成的 `architecture/dependency-graph.md`，并追到跨边界的 `contracts/` 与收发两端。
-6. 知识库太浅时读源码验证，保持只读。
+5. 改字段/接口这类影响面问题，沿 `depends-on` + 反向双链**现算**爆炸半径（无现成依赖图页），并追到跨边界的 `contracts/` 与收发两端；命中 `status: partial` 契约说明对端仓还没 ingest，把缺口报进 `knowledge_gaps`。
+6. 跨子系统/多模块问题先读 `architecture/coverage.md`（地基，恒在）建全局认识，知道哪能下结论、哪是盲区；`system-architecture.md` 若已生成再叠加它的跨仓架构叙事——增量早期它常常还不存在，缺席是正常的，别等它。
+7. 知识库太浅时读源码验证，保持只读。
 7. 输出受影响流程、契约、模块、数据结构、跨边界消息、风险、证据和知识库缺口。
 
 检索心法与问题路由表见 `obsidian-kb-query`。
@@ -221,15 +218,15 @@ Use using-obsidian to update the knowledge base for these changed files.
 
 这些变更可能影响：
 
-- `contracts/`
+- `contracts/`（对端浮现时接合 `status: partial` 单边契约）
 - `repos/{repo-name}/api-surface.md`
 - `repos/{repo-name}/data-models.md`
 - 相关 flow 页面
 - 深流程文件夹
 - `跨边界数据流.md`
-- `runtime/data-flow.md`
-- `architecture/dependency-graph.md`
-- `impact/risk-map.md`
+- `architecture/coverage.md`（接合悬挂边、刷新仓覆盖度）
+
+依赖图/数据流/影响面不是页面，不在更新范围——由 query 现算。
 
 ### 6. 检查知识库
 

@@ -26,6 +26,7 @@ code-kb/
     {契约名}.md                 #   (只新增,不改旧)
   architecture/                 # 实现视图·工作区汇总
     system-architecture.md      #   工作区唯一人工叙事总览(改动只标 stale)
+    coverage.md                 #   覆盖度/前沿账本:已挖到哪、哪条跨仓边还没接上(只追加)
   # 运行视图活在 repos/{repo}/flows/ 深挖 + use-cases,靠 view:runtime 承载,无工作区目录。
   # 影响视图纯查询派生:query 沿 depends-on + 反向双链现算「改 X 炸什么」,不落页。
   extra/                        # 兜底:六视图都承载不了的外部知识(可选,update 模式 B 兜底专用)
@@ -56,21 +57,31 @@ code-kb/
 ### 页面取舍
 
 - 跨仓关注点不单独成页：接口归 `contracts/`、风险归仓内 `runtime-notes`、依赖与爆炸半径由 query 从 `depends-on` + 反向双链现算（不落页）。
+- `architecture/coverage.md` 是工作区唯一的**覆盖度/前沿账本**：诚实记录每仓挖到什么深度、哪些跨仓边只找到一端还没接上、有哪些已知盲区。它让"增量永远不完整"从负债变成可读的待补地图——agent 建立全局认识时必读，知道哪里能下结论、哪里是盲区。只追加，不做综合改写。
+- 跨仓边只先找到一端时建**单边契约**（`contracts/{X}` 标 `status: partial`），并在 `coverage.md` 悬挂边表挂账；等另一端的仓 ingest 进来再接合，不编造假对端。
 - `glossary` 是术语→链接索引，不存第二份定义。
 - `runtime-notes` 在 error-handling 与 gotchas 内容都较薄时合一；任一方内容量大时各自独立成页。它同时兼任跨边界/已知地雷的人工风险笔记落点。
 - `extra/` 是**最后手段**：仅当一条外部知识与现有库毫无关联、且补齐 `domains/`/`contracts/`/`use-cases/` 视图层页后仍无页能承载时，才建 `extra/{标题}.md`。能进六视图的知识不许塞 `extra/`；`init` 不预建该目录。
 - 仓内不复刻视图文件夹；只有 `modules/`、`flows/` 这类多实例单元才成文件夹。
 
-## 工作区页面的两种维护方式（决定增量刷新行为）
+## 工作区页面的维护方式（决定增量刷新行为）
 
-工作区聚合页不能都当手写页，否则每次增量补仓都要回头改一堆，迟早不一致。按维护方式分两种：
+工作区聚合页不能都当手写页，否则每次增量补仓都要回头改一堆，迟早不一致。按维护方式分三种：
 
 | 维护方式 | 哪些页 | 增量时怎么处理 |
 |---|---|---|
 | **只新增**（发现新的加一页，不改旧） | `contracts/{X}`、`domains/{X}`、`use-cases/{X}` | 发现新的就**新增一页**，从不回改已有页 |
+| **只追加**（前沿账本，记已知盲区） | `architecture/coverage.md` | **append 一行**：新挖的仓登记深度、新发现的悬挂边挂账；接上一端时把对应行翻成"已接合"，不综合改写 |
 | **人工叙事**（需人工综合判断） | `system-architecture` | 增量时**只打 `status: stale`、不重写**；由 `obsidian-kb-update` 批量刷新 |
 
 依赖图 / 技术栈 / 数据流 / 影响面**不物化成页**：它们是 `depends-on` + 双链的派生物，由 query 即时遍历回答，永远 fresh，不进维护循环。
+
+> **全局认识 = coverage 地基 + query 现算 +（可选）system-architecture，不是一个胖页**。agent 要全工程视角时按这个顺序读：
+> 1. **`coverage.md`（地基,恒在）**：从第一个仓 ingest 起就被铁律强制 append,永远在。它说清全局由哪些仓拼成、哪些只地形扫描、哪些跨仓边悬着——这本身就是一份诚实的全局骨架,也是认识的入口与兜底。
+> 2. **派生 query（实时图,只要有页就能跑）**：已挖范围内的依赖/影响,沿 `depends-on` + 反向双链现算。
+> 3. **`system-architecture`（可选增益,成熟才有）**：跨仓看清后由 update 综合出的人工架构叙事+跨仓图;**若存在**就叠加上去。
+>
+> **关键:`system-architecture` 早期缺席不是缺陷——"跨仓图还画不出"正是 `coverage` 要记录的诚实。** 所以入口和兜底永远是 `coverage`,不是那张人工图;完整性由账本诚实兜底,`system-architecture` 不背"完整性"的锅,有它锦上添花、没它 coverage+query 两处足以建立诚实的全局认识。
 
 ### 增量阶段铁律
 
@@ -78,6 +89,7 @@ code-kb/
 
 - 写仓内页（其自然产物）。
 - **新增**只新增页（contracts/domains/use-cases），从不回改已有页。
+- **append `coverage.md`**：登记本仓 ingest 深度；扫到指向未 ingest 仓的调用、或只找到一端的契约，就挂账成悬挂边（必要时建 `status: partial` 单边契约页）。
 - 给受影响的人工叙事页打 `status: stale`（一个标记，不是重写）。
 - append `log.md`。
 
@@ -87,4 +99,5 @@ code-kb/
 
 - **不**默认生成 `indexes/`、`_map` 这类 thin 索引/地图页。
 - 视图索引、依赖图、爆炸半径**靠 frontmatter 查询 + 双链遍历即时得出**，不物化。
-- 持久知识住在可读页面里：`use-cases/`、`domains/`、`contracts/`、`repos/`、`architecture/system-architecture.md` 是知识的权威来源。
+- 持久知识住在可读页面里：`use-cases/`、`domains/`、`contracts/`、`repos/`、`architecture/system-architecture.md` 是知识的权威来源；`architecture/coverage.md` 是覆盖度与盲区的权威来源。
+- `coverage.md` **不**是派生地图：它记的是 query 算不出来的东西——"还没 ingest 的仓"和"只找到一端的边"。已 ingest 范围内的依赖/影响仍由 query 现算，不进账本。

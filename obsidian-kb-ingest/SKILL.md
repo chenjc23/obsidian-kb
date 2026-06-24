@@ -9,7 +9,7 @@ description: Use to create or refresh the first-pass Obsidian code knowledge bas
 
 **始终配合 `obsidian-kb-authoring` 写笔记。** 目录、frontmatter、页面形状、链接契约全部以 authoring 的 `references/` 为准，本 skill **不重复声明**，只负责产出流程。
 
-增量铁律（authoring `references/directory-contract.md`）：ingest 每次**只做加法 + 打 stale**——写仓内页、新增只新增页（domains/contracts/use-cases）、给受影响的工作区人工叙事页打 `status: stale`、append `log.md`；**不**全量重建工作区地图。
+增量铁律（authoring `references/directory-contract.md`）：ingest 每次**只做加法 + 打 stale**——写仓内页、新增只新增页（domains/contracts/use-cases）、**append `architecture/coverage.md`**（登记本仓 ingest 深度 + 挂账悬挂边）、给受影响的工作区人工叙事页打 `status: stale`、append `log.md`；**不**全量重建工作区地图。
 
 ## 输入识别
 
@@ -71,7 +71,9 @@ description: Use to create or refresh the first-pass Obsidian code knowledge bas
 
 1. **逻辑视图** → `{kb-root}/domains/{业务域}.md`：从 glossary、模块职责、README 领域语言聚类出业务域，定义概念、不变量、状态、相邻域，链向实现该域的流程。
 2. **契约视图** → `{kb-root}/contracts/{契约名}.md`：把首扫发现的跨边界契约（HTTP/RPC API、MQ topic、event、协议消息、TLV/frame）提升为独立契约页，记录消息标识、payload schema、producer/consumer、接收方发现证据。
+   - **只找到一端时**（producer 或 consumer 在尚未 ingest 的仓，或对端没搜到）：照常建页、填已知端、未知端留空、`status: partial`，**别编造假对端**。同步在 `coverage.md` 悬挂边表挂账（见步骤 4）。
 3. 这两类是**只新增页**：发现新的加一页，不回改已有页。深度的端到端字段映射留给 deep-analysis。
+4. **append `architecture/coverage.md`**（无则按 page-shapes 的 coverage 骨架建）：① 本仓覆盖度行（深度 = `只地形扫描`/`模块已解析`/`关键流程已深挖`）② 本次发现的悬挂边（指向未 ingest 仓的调用、单边 partial 契约）③ 已知盲区。这是**只追加**，不回改旧行；接上某端时才把对应行翻"已接合"。
 
 ## Phase 6：双向链接（见 authoring `references/link-contract.md`）
 
@@ -86,6 +88,7 @@ description: Use to create or refresh the first-pass Obsidian code knowledge bas
 
 - `index.md`：入口，链向各 catalog（人工叙事）。
 - `architecture/system-architecture.md`：工作区**唯一人工叙事**总览，增量时受影响则打 `stale`，不重写。
+- `architecture/coverage.md`：**只追加**前沿账本，append 本仓覆盖度行 + 悬挂边 + 盲区（见 Phase 5 步骤 4）；它让全局认识对"还没挖的部分"诚实可读。
 - `contracts/{X}`、`domains/{X}`、`use-cases/{X}`：**只新增**，发现新边界/新域/新场景才加页，不回改已有页。
 - `log.md`：append 本次操作。
 

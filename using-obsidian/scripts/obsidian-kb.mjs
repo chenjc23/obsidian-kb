@@ -25,11 +25,12 @@ const VALID_TYPES = new Set([
   'risk',
   'index',
   'log',
+  'coverage',
   'extra',
 ]);
 const VALID_VIEW = new Set(['usecase', 'logical', 'development', 'runtime', 'contract', 'impact', 'meta']);
 const VALID_CONFIDENCE = new Set(['high', 'medium', 'low']);
-const VALID_STATUS = new Set(['active', 'stale', 'draft', 'deprecated']);
+const VALID_STATUS = new Set(['active', 'stale', 'partial', 'draft', 'deprecated']);
 
 // init 只搭骨架：工作区视图目录 + index/log。唯一聚合页 system-architecture
 // 由 ingest/update 在真有内容时才建，init 不预生成。依赖/影响面不物化成页（query 现算）。
