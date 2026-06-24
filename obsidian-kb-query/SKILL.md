@@ -21,16 +21,7 @@ query 只读。默认不跑 ingest / update / deep-analysis，不写任何东西
 
 ## 找到 `{kb-root}`
 
-不必让用户给路径。按顺序定位：
-
-1. 用户显式给的路径。
-2. 当前目录本身就像知识库根。
-3. `{当前工作目录}/code-kb`。
-4. 最近的祖先目录里的 `code-kb`。
-5. 工作区下一级名为 `code-kb` 的目录。
-6. 结构最像的目录：含 `index.md`、`log.md`、`repos/`，以及 `use-cases/`、`domains/`、`contracts/` 至少之一。
-
-只有完全找不到、或多个候选同样可能时才问用户。找到后走下面的检索协议。
+见 authoring `references/kb-root-resolution.md`（只读类：完全找不到或多候选同样可能时才问用户，不臆造路径）。找到后走下面的检索协议。
 
 ## 检索心法：沿脊柱走，不靠目录翻
 

@@ -40,6 +40,8 @@
 
 ## wikilink 写法
 
+wikilink **只指向 KB 页面**；引用源码用 `sources` frontmatter 或正文 inline `code`，**绝不**写 `[[l2ss_db.c]]` 这类指向源码文件的 wikilink。
+
 知识库页面一律用 Obsidian wikilinks：
 
 ```markdown

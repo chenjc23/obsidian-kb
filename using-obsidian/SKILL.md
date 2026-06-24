@@ -23,24 +23,7 @@ The user does not need to provide the knowledge base path for normal knowledge-b
 
 Apply automatic discovery for any request that asks to read, query, analyze, inspect, explain, design from, debug with, review with, update, lint, or assess impact through the knowledge base.
 
-When no path is provided, discover `{kb-root}` automatically in this order:
-
-1. If the current working directory is itself a knowledge base, use it.
-2. If `{current working directory}/code-kb` exists, use it.
-3. Walk upward from the current working directory and use the nearest ancestor `code-kb/`.
-4. Search immediate workspace children for a directory named `code-kb/`.
-5. If multiple candidates exist, choose the one with the strongest multi-repo structure: `index.md`, `log.md`, `repos/`, and at least one workspace view directory (`use-cases/`, `domains/`, `contracts/`).
-6. If ambiguity remains, choose `{current working directory}/code-kb`.
-
-Do not ask the user where the knowledge base is or where it should be created unless the user explicitly asks to choose between candidates.
-
-A directory is a likely knowledge base when it contains several of:
-
-- `index.md`
-- `log.md`
-- `repos/`
-- workspace view directories such as `use-cases/`, `domains/`, `contracts/`
-- pages with `type`, `view`, `repo`, `sources`, `confidence`, and `status` properties
+When no path is provided, discover `{kb-root}` using the single-source resolution in `obsidian-kb-authoring/references/kb-root-resolution.md` (deterministic order + read/write fallback + the "looks-like-a-knowledge-base" test). Do not ask where the KB is or should be created unless the user explicitly asks to choose between candidates.
 
 Do not hardcode local paths in examples or generated instructions. Prefer:
 

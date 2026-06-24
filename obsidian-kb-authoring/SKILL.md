@@ -25,10 +25,11 @@ description: Use whenever creating, editing, or reviewing multi-repository Obsid
 | 文件 | 内容 | 何时查 |
 |---|---|---|
 | [references/view-model.md](references/view-model.md) | 六视图定义、domain/use-case 名词动词之分、type→view 映射、消费侧脊柱 | 决定页面归属哪个视图、用例 vs 域分不清时 |
-| [references/directory-contract.md](references/directory-contract.md) | 锁定目录树、folder/file 判据、三种维护方式、增量铁律 | 决定文件放哪、是否新建/合并页、增量该不该改某页 |
+| [references/directory-contract.md](references/directory-contract.md) | 锁定目录树、folder/file 判据、两种维护方式、增量铁律 | 决定文件放哪、是否新建/合并页、增量该不该改某页 |
 | [references/frontmatter-schema.md](references/frontmatter-schema.md) | **唯一** frontmatter schema、三档字段、枚举、去重去冗余 | 每次写 frontmatter |
 | [references/page-shapes.md](references/page-shapes.md) | 各 type 页面骨架、深流程瘦身后的形状 | 每次新建页面 |
 | [references/link-contract.md](references/link-contract.md) | 双链强制双向、影响视图传播边、可校验字段 | 每次建立关系、做影响分析 |
+| [references/kb-root-resolution.md](references/kb-root-resolution.md) | 找知识库根 `{kb-root}` 的确定性解析顺序、读写兜底 | 每次需要定位或新建知识库根 |
 
 > 其它 skill（ingest / deep-analysis / update）**不得自行重新声明 schema 或目录**，一律引用上述参考文件——单一来源确保各 skill 的产物一致。
 
@@ -38,7 +39,7 @@ description: Use whenever creating, editing, or reviewing multi-repository Obsid
 
 1. **frontmatter 唯一来源**：字段、枚举、默认值全部以 `references/frontmatter-schema.md` 为准。Tier 1 核心字段每页必含；`updated` 写入时刷新为当天。
 2. **双链强制双向**：`references/link-contract.md` 列出的关系必须双向可达。`producer`/`consumer`/`depends-on` 是影响视图的图边，必须存在且可校验。关系的唯一真相源是正文 wikilinks，frontmatter 关系字段是工具同步的投影。
-3. **增量只做加法 + 打 stale**：增量阶段（ingest/deep-analysis）只写仓内页、新增只新增页、给受影响的人工叙事页打 `status: stale`、append `log.md`；**不**全量重建工作区地图（那是 update 的活）。见 `references/directory-contract.md` 三种维护方式。
+3. **增量只做加法 + 打 stale**：增量阶段（ingest/deep-analysis）只写仓内页、新增只新增页、给受影响的人工叙事页打 `status: stale`、append `log.md`；**不**全量重建工作区地图（那是 update 的活）。见 `references/directory-contract.md` 两种维护方式。
 4. **源码证据诚实**：`sources` 用 durable 引用（`path:func()`，**不带行号**）。证据不足时设 `confidence: low`，在正文说明缺失，**不编造行为**。
 
 ## 写作规则

@@ -19,13 +19,7 @@ description: Use to create or refresh the first-pass Obsidian code knowledge bas
 
 ## `{kb-root}` 解析
 
-不要询问用户知识库放哪。确定性解析：
-
-1. 用户显式指定路径 → 用之。
-2. 否则当前工作目录已有知识库目录 → 用检测到的。
-3. 否则 → `{当前工作目录}/code-kb`。
-
-知识库目录 = 名为 `code-kb/` 或包含 `index.md`/`repos/`/`log.md` 等若干结构的目录。仅当源仓库根或摄入范围无法推断时才询问，**永不**问 `{kb-root}` 放哪。
+见 authoring `references/kb-root-resolution.md`（写入类：全找不到则在 `{当前工作目录}/code-kb` 新建）。仅当源仓库根或摄入范围无法推断时才询问，**永不**问 `{kb-root}` 放哪。
 
 ## Phase 1：仓库地形扫描 → `repos/{repo}/architecture.md`
 
@@ -33,8 +27,7 @@ description: Use to create or refresh the first-pass Obsidian code knowledge bas
 2. 读元数据/构建文件（如有，C++ 优先）：`CMakeLists.txt`、`Makefile`、`conanfile.txt`/`conanfile.py`、`vcpkg.json`、Bazel `BUILD`、`README`、`package.json`、`go.mod`、`Cargo.toml`、`pyproject.toml`、`pom.xml`、`build.gradle`、`Dockerfile`、部署清单。
 3. 识别并读入口文件：`main.cpp`、`src/main.cpp`、`app/main.cpp`、`main.go`、`index.ts`、`app.py`、`cmd/*`、`src/main.*`、框架引导模块。
 4. 分析源码目录分层（C++ 常见 `include/` 与 `src/` 分离、`lib/`、`modules/`），读依赖注入/初始化/装配代码：`main()`、`wire.go`、`container.ts`、`AppModule`、服务注册、路由装配、工厂/单例初始化。
-5. 从代码识别真实设计模式，不猜。
-6. 生成 `repos/{repo}/architecture.md`：它同时承担**本仓静态结构（实现视图）+ 仓库路由**（链向 modules / flows / 关键 contracts / data-models），并**包含一张 mermaid 架构图**（`graph`/`flowchart TD`，呈现分层与核心模块依赖）。
+5. 生成 `repos/{repo}/architecture.md`：它同时承担**本仓静态结构（实现视图）+ 仓库路由**（链向 modules / flows / 关键 contracts / data-models），并**包含一张 mermaid 架构图**（`graph`/`flowchart TD`，呈现分层与核心模块依赖）。
 
 ## Phase 2：模块拆解 → `repos/{repo}/modules/{模块名}.md`
 
@@ -66,9 +59,9 @@ description: Use to create or refresh the first-pass Obsidian code knowledge bas
 
 ## Phase 4：补充页（有内容才生成）
 
-- `glossary.md`：**术语→链接索引**，指向 domain/flow/data-model 的真定义，不存第二份定义。
+- `glossary.md`：**每个术语必须是代码标识符/注释/README/文档里真实出现的词或缩写，带出处；不得编造，缩写无确证不得臆测扩写。**
 - `api-surface.md`：路由、proto、OpenAPI、controller、消息契约（契约视图·本仓接口面）。
-- `data-models.md`：ORM 模型、schema、proto/types、状态结构。大了再拆 `data-models/{结构}.md`。
+- `data-models.md`：ORM 模型、schema、proto/types、状态结构。
 - `config-and-env.md`：配置加载、env、feature flag。
 - `runtime-notes.md`：**error-handling + gotchas 合并**——异常/错误码/重试/降级/告警 + 非显式约束/隐藏约定/已知陷阱。**并兼任跨边界/已知地雷的人工风险笔记落点**。任一方内容量大时拆回独立页。
 - `key-implementations.md`：复杂算法或重要核心逻辑。
@@ -76,8 +69,8 @@ description: Use to create or refresh the first-pass Obsidian code knowledge bas
 
 ## Phase 5：业务域与契约提取（修复孤儿视图，只新增页）
 
-1. **逻辑视图** → `domains/{业务域}.md`：从 glossary、模块职责、README 领域语言聚类出业务域，定义概念、不变量、状态、相邻域，链向实现该域的流程。
-2. **契约视图** → `contracts/{契约名}.md`：把首扫发现的跨边界契约（HTTP/RPC API、MQ topic、event、协议消息、TLV/frame）提升为独立契约页，记录消息标识、payload schema、producer/consumer、接收方发现证据。
+1. **逻辑视图** → `{kb-root}/domains/{业务域}.md`：从 glossary、模块职责、README 领域语言聚类出业务域，定义概念、不变量、状态、相邻域，链向实现该域的流程。
+2. **契约视图** → `{kb-root}/contracts/{契约名}.md`：把首扫发现的跨边界契约（HTTP/RPC API、MQ topic、event、协议消息、TLV/frame）提升为独立契约页，记录消息标识、payload schema、producer/consumer、接收方发现证据。
 3. 这两类是**只新增页**：发现新的加一页，不回改已有页。深度的端到端字段映射留给 deep-analysis。
 
 ## Phase 6：双向链接（见 authoring `references/link-contract.md`）

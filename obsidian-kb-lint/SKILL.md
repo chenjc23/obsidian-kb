@@ -7,7 +7,7 @@ description: "Use to inspect an Obsidian code knowledge base for health issues: 
 
 审计知识库健康度，给出可执行的修复项。要应用修复时配合 `obsidian-kb-authoring`。
 
-判定标准全部以 authoring 的 `references/` 为准——结构看 `directory-contract.md`、frontmatter 看 `frontmatter-schema.md`、链接看 `link-contract.md`。本 skill 不重复声明这些规则，只负责怎么查、怎么报。
+判定标准全部以 authoring 的 `references/` 为准——结构看 `directory-contract.md`、frontmatter 看 `frontmatter-schema.md`、链接看 `link-contract.md`、找 `{kb-root}` 看 `kb-root-resolution.md`。本 skill 不重复声明这些规则，只负责怎么查、怎么报。
 
 机械检查（frontmatter 合法性、断链、孤儿、统计）可用 `using-obsidian/scripts/obsidian-kb.mjs lint` / `report` 跑一遍；脚本不可用时按下面逐项手查。
 
