@@ -130,7 +130,7 @@ If the user approves multiple rows and sub-agents are available, the main agent 
 4. Review the result for obvious missing files, low-confidence gaps, or failed writes.
 5. Only then create the next sub-agent for the next confirmed flow.
 
-Do not create multiple deep-analysis sub-agents in parallel. Do not batch-create sub-agents. Do not create the next sub-agent until the previous sub-agent has fully completed and returned its result. Cross-flow parallelism is forbidden because deep analyses update shared pages such as `data-models.md`, `architecture.md`, `contracts/`, `runtime/data-flow.md`, `impact/risk-map.md`, and `log.md`.
+Do not create multiple deep-analysis sub-agents in parallel. Do not batch-create sub-agents. Do not create the next sub-agent until the previous sub-agent has fully completed and returned its result. Cross-flow parallelism is forbidden because deep analyses update shared pages such as `data-models.md`, `architecture.md`, `contracts/`, `runtime-notes.md`, and `log.md`.
 
 If sub-agents are unavailable, the main agent must run the confirmed flows one by one in the same serial order.
 

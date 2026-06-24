@@ -5,8 +5,8 @@
 ## 核心原则：双链是关系的唯一真相源
 
 - 关系**只在正文用 wikilinks 表达**，作为唯一真相源。
-- frontmatter 里的关系字段（`producer`/`consumer`/`depends-on`/`related-*`/`entry-point`，见 [frontmatter-schema.md](frontmatter-schema.md) Tier 3）是**给 query/impact 工具的结构化投影**，应与正文双链一致，由工具同步校验，**不与正文各自独立手维护**。
-- 自动生成的地图（dependency-graph 等）从这些双链 + frontmatter 投影出来，不手写。
+- frontmatter 里的关系字段（`producer`/`consumer`/`depends-on`/`related-*`/`entry-point`，见 [frontmatter-schema.md](frontmatter-schema.md) Tier 3）是**给 query 影响面遍历用的结构化边**，应与正文双链一致，由工具同步校验，**不与正文各自独立手维护**。
+- 影响面 / 依赖图不物化成页：query 从这些双链 + frontmatter 即时遍历得出，永远 fresh。
 
 ## 必须维护的双向关系
 
@@ -21,7 +21,7 @@
 | 流程 → 模块 | flow 列涉及模块 | module 在"相关流程"链回 |
 | 契约 → producer/consumer | contract 列两端 | 两端模块/repo 链回 contract |
 | 模块 → 模块 | module `depends-on` + 正文 | 被依赖模块在"被依赖（入）"反向链 |
-| 风险 → 流程/契约/模块/证据 | risk 列受影响对象 | 对象在"风险链"链回 risk |
+| 风险 → 流程/契约/模块/证据 | `runtime-notes` 风险条目列受影响对象 | 对象在"风险链"链回该 `runtime-notes` 条目 |
 | 术语 → 真定义 | glossary 术语链向 domain/flow/data-model | — (glossary 是索引,单向可接受) |
 
 ## 强制 + 可校验字段（影响视图的传播边）
@@ -48,13 +48,13 @@
 [[repos/order-service/flows/业务开通端到端流程]]
 [[contracts/AllocateResource]]
 [[repos/resource-service/modules/资源分配]]
-[[impact/risk-map#资源预占一致性]]
+[[repos/order-service/runtime-notes#资源预占一致性]]
 [[repos/order-service/data-models#OrderRequest]]
 ```
 
 ## 链接闭环检查（写入前）
 
 - 有意义的关系都有反向链（除 glossary 索引等明确单向场景）。
-- 新页面至少有一条入链，或是有意为之的入口页（index、catalog `_map`）。
+- 新页面至少有一条入链，或是有意为之的入口页（`index`）。
 - 深流程文件夹内：`调用树`/`主干流程`/分支页/`跨边界数据流`/`数据结构` 之间的双链闭环（具体见 obsidian-kb-deep-analysis Phase 5）。
 - 跨边界处的 `[[contracts/X]]` 链接存在，且契约页反向列出"使用该契约的流程"。

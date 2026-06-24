@@ -25,13 +25,14 @@ const VALID_TYPES = new Set([
   'risk',
   'index',
   'log',
+  'extra',
 ]);
 const VALID_VIEW = new Set(['usecase', 'logical', 'development', 'runtime', 'contract', 'impact', 'meta']);
 const VALID_CONFIDENCE = new Set(['high', 'medium', 'low']);
-const VALID_STATUS = new Set(['active', 'stale', 'draft', 'deprecated', 'generated']);
+const VALID_STATUS = new Set(['active', 'stale', 'draft', 'deprecated']);
 
-// init 只搭骨架：工作区视图目录 + index/log。聚合页（system-architecture、
-// risk-map、dependency-graph 等）由 ingest/update 在真有内容时才建或投影，init 不预生成。
+// init 只搭骨架：工作区视图目录 + index/log。唯一聚合页 system-architecture
+// 由 ingest/update 在真有内容时才建，init 不预生成。依赖/影响面不物化成页（query 现算）。
 const SEED_FILES = new Map([
   ['index.md', seedPage('Code Knowledge Base', 'index', 'meta', 'global', 'draft')],
   ['log.md', seedPage('Knowledge Base Log', 'log', 'meta', 'global', 'active')],
@@ -92,7 +93,7 @@ export function resolveContext({ cwd = process.cwd(), args = [] } = {}) {
 
 export async function initKnowledgeBase({ kbRoot }) {
   await mkdir(kbRoot, { recursive: true });
-  for (const directory of ['use-cases', 'domains', 'contracts', 'architecture', 'runtime', 'impact', 'repos']) {
+  for (const directory of ['use-cases', 'domains', 'contracts', 'architecture', 'repos']) {
     await mkdir(path.join(kbRoot, directory), { recursive: true });
   }
 
@@ -315,7 +316,7 @@ export async function lintKnowledgeBase({ kbRoot }) {
     }
 
     const incoming = index.incomingLinks.get(page.relativePath) || [];
-    if (incoming.length === 0 && page.outgoingLinks.length === 0 && page.status !== 'generated' && !isIntentionalEntryPage(page.relativePath)) {
+    if (incoming.length === 0 && page.outgoingLinks.length === 0 && !isIntentionalEntryPage(page.relativePath)) {
       issues.push({
         severity: 'warning',
         type: 'orphan',
@@ -359,8 +360,7 @@ export async function lintKnowledgeBase({ kbRoot }) {
 }
 
 function isIntentionalEntryPage(relativePath) {
-  return ['index.md', 'log.md'].includes(relativePath)
-    || relativePath.endsWith('/_map.md');
+  return ['index.md', 'log.md'].includes(relativePath);
 }
 
 export async function getLinks({ kbRoot, target }) {

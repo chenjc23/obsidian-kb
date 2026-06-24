@@ -42,8 +42,8 @@ query 只读。默认不跑 ingest / update / deep-analysis，不写任何东西
 use-cases（入口）
   → domains / contracts（概念 + 接口）
     → flows / modules（实现）
-      → dependency-graph / 反向双链（影响）
-        → risk-map / runtime-notes（警示）
+      → depends-on + 反向双链（影响，现算）
+        → runtime-notes（警示）
 ```
 
 页面的 `view:` 字段（`usecase`/`logical`/`development`/`runtime`/`contract`/`impact`）就是检索维度：先判断答案落在哪个视图，再决定从脊柱哪一段进、往哪个方向走。命中的页越少越好，只取够回答问题的那几页。
@@ -68,7 +68,7 @@ use-cases（入口）
 | **业务问题**：这块业务在干嘛 / 什么是 X / 谁触发 | 用例 + 逻辑 | `use-cases/{场景}`（端到端场景）或 `domains/{域}` + repo `glossary`（概念） | use-case → 它编排的 flows + 涉及的 domains/contracts；概念类：glossary → domain → 实现该域的 flow |
 | **实现定位**：在哪改 / 这功能怎么实现的 / 入口在哪 | 实现 + 运行 | repo `architecture.md`（它本身是仓库路由） | architecture → `modules/{模块}` + `flows/{主题}/`；要细节读 `flows/{主题}/主干流程.md`、`调用树.md`；`entry-point` 字段直接定位代码入口 |
 | **影响面**：改这个接口/字段/消息会影响哪些流程 | 契约 + 影响 | 定位实体 → `repos/{repo}/data-models.md` / `api-surface.md` / `contracts/{X}` | 见下方"影响面遍历" |
-| **调试**：为什么会失败 / 这条链路哪出问题 | 运行 + 影响 | 相关 `flows/{主题}/` | 主干流程 + 分支页 → `runtime-notes`（错误/重试/陷阱）→ `impact/risk-map` |
+| **调试**：为什么会失败 / 这条链路哪出问题 | 运行 + 影响 | 相关 `flows/{主题}/` | 主干流程 + 分支页 → `runtime-notes`（错误/重试/陷阱/已知地雷） |
 | **评审 / 测试**：改得对不对 / 该测什么 | 实现 + 运行 | 相关 module / flow | 走实现定位那条，外加 `repos/{repo}/testing-strategy.md`、`runtime-notes.md` |
 
 ### 影响面遍历（改字段 / 改接口的核心）
@@ -77,9 +77,9 @@ use-cases（入口）
 
 1. 定位被改的类型/字段/消息：在 `data-models.md`、`api-surface.md`、`contracts/{X}` 和 frontmatter 里搜类型名、字段名、源文件、别名。
 2. 沿影响边逐跳扩散：契约页的 `producer`/`consumer`、模块页的 `depends-on`、流程页的 `related-contracts`/`entry-point`，**加上正文双链的反向链**，一路扩到 flows → use-cases。
-3. 读现成的影响索引：`architecture/dependency-graph.md`（从 frontmatter + 双链自动生成的依赖投影，一张现成的爆炸半径图）。
+3. **现算爆炸半径**：沿 frontmatter `depends-on` + 正文反向双链做图遍历（无现成图，影响视图就是这次遍历本身）。
 4. 跨消息边界时，读 `contracts/{X}` + 该流程的 `跨边界数据流.md` + 收发两端模块；字段穿协议、MQ、RPC、event、socket、TLV 边界时尤其要追到接收方。
-5. 收尾读 `impact/risk-map.md` 和相关 `runtime-notes.md`。
+5. 收尾读相关 `runtime-notes.md`（已知地雷/陷阱）。
 6. 给出：受影响的 flows、契约、模块、数据结构、跨边界消息、测试、风险、知识缺口。
 
 ## 答案充分性闸门（强制：先补全再回答，别把读源码甩给用户）

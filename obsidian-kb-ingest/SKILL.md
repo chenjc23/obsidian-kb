@@ -70,7 +70,7 @@ description: Use to create or refresh the first-pass Obsidian code knowledge bas
 - `api-surface.md`：路由、proto、OpenAPI、controller、消息契约（契约视图·本仓接口面）。
 - `data-models.md`：ORM 模型、schema、proto/types、状态结构。大了再拆 `data-models/{结构}.md`。
 - `config-and-env.md`：配置加载、env、feature flag。
-- `runtime-notes.md`：**error-handling + gotchas 合并**——异常/错误码/重试/降级/告警 + 非显式约束/隐藏约定/已知陷阱。任一方内容量大时拆回独立页。
+- `runtime-notes.md`：**error-handling + gotchas 合并**——异常/错误码/重试/降级/告警 + 非显式约束/隐藏约定/已知陷阱。**并兼任跨边界/已知地雷的人工风险笔记落点**。任一方内容量大时拆回独立页。
 - `key-implementations.md`：复杂算法或重要核心逻辑。
 - `testing-strategy.md`：测试目录、脚本、CI、fixture（视图正交，可选）。
 
@@ -89,16 +89,14 @@ description: Use to create or refresh the first-pass Obsidian code knowledge bas
 
 ## Phase 7：工作区更新（按维护方式区分处理）
 
-按 authoring `references/directory-contract.md` 的三种维护方式处理，**不要手写自动生成页**：
+按 authoring `references/directory-contract.md` 的两种维护方式处理：
 
-- `index.md`：入口，链向六视图 catalog。
-- `domains/_map.md`、`contracts/_map.md`：**自动生成**，由工具生成，勿手维护详情。
-- `architecture/system-architecture.md`：**人工叙事**，增量时受影响则打 `stale`，不重写。
-- `architecture/dependency-graph.md`、`runtime/data-flow.md`、`architecture/tech-stack.md`：**自动生成**，从 frontmatter + 双链投影，不手写。
-- `impact/risk-map.md`、`architecture/shared-patterns.md`：**人工叙事**，跨仓真有内容才建/才打 stale。
+- `index.md`：入口，链向各 catalog（人工叙事）。
+- `architecture/system-architecture.md`：工作区**唯一人工叙事**总览，增量时受影响则打 `stale`，不重写。
+- `contracts/{X}`、`domains/{X}`、`use-cases/{X}`：**只新增**，发现新边界/新域/新场景才加页，不回改已有页。
 - `log.md`：append 本次操作。
 
-跨仓关注点不单独成页：接口归 `contracts/`、风险归 `impact/risk-map`、依赖归 `dependency-graph`。**不生成** `indexes/` thin 索引页。
+跨仓关注点不单独成页：接口归 `contracts/`；风险归仓内 `runtime-notes`；依赖与爆炸半径由 query 从 `depends-on` + 反向双链**现算，不落页**。**不生成** `indexes/`、`_map` 或任何依赖图/数据流/技术栈聚合页。
 
 ## Phase 8：深度分析执行 + 用例种子
 

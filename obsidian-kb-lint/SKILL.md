@@ -17,7 +17,7 @@ description: "Use to inspect an Obsidian code knowledge base for health issues: 
 
 每个仓至少要有 `architecture.md`（实现视图 + 仓库路由）。其余仓内页**有该关注点才需要**，缺失多数是 `warning` 而非致命：`glossary.md`、`api-surface.md`、`data-models.md`、`config-and-env.md`、`key-implementations.md`、`runtime-notes.md`、`testing-strategy.md`、`candidate-flow.md`、`modules/`（多模块时）、`flows/{分析主题}/`（有业务流程时）。该仓确实没这个关注点，就不算缺。
 
-工作区层至少要有 `index.md`、`log.md`。聚合页（`architecture/system-architecture.md`、`impact/risk-map.md`、`architecture/dependency-graph.md` 等）按"跨仓真有内容才建"判断，不强制每个都在。
+工作区层至少要有 `index.md`、`log.md`。聚合页仅 `architecture/system-architecture.md`（跨仓真有内容才建），不强制在。依赖图/数据流/技术栈/影响面不物化成页，不要因其缺失而报缺。
 
 ### 2. Frontmatter 有效性
 
@@ -31,7 +31,7 @@ description: "Use to inspect an Obsidian code knowledge base for health issues: 
 
 ### 3. 孤儿页
 
-找没有入链的页。`index.md`、`log.md`、各 `_map.md` 这类入口排除；`status: generated` 的投影页不算孤儿。
+找没有入链的页。`index.md`、`log.md` 这类入口排除。
 
 ### 4. 源码陈旧
 
@@ -47,7 +47,7 @@ description: "Use to inspect an Obsidian code knowledge base for health issues: 
 
 - 两个模块声称同一独占职责。
 - flow 页点名某模块，却没有对应 module 页。
-- `architecture.md` 的依赖声明与 `architecture/dependency-graph.md` 冲突。
+- 模块页 `depends-on` 与正文双链各自漂移、互相矛盾。
 - API 页与实际路由/proto 定义冲突。
 
 ### 6. 影响边完整性（影响视图的命门）

@@ -27,7 +27,7 @@
 {决定成败的分叉与验收标准}
 
 ## 风险链
-[[impact/risk-map#资源预占一致性]]
+[[repos/{repo}/runtime-notes#资源预占一致性]]
 ```
 
 不复述 flow 内部。单 flow 场景不开此页（见 [view-model.md](view-model.md) 防呆规则）。
@@ -208,11 +208,9 @@ sequenceDiagram
 
 ---
 
-## 工作区人工叙事页（system-architecture / risk-map / shared-patterns）
+## 工作区人工叙事页（system-architecture）
 
 汇总 + 链接为主，**不持有详细流程追踪**。增量时不重写，受影响则打 `status: stale`。
-`system-architecture.md` 含一张**跨仓** mermaid 架构图（服务/仓库间关系），其余靠链接指向各 repo `architecture.md`。
+`system-architecture.md` 是工作区**唯一**的人工叙事总览，含一张**跨仓** mermaid 架构图（服务/仓库间关系），其余靠链接指向各 repo `architecture.md`。
 
-## 自动生成页（_map / dependency-graph / data-flow / tech-stack）
-
-`status: generated`，顶部注明"本页由工具生成，勿手改"。由 query/update 从 frontmatter + 双链投影。
+依赖图 / 技术栈 / 数据流 / 影响面**不物化成页**——由 query 从 `depends-on` + 反向双链即时遍历得出。

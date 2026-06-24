@@ -1,23 +1,34 @@
 ---
 name: obsidian-kb-update
-description: Use when existing Obsidian code knowledge-base notes need to be updated after source code changes, changed requirements, or stale documentation. Triggers on "update the kb", "refresh affected wiki pages", "sync docs with code changes", "增量更新知识库", or requests involving changed files and existing code-kb pages.
+description: Use when existing Obsidian code knowledge-base notes need to be updated after source code changes, changed requirements, or stale documentation. Triggers on "update the kb", "refresh affected wiki pages", "sync docs with code changes", "增量更新知识库", or requests involving changed files and existing code-kb pages. Also triggers when the user supplies external knowledge or a document (design note, spec, chat log, PDF) to fold into the KB — e.g. "把这份文档整理进知识库", "把这段知识沉淀进库", "update kb from this doc".
 ---
 
 # Obsidian KB Update
 
-增量更新。目标：只动被源码或需求变更影响到的页，别全量重建。
+增量更新。目标：只动被影响到的页，别全量重建。
+
+**两种输入模式**：A·源码变更（git diff 驱动）；B·外部知识/文档输入（用户给一段知识或文档，理解后关联到相关页）。先做「输入识别」判定本次走哪条，二者可在同一次调用并存。
 
 **始终配合 `obsidian-kb-authoring` 写笔记。** 目录、frontmatter、页面形状、链接契约全部以 authoring 的 `references/` 为准，本 skill 不重复声明，只负责更新流程。
 
 ## update 在套件里的特殊位置
 
-ingest 和 deep-analysis 增量时**只做加法 + 打 stale**，从不回改旧页。**回头刷新是 update 的专职**（见 authoring `references/directory-contract.md` 的三种维护方式）：
+ingest 和 deep-analysis 增量时**只做加法 + 打 stale**，从不回改旧页。**回头刷新是 update 的专职**（见 authoring `references/directory-contract.md` 的两种维护方式）：
 
-- **自动生成页**（`_map`、`dependency-graph`、`data-flow`、`tech-stack`）：从 frontmatter + 双链**重新投影**，不手写。
-- **人工叙事页**（`system-architecture`、`risk-map`、`shared-patterns`、`process-topology`）：之前被打了 `status: stale` 的，由 update **重写刷新**回 `active`。
+- **人工叙事页**（仅 `system-architecture`）：之前被打了 `status: stale` 的，由 update **重写刷新**回 `active`。
 - **只新增页**（`contracts/`、`domains/`、`use-cases/`）：仍然只在发现新边界/新域/新场景时新增，不回改已有页。
 
-## 更新流程
+依赖图 / 数据流 / 技术栈 / 影响面**不物化成页**，不进刷新循环——由 query 从 `depends-on` + 反向双链即时遍历得出。
+
+## 输入识别（双模式）
+
+- 用户给的是**代码变更**（git diff/status、文件名、patch）→ 走**模式 A**（下方「模式 A：源码变更驱动」）。
+- 用户给的是**外部知识/文档**（粘贴文本、文档路径、URL、聊天记录、设计稿）→ 走**模式 B**（下方「模式 B：外部知识/文档输入」）。
+- 两者都给 → 两条流程各跑一遍，落页时合并。
+
+## 模式 A：源码变更驱动
+
+### 更新流程
 
 1. 找出变更的源文件。
    - 优先用 Git diff/status。
@@ -31,26 +42,26 @@ ingest 和 deep-analysis 增量时**只做加法 + 打 stale**，从不回改旧
 5. 判断变更是否产生跨仓影响。
 6. 刷新 `updated`、`sources`、`confidence`。
 7. 维护或修复双链（见 authoring `references/link-contract.md`，关系字段与正文双链保持一致）。
-8. 刷新受影响的自动生成页与之前打了 stale 的人工叙事页（见上节）。
+8. 刷新之前打了 stale 的 `system-architecture.md`（见上节）。
 9. append 一条精简记录到 `log.md`。
 
-## 影响映射
+### 影响映射
 
 | 变更类型 | 受影响的页 |
 |---|---|
 | 路由 / controller / proto | `api-surface.md`、相关仓内 `flows/`、相关 modules |
-| TLV / 协议 / message-code / command-code | `contracts/`、`api-surface.md`、`data-models.md`、相关深流程文件夹、`跨边界数据流.md`、`runtime/data-flow.md` |
-| MQ topic / producer / consumer | `contracts/`、producer 与 consumer 模块、相关仓内 `flows/`、深流程文件夹、`跨边界数据流.md`、`runtime/data-flow.md` |
-| socket / frame / parser / encoder / decoder | `contracts/`、`data-models.md`、深流程文件夹、`跨边界数据流.md`、`runtime-notes.md`、`runtime/data-flow.md` |
-| event emit / listen / subscriber | `contracts/`、producer 与 consumer 模块、相关仓内 `flows/`、深流程文件夹、`跨边界数据流.md`、`runtime/data-flow.md` |
-| handler registry / dispatch table | `api-surface.md`、相关 `contracts/`、受影响 flow、深流程文件夹、`跨边界数据流.md`、`architecture/dependency-graph.md` |
-| RPC client / server / interface | `contracts/`、`api-surface.md`、producer 与 consumer 模块、相关仓内 `flows/`、深流程文件夹、`跨边界数据流.md`、`runtime/data-flow.md` |
+| TLV / 协议 / message-code / command-code | `contracts/`、`api-surface.md`、`data-models.md`、相关深流程文件夹、`跨边界数据流.md` |
+| MQ topic / producer / consumer | `contracts/`、producer 与 consumer 模块、相关仓内 `flows/`、深流程文件夹、`跨边界数据流.md` |
+| socket / frame / parser / encoder / decoder | `contracts/`、`data-models.md`、深流程文件夹、`跨边界数据流.md`、`runtime-notes.md` |
+| event emit / listen / subscriber | `contracts/`、producer 与 consumer 模块、相关仓内 `flows/`、深流程文件夹、`跨边界数据流.md` |
+| handler registry / dispatch table | `api-surface.md`、相关 `contracts/`、受影响 flow、深流程文件夹、`跨边界数据流.md` |
+| RPC client / server / interface | `contracts/`、`api-surface.md`、producer 与 consumer 模块、相关仓内 `flows/`、深流程文件夹、`跨边界数据流.md` |
 | 类型 / 模型 / schema | `data-models.md`、相关 flows 和 modules |
 | 配置 / env | `config-and-env.md`、相关 flows |
 | 错误 / 重试 / 降级 | `runtime-notes.md`、相关 flows |
 | 算法 / 核心服务 | `key-implementations.md`、相关 modules 和 flows |
 | 测试 / CI | `testing-strategy.md` |
-| 模块边界 / 导出 / 导入 | module 页、`architecture.md`、`architecture/dependency-graph.md` |
+| 模块边界 / 导出 / 导入 | module 页、`architecture.md` |
 
 通信领域的变更，不要只改本地发送方或接收方一侧的页。工作区里有代码证据时，**两侧都追**：
 
@@ -59,6 +70,26 @@ ingest 和 deep-analysis 增量时**只做加法 + 打 stale**，从不回改旧
 3. 找接收方的解码、分发、handler、状态变更、响应、重试、补偿逻辑。
 4. 更新每一个还在讲旧跨边界数据流的页。
 5. 找不到下游代码时，把受影响的 flow 或契约标 `confidence: low`，记录缺失证据。
+
+## 模式 B：外部知识/文档输入
+
+用户给一段外部知识或文档，理解后识别相关联的 KB 页并更新。映射靠**语义主题**（实体/业务词/域/契约/流程），不是文件路径；纯用 `rg` + frontmatter 检索，不引入向量库/embedding。
+
+### 流程
+
+1. **摄取与理解**：读入外部输入（粘贴文本 / 文档路径 / URL；URL 用 WebFetch，拿不到就请用户贴内容）。提炼它主张了哪些知识点、涉及哪些实体/域/契约/流程/约束。
+2. **关联映射**：用 `rg` 在现有页的标题、别名、`glossary`、frontmatter、正文里搜上述实体/主题，产出**相关页候选集**。证据不足时去读源码或既有页补足理解（只读、不臆测）。
+3. **冲突收集**：逐个候选页比对——凡外部知识与页上「代码提炼」内容**矛盾**，登记一条冲突（页面 · 现有说法 · 外部说法 · 各自来源）。不矛盾的标记为「可直接补充」。
+4. **一次性询问用户**：遍历完，把**全部冲突攒齐一次列给用户**，逐条请其裁决以哪边为准。**不自动覆盖**。无冲突时跳过本步。
+5. **三层落页**（按裁决结果）：
+   - **① 改相关现有页**：合并新知识；矛盾处按用户裁决落笔；刷新 `updated`、`sources`、`confidence`。
+   - **② 新增视图层页**：文档揭示新业务域→`domains/{X}`、新契约→`contracts/{X}`、新用例→`use-cases/{X}`，遵循「只新增、不回改已有页」。
+   - **③ 兜底 `extra/{标题}.md`**：仅当这条知识与现有库**毫无关联**、且补齐 ② 后仍**无页能承载**时才建。`type: extra`、`view: meta`、`repo: global`。能进六视图的不许塞这里。
+6. **溯源 + 双链 + 日志**：`sources` 记外部来源（文档路径/URL，或 `external: {简述} ({日期})`）；按来源权威度定 `confidence`；维护双链（见 authoring `references/link-contract.md`，extra 页也须至少一条接入脊柱）；append `log.md`。
+
+### 冲突裁决原则
+
+外部知识与代码提炼内容矛盾时**不预设谁赢**，交用户裁决。提示用户判断时可参考：实现事实通常以代码为准，意图/需求/业务规则/约束这类代码表达不了的通常以外部文档为准——但**最终以用户裁决为准**，并把结论写进页面、矛盾来源记入 `sources`。
 
 ## 合并纪律
 
@@ -72,5 +103,5 @@ ingest 和 deep-analysis 增量时**只做加法 + 打 stale**，从不回改旧
 - 受影响的页 `updated` 是当天。
 - `sources` 含支撑更新结论的变更文件。
 - 链接仍有效、仍相关；新链引到的已有页有反向链。
-- 自动生成页已重新投影，之前打 stale 的人工叙事页已刷新。
+- 之前打 stale 的 `system-architecture.md` 已刷新。
 - `log.md` 记了改了什么、为什么。
