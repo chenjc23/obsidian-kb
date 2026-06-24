@@ -45,8 +45,10 @@ description: Use to create or refresh the first-pass Obsidian code knowledge bas
 
 ## Phase 3：流程发现与分级（不生成浅流程页）
 
-1. 从 API 路由、CLI 命令、event handler、job、consumer、协议分发器、消息 handler、状态机迁移、socket/帧解析、公共服务方法等入口开始。
-2. 主动发现所有能从代码证据论证的业务关键流程，包括地形扫描期间发现的。
+> 发现先于判级：先尽可能枚举全所有候选流程，再排序分级。别扫到几个显眼入口就收手——大仓上召回不足主要就栽在这一步提前收敛。
+
+1. 从入口起枚举：API 路由、CLI 命令、event handler、job、consumer、协议分发器、消息 handler、状态机迁移、socket/帧解析、公共服务方法等入口，包括地形扫描期间发现的。
+2. **判别式常量族**：找 enum / `#define` 宏组 / const 表等**具名常量集合**，再定位它们被当作分支或分发 key 的消费点（`switch(x)`、`if(field==CONST)`、表索引、函数指针表）。**每个引向不同业务行为的取值 = 一条候选流程**，逐臂枚举，不要只挑显眼的几个。这里只描述**通用 idiom，不写任何具体领域字段名**，保持跨仓兼容。
 3. 搜索入口与接口证据（不限层级）：
    - HTTP 路由、controller、OpenAPI、RPC/gRPC server、proto/IDL、服务注册。
    - MQ topic、event 名、producer/consumer/subscriber/handler。
@@ -54,10 +56,13 @@ description: Use to create or refresh the first-pass Obsidian code knowledge bas
    - socket 读写循环、frame parser、packet router、session handler。
    - CLI 命令、定时任务、worker、task executor。
    - 公共服务方法、orchestration、状态机入口、workflow 协调器。
-4. 按业务价值、外部接口暴露、跨模块/跨仓耦合、协议复杂度、错误/重试/回滚风险、命名证据**排序并分级**：
+4. **粒度规则（防枚举爆炸）**：一条「流程」= 锚定在某入口/分发臂上、有**独立业务行为**的执行路径，不是每个函数、也不是每个常量。同质、行为一致的分支臂合并成一条；只有引向**不同业务行为**的取值才各算一条。
+5. **枚举完整性自检（轻量、非阻塞）**：登记完后自检——本仓的命令码/消息类型/状态枚举/handler 注册表/分发表是否都逐臂展开过？有未展开的说明原因（确实无业务分叉），不要静默略过。
+6. 按业务价值、外部接口暴露、跨模块/跨仓耦合、协议复杂度、**逻辑链条/执行链路长度**、错误/重试/回滚风险、命名证据**排序并分级**。**链条长优先判关键**：跨多步/多模块的深处理链，即便纯内部、无外部暴露，也算关键流程。
+   - **关键流程数量下限（硬性）**：关键流程**至少 6 个**。排序分级后若不足，按排序把靠前的次关键依次提升为关键，直到满足（候选总数不足 6 个时全判关键）。
    - **关键流程**：进入 Phase 8a 直接深度分析。
    - **次关键流程**：写入 `repos/{repo}/candidate-flow.md` 候选清单，等用户在 Phase 8b 确认。
-5. **不生成单文件浅流程页。** 一个 flow 只有两种归宿：已深挖（`flows/{分析主题}/` 文件夹）或候选（`candidate-flow.md` 行）。
+7. **不生成单文件浅流程页。** 一个 flow 只有两种归宿：已深挖（`flows/{分析主题}/` 文件夹）或候选（`candidate-flow.md` 行）。
 
 ## Phase 4：补充页（有内容才生成）
 
