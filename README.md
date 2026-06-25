@@ -127,14 +127,7 @@ Use using-obsidian to ingest the repositories under this workspace into code-kb.
 
 地形扫描只用于快速识别仓库形状，不固定深度、不是业务流程发现上限。agent 必须继续深入扫描入口、接口、handler、协议分发、消息消费、状态机、定时任务和核心 orchestrator。
 
-流程发现阶段必须形成追踪表；深度分析在补充页、视图层、双链和 coverage/log 建好后统一串行执行：
-
-```markdown
-## Deep Analysis 流程追踪表
-
-| 分析顺序 | 流程名称 | 入口/接口 | 触发方式 | 涉及仓库/模块 | 是否跨消息边界 | 风险等级 | 推荐原因 | 状态 |
-|---|---|---|---|---|---|---|---|---|
-```
+流程发现阶段必须形成 `repos/{repo}/candidate-flow.md` 全量追踪表；表结构以 `obsidian-kb-authoring/templates/candidate-flow.template.md` 为唯一来源。深度分析在补充页、视图层、双链和 coverage/log 建好后统一串行执行。
 
 主 agent 优先以子 agent 形式串行调度 deep-analysis：
 
