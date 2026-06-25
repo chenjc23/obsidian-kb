@@ -30,7 +30,7 @@ export const VALID_TYPES = new Set([
 ]);
 export const VALID_VIEW = new Set(['usecase', 'logical', 'development', 'runtime', 'contract', 'impact', 'meta']);
 export const VALID_CONFIDENCE = new Set(['high', 'medium', 'low']);
-export const VALID_STATUS = new Set(['active', 'stale', 'partial', 'draft', 'deprecated']);
+export const VALID_STATUS = new Set(['active', 'partial', 'draft', 'deprecated']);
 
 function isIntentionalEntryPage(relativePath) {
   return ['index.md', 'log.md'].includes(relativePath);

@@ -40,7 +40,7 @@ description: Use whenever creating, editing, or reviewing multi-repository Obsid
 
 1. **frontmatter 唯一来源**：字段、枚举、默认值全部以 `references/frontmatter-schema.md` 为准。Tier 1 核心字段每页必含；`updated` 写入时刷新为当天。
 2. **双链强制双向**：`references/link-contract.md` 列出的关系必须双向可达。`producer`/`consumer`/`depends-on` 是影响视图的图边，必须存在且可校验。关系的唯一真相源是正文 wikilinks，frontmatter 关系字段是工具同步的投影。
-3. **增量只做加法 + 打 stale**：增量阶段（ingest/deep-analysis）只写仓内页、新增只新增页、给受影响的人工叙事页打 `status: stale`、append `log.md`；**不**全量重建工作区地图（那是 update 的活）。见 `references/directory-contract.md` 两种维护方式。
+3. **增量只做加法**：增量阶段（ingest/deep-analysis）只写仓内页、新增只新增页、append `log.md`，**不碰**工作区人工叙事页 `system-architecture`；**不**全量重建工作区地图（那是 update 的活）。见 `references/directory-contract.md` 两种维护方式。
 4. **源码证据诚实**：`sources` 用 durable 引用（`path:func()`，**不带行号**）。证据不足时设 `confidence: low`，在正文说明缺失，**不编造行为**。
 
 ## 写作规则
@@ -57,5 +57,4 @@ description: Use whenever creating, editing, or reviewing multi-repository Obsid
 - `updated` 是当天。
 - `sources` 列真实证据，或正文说明为何缺失。
 - 关系双链双向闭环（见 link-contract）；新页至少一条入链或是有意的入口页。
-- 该打 `stale` 的人工叙事页已打标记，未被误重写。
 - `log.md` 记录了有意义的写操作。

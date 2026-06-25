@@ -9,7 +9,7 @@ description: Use to create or refresh the first-pass Obsidian code knowledge bas
 
 **始终配合 `obsidian-kb-authoring` 写笔记。** 目录、frontmatter、页面形状、链接契约全部以 authoring 的 `references/` 为准，本 skill **不重复声明**，只负责产出流程。
 
-增量铁律（authoring `references/directory-contract.md`）：ingest 每次**只做加法 + 打 stale**——写仓内页、新增只新增页（domains/contracts/use-cases）、**append `architecture/coverage.md`**（登记本仓 ingest 深度 + 挂账悬挂边）、给受影响的工作区人工叙事页打 `status: stale`、append `log.md`；**不**全量重建工作区地图。
+增量铁律（authoring `references/directory-contract.md`）：ingest 每次**只做加法**——写仓内页、新增只新增页（domains/contracts/use-cases）、**append `architecture/coverage.md`**（登记本仓 ingest 深度 + 挂账悬挂边）、append `log.md`，**不碰**工作区人工叙事页 `system-architecture`；**不**全量重建工作区地图。
 
 ## 输入识别
 
@@ -88,7 +88,7 @@ description: Use to create or refresh the first-pass Obsidian code knowledge bas
 按 authoring `references/directory-contract.md` 的两种维护方式处理：
 
 - `index.md`：入口，链向各 catalog（人工叙事）。
-- `architecture/system-architecture.md`：工作区**唯一人工叙事**总览，增量时受影响则打 `stale`，不重写。
+- `architecture/system-architecture.md`：工作区**唯一人工叙事**总览，增量时**不碰**；跨仓结构变化由 `obsidian-kb-update` 刷新。
 - `architecture/coverage.md`：**只追加**前沿账本，append 本仓覆盖度行 + 悬挂边 + 盲区（见 Phase 5 步骤 4）；它让全局认识对"还没挖的部分"诚实可读。
 - `contracts/{X}`、`domains/{X}`、`use-cases/{X}`：**只新增**，发现新边界/新域/新场景才加页，不回改已有页。
 - `log.md`：append 本次操作。
@@ -160,6 +160,5 @@ description: Use to create or refresh the first-pass Obsidian code knowledge bas
 - 新页先 `scaffold {type}` 拿骨架再填，别手搓 frontmatter / section → 见 using-obsidian。
 - 每页 `updated` 是今天，`sources` 有不带行号的 durable 证据 → 见 references/frontmatter-schema。
 - 关系双向闭环：链出去的页都反向链回来 → 见 references/link-contract。
-- 该打 `stale` 的人工叙事页（尤其 `system-architecture.md`）打了 → 见 references/frontmatter-schema。
 - 每个 `status: partial` 契约已在 `architecture/coverage.md` 挂账 → 用 `scaffold contract --partial` 自动挂。
 - `log.md` 记了这轮扫了什么、生成了哪些页。

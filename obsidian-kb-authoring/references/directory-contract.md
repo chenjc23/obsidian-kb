@@ -38,7 +38,7 @@ code-kb/
   contracts/                    # 契约视图:跨边界契约
     {契约名}.md                 #   (只新增,不改旧)
   architecture/                 # 实现视图·工作区汇总
-    system-architecture.md      #   工作区唯一人工叙事总览(改动只标 stale)
+    system-architecture.md      #   工作区唯一人工叙事总览(增量不碰;跨仓结构变化由 update 刷新)
     coverage.md                 #   覆盖度/前沿账本:已挖到哪、哪条跨仓边还没接上(只追加)
   # 运行视图活在 repos/{repo}/flows/ 深挖 + use-cases,靠 view:runtime 承载,无工作区目录。
   # 影响视图纯查询派生:query 沿 depends-on + 反向双链现算「改 X 炸什么」,不落页。
@@ -85,7 +85,7 @@ code-kb/
 |---|---|---|
 | **只新增**（发现新的加一页，不改旧） | `contracts/{X}`、`domains/{X}`、`use-cases/{X}` | 发现新的就**新增一页**，从不回改已有页 |
 | **只追加**（前沿账本，记已知盲区） | `architecture/coverage.md` | **append 一行**：新挖的仓登记深度、新发现的悬挂边挂账；接上一端时把对应行翻成"已接合"，不综合改写 |
-| **人工叙事**（需人工综合判断） | `system-architecture` | 增量时**只打 `status: stale`、不重写**；由 `obsidian-kb-update` 批量刷新 |
+| **人工叙事**（需人工综合判断） | `system-architecture` | 增量时**不碰**；由 `obsidian-kb-update` 在跨仓结构变化时**直接重写刷新** |
 
 依赖图 / 技术栈 / 数据流 / 影响面**不物化成页**：它们是 `depends-on` + 双链的派生物，由 query 即时遍历回答，永远 fresh，不进维护循环。
 
@@ -98,15 +98,14 @@ code-kb/
 
 ### 增量阶段铁律
 
-`obsidian-kb-ingest` / `obsidian-kb-deep-analysis` 每次增量**只做加法 + 打 stale**：
+`obsidian-kb-ingest` / `obsidian-kb-deep-analysis` 每次增量**只做加法**：
 
 - 写仓内页（其自然产物）。
 - **新增**只新增页（contracts/domains/use-cases），从不回改已有页。
 - **append `coverage.md`**：登记本仓 ingest 深度；扫到指向未 ingest 仓的调用、或只找到一端的契约，就挂账成悬挂边（必要时建 `status: partial` 单边契约页）。
-- 给受影响的人工叙事页打 `status: stale`（一个标记，不是重写）。
 - append `log.md`。
 
-**不**在每次增量里维护任何地图。依赖/影响面读时由 query 现算；唯一的人工叙事页 `system-architecture` 批量刷新——那是 `obsidian-kb-update` 的活。
+**不**在每次增量里维护任何地图,也**不碰** `system-architecture`。依赖/影响面读时由 query 现算；唯一的人工叙事页 `system-architecture` 由 `obsidian-kb-update` 在跨仓结构变化时直接刷新。
 
 ## 索引页纪律
 

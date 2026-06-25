@@ -82,7 +82,6 @@ function scorePage(page, body, terms) {
     }
   }
 
-  if (page.status === 'stale') score -= 2;
   if (page.confidence === 'high') score += 2;
   if (page.confidence === 'low') score -= 1;
 
