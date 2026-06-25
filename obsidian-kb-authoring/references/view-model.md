@@ -11,18 +11,18 @@
 
 | 视图 | `view` 值 | 回答的问题 | 性质 | 主要页面 | 作用域 |
 |---|---|---|---|---|---|
-| 用例视图（+1） | `usecase` | 用户/外部系统**想完成什么** | 动态·行为 | `use-cases/` | 工作区为主 |
-| 逻辑视图 | `logical` | 系统里**有哪些业务概念** | 静态·结构 | `domains/`、仓内 `glossary` | 工作区为主 |
-| 实现视图 | `development` | 代码**怎么静态组织的** | 静态·代码 | `architecture/`、仓内 `architecture`/`modules`/`data-models`/`key-implementations` | 仓内为主 + 工作区汇总 |
+| 用例视图（+1） | `usecase` | 用户/外部系统**想完成什么** | 动态·行为 | `global/use-cases/` | 工作区为主 |
+| 逻辑视图 | `logical` | 系统里**有哪些业务概念** | 静态·结构 | `global/domains/`、仓内 `glossary` | 工作区为主 |
+| 实现视图 | `development` | 代码**怎么静态组织的** | 静态·代码 | `global/architecture/`、仓内 `architecture`/`modules`/`data-models`/`key-implementations` | 仓内为主 + 工作区汇总 |
 | 运行视图 | `runtime` | 运行时**发生了什么** | 动态·流程 | 仓内 `flows/`、深流程 | 仓内为主 |
-| 契约视图 | `contract` | 跨边界**怎么对话** | 静态·接口 | `contracts/`、仓内 `api-surface` | 工作区为主 |
+| 契约视图 | `contract` | 跨边界**怎么对话** | 静态·接口 | `global/contracts/`、仓内 `api-surface` | 工作区为主 |
 | 影响视图 | `impact` | 改 X **会炸什么** | 推导·关系 | `depends-on` + 反向双链（查询派生，无常驻页） | 全库（query 即时遍历） |
 
 ## 用例视图 vs 逻辑视图（最易混淆，务必分清）
 
 判据：**名词世界 vs 动词世界**。
 
-| | `domains/`（逻辑） | `use-cases/`（用例） |
+| | `global/domains/`（逻辑） | `global/use-cases/`（用例） |
 |---|---|---|
 | 回答 | 系统里有哪些业务概念 | 用户/外部系统想完成什么 |
 | 性质 | 静态结构 | 动态行为 |
@@ -36,7 +36,7 @@
 
 - use-case 页**只为"多 flow / 跨仓"端到端场景而建**，内容以**编排 + 链接**为主，不复述 flow 内部细节。
 - 单个 flow 就能讲完的场景，**不开 use-case 页**，直接给那个 flow 打 `view: usecase`（覆盖默认 `runtime`）。
-- use-case 是 agent 的**入口编排层**：`index.md → use-cases/ → (flows / contracts / domains / modules)`。
+- use-case 是 agent 的**入口编排层**：`index.md → global/use-cases/ → (flows / global/contracts / global/domains / modules)`。
 
 ## type → view 默认映射
 

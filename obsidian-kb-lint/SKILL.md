@@ -17,7 +17,7 @@ description: "Use to inspect an Obsidian code knowledge base for health issues: 
 
 每个仓至少要有 `architecture.md`（实现视图 + 仓库路由）。其余仓内页**有该关注点才需要**，缺失多数是 `warning` 而非致命：`glossary.md`、`api-surface.md`、`data-models.md`、`config-and-env.md`、`key-implementations.md`、`runtime-notes.md`、`testing-strategy.md`、`candidate-flow.md`、`modules/`（多模块时）、`flows/{分析主题}/`（有业务流程时）。该仓确实没这个关注点，就不算缺。
 
-工作区层至少要有 `index.md`、`log.md`。聚合页 `architecture/system-architecture.md`（跨仓真有内容才建）与 `architecture/coverage.md`（有多仓或有悬挂边时才有意义）都不强制在，单仓初库可缺。依赖图/数据流/技术栈/影响面不物化成页，不要因其缺失而报缺。
+工作区层至少要有 `index.md`、`log.md`。聚合页 `global/architecture/system-architecture.md`（跨仓真有内容才建）与 `global/architecture/coverage.md`（有多仓或有悬挂边时才有意义）都不强制在，单仓初库可缺。依赖图/数据流/技术栈/影响面不物化成页，不要因其缺失而报缺。
 
 ### 2. Frontmatter 有效性
 
@@ -67,7 +67,7 @@ description: "Use to inspect an Obsidian code knowledge base for health issues: 
 
 `status: partial` 是增量缺口的合法表达，但**必须挂账可校验**，否则缺口就静默了：
 
-- 每个 `status: partial` 契约**必须**在 `architecture/coverage.md` 悬挂边表有对应行 → 缺行报 `warning`（缺口未挂账）。
+- 每个 `status: partial` 契约**必须**在 `global/architecture/coverage.md` 悬挂边表有对应行 → 缺行报 `warning`（缺口未挂账）。
 - 反之，coverage 悬挂边表里关联到契约页的行，目标契约页必须存在且确为 `partial` → 断链或已 `active` 却仍挂"悬挂"报 `warning`（该接合未接合）。
 - 两端都齐全的契约不该停在 `partial`：`producer` 和 `consumer` 都非空却仍 `status: partial` → 报 `warning`（装作不完整，应翻 `active` 并接合账本行）。
 - coverage 覆盖度表引用的仓应在 `repos/` 下存在。

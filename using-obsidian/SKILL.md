@@ -62,7 +62,7 @@ node {…}/scripts/obsidian-kb.mjs scaffold module --repo {repo} --title {模块
 # 深流程一次生成 6 件套（调用树/主干流程/分支主题/跨边界数据流/数据结构/自查报告）
 node {…}/scripts/obsidian-kb.mjs scaffold flow --repo {repo} --topic {分析主题} --kb-root {kb-root}
 
-# 单边契约：建 partial 页 + 自动在 architecture/coverage.md 悬挂边挂账
+# 单边契约：建 partial 页 + 自动在 global/architecture/coverage.md 悬挂边挂账
 node {…}/scripts/obsidian-kb.mjs scaffold contract --partial --side producer \
   --title {契约名} --known {repo} --evidence "{path:func()}" --kb-root {kb-root}
 
@@ -136,7 +136,7 @@ If the user approves multiple rows and sub-agents are available, the main agent 
 4. Review the result for obvious missing files, low-confidence gaps, or failed writes.
 5. Only then create the next sub-agent for the next confirmed flow.
 
-Do not create multiple deep-analysis sub-agents in parallel. Do not batch-create sub-agents. Do not create the next sub-agent until the previous sub-agent has fully completed and returned its result. Cross-flow parallelism is forbidden because deep analyses update shared pages such as `data-models.md`, `architecture.md`, `contracts/`, `runtime-notes.md`, and `log.md`.
+Do not create multiple deep-analysis sub-agents in parallel. Do not batch-create sub-agents. Do not create the next sub-agent until the previous sub-agent has fully completed and returned its result. Cross-flow parallelism is forbidden because deep analyses update shared pages such as `data-models.md`, `architecture.md`, `global/contracts/`, `runtime-notes.md`, and `log.md`.
 
 If sub-agents are unavailable, the main agent must run the confirmed flows one by one in the same serial order.
 

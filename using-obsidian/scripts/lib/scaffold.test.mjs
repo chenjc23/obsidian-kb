@@ -24,12 +24,12 @@ test('scaffoldPage flow generates six files', async () => {
 test('scaffoldPartialContract creates page and appends coverage row atomically', async () => {
   const root = await mkdtemp(path.join(tmpdir(), 'kb-'));
   const res = await scaffoldPartialContract({ kbRoot: root, title: 'OrderPaid', side: 'producer', known: 'order-service', evidence: 'src/mq/p.cpp:emit()' });
-  const c = await readFile(path.join(root, 'contracts/OrderPaid.md'), 'utf8');
+  const c = await readFile(path.join(root, 'global/contracts/OrderPaid.md'), 'utf8');
   assert.match(c, /status: partial/);
   // 已知一端必须被填入（不能停在 <!-- 填 --> 占位）；未知一端保持占位。
   assert.match(c, /producer:\r?\n {2}- order-service/);
   assert.match(c, /consumer:\r?\n {2}- <!-- 填:/);
-  const cov = await readFile(path.join(root, 'architecture/coverage.md'), 'utf8');
+  const cov = await readFile(path.join(root, 'global/architecture/coverage.md'), 'utf8');
   assert.match(cov, /OrderPaid/);
   assert.match(cov, /悬挂/);
   assert.ok(res.coverageRow);

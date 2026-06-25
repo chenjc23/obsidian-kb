@@ -22,8 +22,8 @@ status: ${status}
 `;
 }
 
-// init 只搭骨架：工作区视图目录 + index/log。唯一聚合页 system-architecture
-// 由 ingest/update 在真有内容时才建，init 不预生成。依赖/影响面不物化成页（query 现算）。
+// init 只搭骨架：工作区视图目录（统一在 global/ 下）+ index/log。唯一聚合页
+// system-architecture 由 ingest/update 在真有内容时才建，init 不预生成。依赖/影响面不物化成页（query 现算）。
 const SEED_FILES = new Map([
   ['index.md', seedPage('Code Knowledge Base', 'index', 'meta', 'global', 'draft')],
   ['log.md', seedPage('Knowledge Base Log', 'log', 'meta', 'global', 'active')],
@@ -31,7 +31,7 @@ const SEED_FILES = new Map([
 
 export async function initKnowledgeBase({ kbRoot }) {
   await mkdir(kbRoot, { recursive: true });
-  for (const directory of ['use-cases', 'domains', 'contracts', 'architecture', 'repos']) {
+  for (const directory of ['global/use-cases', 'global/domains', 'global/contracts', 'global/architecture', 'repos']) {
     await mkdir(path.join(kbRoot, directory), { recursive: true });
   }
 

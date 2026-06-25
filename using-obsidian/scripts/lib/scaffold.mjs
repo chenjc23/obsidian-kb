@@ -72,7 +72,7 @@ export async function scaffoldPartialContract({ kbRoot, title, side, known, evid
 
   // 3) 在「悬挂的跨仓边」表后 append 一行。
   const missingCell = missingGuess ? `对端未知（疑在 ${missingGuess}）` : '对端未知';
-  const coverageRow = `| ${title} | ${side}: ${known} | ${missingCell} | ${evidence} | [[contracts/${title}]] | 悬挂 |`;
+  const coverageRow = `| ${title} | ${side}: ${known} | ${missingCell} | ${evidence} | [[global/contracts/${title}]] | 悬挂 |`;
   const current = await readFile(coverageFull, 'utf8');
   const updated = appendHangingRow(current, coverageRow);
   await writeFile(coverageFull, updated, 'utf8');

@@ -9,9 +9,9 @@
 3. `{当前工作目录}/code-kb` 存在 → 用之。
 4. 最近的祖先目录里的 `code-kb/` → 用之。
 5. 工作区下一级名为 `code-kb/` 的目录 → 用之。
-6. 多个候选时，选结构最像的：含 `index.md`、`log.md`、`repos/`，以及 `use-cases/`/`domains/`/`contracts/` 至少之一。
+6. 多个候选时，选结构最像的：含 `index.md`、`log.md`、`repos/`，以及 `global/`（其下 `use-cases/`/`domains/`/`contracts/` 至少之一）。
 
-「知识库根」判据 = 名为 `code-kb/`，或含 `index.md`/`log.md`/`repos/` 等若干结构的目录。
+「知识库根」判据 = 名为 `code-kb/`，或含 `index.md`/`log.md`/`repos/`/`global/` 等若干结构的目录。
 
 全找不到时按读写区分：
 

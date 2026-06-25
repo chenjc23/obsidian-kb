@@ -24,12 +24,12 @@ actors:
 <!-- 填:触发前需满足的业务状态 -->
 
 ## 端到端编排
-<!-- 填:有序步骤,每步链到 flow,跨仓处链对应 [[contracts/X]]
-1. [[repos/{repo}/flows/下单]] —（经 [[contracts/CreateOrder]],跨仓）→
+<!-- 填:有序步骤,每步链到 flow,跨仓处链对应 [[global/contracts/X]]
+1. [[repos/{repo}/flows/下单]] —（经 [[global/contracts/CreateOrder]],跨仓）→
 2. [[repos/{repo}/flows/资源分配]] -->
 
 ## 涉及业务域
-<!-- 填:[[domains/订单域]] · [[domains/资源域]] -->
+<!-- 填:[[global/domains/订单域]] · [[global/domains/资源域]] -->
 
 ## 关键判定点 / 验收
 <!-- 填:决定成败的分叉与验收标准 -->

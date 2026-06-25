@@ -43,8 +43,8 @@ use-cases（入口）
 
 问题一旦涉及多个仓/子系统交互（端到端需求分析、跨模块影响、"整个工程怎么运转"），按这个顺序建全局认识,再下脊柱：
 
-- **先读 `architecture/coverage.md`（地基,必读,恒在）**：全局由哪些仓拼成、哪些只地形扫描过、哪些跨仓边只找到一端（`status: partial` 契约）、哪些是已知盲区。这是认识的入口与边界。
-- **再读 `architecture/system-architecture.md`（可选,存在才读）**：给已看清部分的跨仓架构图与导航。**增量早期它常常还不存在——别等它,也别因它缺席就停**;它没有恰恰说明跨仓图还画不出,coverage 已把这点如实记下,继续用 coverage + 派生 query 建认识即可。
+- **先读 `global/architecture/coverage.md`（地基,必读,恒在）**：全局由哪些仓拼成、哪些只地形扫描过、哪些跨仓边只找到一端（`status: partial` 契约）、哪些是已知盲区。这是认识的入口与边界。
+- **再读 `global/architecture/system-architecture.md`（可选,存在才读）**：给已看清部分的跨仓架构图与导航。**增量早期它常常还不存在——别等它,也别因它缺席就停**;它没有恰恰说明跨仓图还画不出,coverage 已把这点如实记下,继续用 coverage + 派生 query 建认识即可。
 - 这一步决定了**哪里能下结论、哪里必须标盲区**：命中的子系统若在 coverage 里标着"只地形扫描"或挂着悬挂边，答案就不能假装完整，要把这些缺口如实写进 `knowledge_gaps`。
 
 增量库永远不完整，但 coverage 让"不完整"可读——需求分析因此是全面且诚实的，而不是局部的。
@@ -66,9 +66,9 @@ use-cases（入口）
 
 | 这类问题 | 落在哪个视图 | 从哪进 | 沿脊柱怎么走 |
 |---|---|---|---|
-| **业务问题**：这块业务在干嘛 / 什么是 X / 谁触发 | 用例 + 逻辑 | `use-cases/{场景}`（端到端场景）或 `domains/{域}` + repo `glossary`（概念） | use-case → 它编排的 flows + 涉及的 domains/contracts；概念类：glossary → domain → 实现该域的 flow |
+| **业务问题**：这块业务在干嘛 / 什么是 X / 谁触发 | 用例 + 逻辑 | `global/use-cases/{场景}`（端到端场景）或 `global/domains/{域}` + repo `glossary`（概念） | use-case → 它编排的 flows + 涉及的 domains/contracts；概念类：glossary → domain → 实现该域的 flow |
 | **实现定位**：在哪改 / 这功能怎么实现的 / 入口在哪 | 实现 + 运行 | repo `architecture.md`（它本身是仓库路由） | architecture → `modules/{模块}` + `flows/{主题}/`；要细节读 `flows/{主题}/主干流程.md`、`调用树.md`；`entry-point` 字段直接定位代码入口 |
-| **影响面**：改这个接口/字段/消息会影响哪些流程 | 契约 + 影响 | 定位实体 → `repos/{repo}/data-models.md` / `api-surface.md` / `contracts/{X}` | 见下方"影响面遍历" |
+| **影响面**：改这个接口/字段/消息会影响哪些流程 | 契约 + 影响 | 定位实体 → `repos/{repo}/data-models.md` / `api-surface.md` / `global/contracts/{X}` | 见下方"影响面遍历" |
 | **调试**：为什么会失败 / 这条链路哪出问题 | 运行 + 影响 | 相关 `flows/{主题}/` | 主干流程 + 分支页 → `runtime-notes`（错误/重试/陷阱/已知地雷） |
 | **评审 / 测试**：改得对不对 / 该测什么 | 实现 + 运行 | 相关 module / flow | 走实现定位那条，外加 `repos/{repo}/testing-strategy.md`、`runtime-notes.md` |
 
@@ -76,10 +76,10 @@ use-cases（入口）
 
 这类问题是一次**图遍历**，不是读一两页。
 
-1. 定位被改的类型/字段/消息：在 `data-models.md`、`api-surface.md`、`contracts/{X}` 和 frontmatter 里搜类型名、字段名、源文件、别名。
+1. 定位被改的类型/字段/消息：在 `data-models.md`、`api-surface.md`、`global/contracts/{X}` 和 frontmatter 里搜类型名、字段名、源文件、别名。
 2. 沿影响边逐跳扩散：契约页的 `producer`/`consumer`、模块页的 `depends-on`、流程页的 `related-contracts`/`entry-point`，**加上正文双链的反向链**，一路扩到 flows → use-cases。
 3. **现算爆炸半径**：沿 frontmatter `depends-on` + 正文反向双链做图遍历（无现成图，影响视图就是这次遍历本身）。
-4. 跨消息边界时，读 `contracts/{X}` + 该流程的 `跨边界数据流.md` + 收发两端模块；字段穿协议、MQ、RPC、event、socket、TLV 边界时尤其要追到接收方。
+4. 跨消息边界时，读 `global/contracts/{X}` + 该流程的 `跨边界数据流.md` + 收发两端模块；字段穿协议、MQ、RPC、event、socket、TLV 边界时尤其要追到接收方。
    - 命中 `status: partial` 契约 = **已知的未接边**（对端仓还没 ingest）：这不是"无下游",而是影响面在此截断且对端未知。把它如实报进 `knowledge_gaps`（"X 契约对端待 ingest,影响可能延伸到未入库的仓"），别假装影响到此为止。
 5. 收尾读相关 `runtime-notes.md`（已知地雷/陷阱）。
 6. 给出：受影响的 flows、契约、模块、数据结构、跨边界消息、测试、风险、知识缺口（含 coverage 里相关的悬挂边/盲区）。

@@ -20,7 +20,7 @@ From this repository:
 node skills/using-obsidian/scripts/obsidian-kb.mjs resolve --json
 node skills/using-obsidian/scripts/obsidian-kb.mjs init
 node skills/using-obsidian/scripts/obsidian-kb.mjs lint
-node skills/using-obsidian/scripts/obsidian-kb.mjs links contracts/AllocateResource.md --json
+node skills/using-obsidian/scripts/obsidian-kb.mjs links global/contracts/AllocateResource.md --json
 node skills/using-obsidian/scripts/obsidian-kb.mjs search "业务开通" --json
 node skills/using-obsidian/scripts/obsidian-kb.mjs report --json
 ```

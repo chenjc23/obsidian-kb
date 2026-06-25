@@ -122,7 +122,7 @@ export async function lintKnowledgeBase({ kbRoot }) {
           message: 'Flow page is missing domain metadata',
         });
       }
-      if (!page.outgoingLinks.some((link) => link.startsWith('contracts/') || link.includes('/modules/'))) {
+      if (!page.outgoingLinks.some((link) => link.startsWith('global/contracts/') || link.includes('/modules/'))) {
         issues.push({
           severity: 'warning',
           type: 'flow-linkage',

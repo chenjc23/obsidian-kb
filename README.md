@@ -60,7 +60,7 @@ agent 不应询问用户知识库应该放在哪里。
 index.md
 log.md
 repos/
-use-cases/   domains/   contracts/   architecture/
+global/   (其下 use-cases/ domains/ contracts/ architecture/)
 ```
 
 ## 知识库结构
@@ -78,20 +78,21 @@ code-kb/
   index.md
   log.md
 
-  # 工作区层：顶层目录 ≈ 视图 catalog
-  use-cases/                  # 用例视图：跨仓场景目录（agent 主入口）
-    {用例名}.md
-  domains/                    # 逻辑视图：业务域
-    {业务域}.md
-  contracts/                  # 契约视图：跨边界契约
-    {契约名}.md
-  architecture/               # 实现视图·工作区汇总
-    system-architecture.md    # 唯一人工叙事总览（含跨仓架构图）
-    coverage.md               # 覆盖度/前沿账本：已挖到哪、哪条跨仓边还没接上
-  # 运行视图活在 repos/{repo}/flows/ + use-cases，靠 view:runtime 承载，无工作区目录。
-  # 依赖图/数据流/技术栈/影响面不物化成页——由 query 沿 depends-on + 反向双链即时遍历得出。
+  # 工作区层：全部收进 global/（对应 frontmatter repo: global）
+  global/
+    use-cases/                # 用例视图：跨仓场景目录（agent 主入口）
+      {用例名}.md
+    domains/                  # 逻辑视图：业务域
+      {业务域}.md
+    contracts/                # 契约视图：跨边界契约
+      {契约名}.md
+    architecture/             # 实现视图·工作区汇总
+      system-architecture.md  # 唯一人工叙事总览（含跨仓架构图）
+      coverage.md             # 覆盖度/前沿账本：已挖到哪、哪条跨仓边还没接上
+    # 运行视图活在 repos/{repo}/flows/ + use-cases，靠 view:runtime 承载，无工作区目录。
+    # 依赖图/数据流/技术栈/影响面不物化成页——由 query 沿 depends-on + 反向双链即时遍历得出。
 
-  # 仓库层：每仓六视图细节，保持扁平
+  # 仓库层：每仓六视图细节，保持扁平（与 global/ 并列）
   repos/{repo-name}/
     architecture.md           # 本仓静态结构 + 仓库路由（含架构图）
     glossary.md
@@ -186,8 +187,8 @@ repos/{repo-name}/flows/{分析主题}/
 2. 判断问题落在哪个视图（用例 / 逻辑 / 实现 / 运行 / 契约 / 影响），定位入口。
 3. 定位：抽取实体（业务词、类、字段、接口、协议、消息、模块、文件），用 `rg` 在 frontmatter、标题、别名、正文、`sources` 里搜出锚点页。
 4. 遍历：从锚点页沿 frontmatter 关系字段（`producer`/`consumer`/`depends-on`/`related-*`/`entry-point`）和正文双链（含反向链）逐跳扩散。
-5. 改字段/接口这类影响面问题，沿 `depends-on` + 反向双链**现算**爆炸半径（无现成依赖图页），并追到跨边界的 `contracts/` 与收发两端；命中 `status: partial` 契约说明对端仓还没 ingest，把缺口报进 `knowledge_gaps`。
-6. 跨子系统/多模块问题先读 `architecture/coverage.md`（地基，恒在）建全局认识，知道哪能下结论、哪是盲区；`system-architecture.md` 若已生成再叠加它的跨仓架构叙事——增量早期它常常还不存在，缺席是正常的，别等它。
+5. 改字段/接口这类影响面问题，沿 `depends-on` + 反向双链**现算**爆炸半径（无现成依赖图页），并追到跨边界的 `global/contracts/` 与收发两端；命中 `status: partial` 契约说明对端仓还没 ingest，把缺口报进 `knowledge_gaps`。
+6. 跨子系统/多模块问题先读 `global/architecture/coverage.md`（地基，恒在）建全局认识，知道哪能下结论、哪是盲区；`global/architecture/system-architecture.md` 若已生成再叠加它的跨仓架构叙事——增量早期它常常还不存在，缺席是正常的，别等它。
 7. 知识库太浅时读源码验证，保持只读。
 7. 输出受影响流程、契约、模块、数据结构、跨边界消息、风险、证据和知识库缺口。
 
@@ -218,13 +219,13 @@ Use using-obsidian to update the knowledge base for these changed files.
 
 这些变更可能影响：
 
-- `contracts/`（对端浮现时接合 `status: partial` 单边契约）
+- `global/contracts/`（对端浮现时接合 `status: partial` 单边契约）
 - `repos/{repo-name}/api-surface.md`
 - `repos/{repo-name}/data-models.md`
 - 相关 flow 页面
 - 深流程文件夹
 - `跨边界数据流.md`
-- `architecture/coverage.md`（接合悬挂边、刷新仓覆盖度）
+- `global/architecture/coverage.md`（接合悬挂边、刷新仓覆盖度）
 
 依赖图/数据流/影响面不是页面，不在更新范围——由 query 现算。
 
@@ -297,7 +298,7 @@ node using-obsidian/scripts/obsidian-kb.mjs scaffold contract --partial --side p
   --title {契约名} --known {repo} --evidence "{path:func()}"            # 建单边契约 + 自动挂账 coverage
 node using-obsidian/scripts/obsidian-kb.mjs search "业务开通" --json
 node using-obsidian/scripts/obsidian-kb.mjs lint
-node using-obsidian/scripts/obsidian-kb.mjs links contracts/AllocateResource.md --json
+node using-obsidian/scripts/obsidian-kb.mjs links global/contracts/AllocateResource.md --json
 node using-obsidian/scripts/obsidian-kb.mjs report --json
 ```
 
@@ -320,7 +321,7 @@ helper 只是确定性辅助工具，不改变 skill 的权限规则。只读查
 ```
 
 ```text
-使用 using-obsidian，查询哪些流程、模块或契约依赖 contracts/AllocateResource.md。只做只读影响分析，不要更新知识库。
+使用 using-obsidian，查询哪些流程、模块或契约依赖 global/contracts/AllocateResource.md。只做只读影响分析，不要更新知识库。
 ```
 
 ```text

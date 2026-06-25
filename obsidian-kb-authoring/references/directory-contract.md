@@ -30,22 +30,23 @@ code-kb/
   index.md                      # 入口:链向六视图各 catalog        (人工叙事)
   log.md                        # 知识库操作流水                    (只追加)
 
-  # ── 工作区层:顶层目录 ≈ 视图 catalog ──
-  use-cases/                    # 用例视图(+1):跨仓场景目录 = agent 主入口
-    {用例名}.md                 #   (只新增,不改旧)
-  domains/                      # 逻辑视图:业务域
-    {业务域}.md                 #   (只新增,不改旧)
-  contracts/                    # 契约视图:跨边界契约
-    {契约名}.md                 #   (只新增,不改旧)
-  architecture/                 # 实现视图·工作区汇总
-    system-architecture.md      #   工作区唯一人工叙事总览(增量不碰;跨仓结构变化由 update 刷新)
-    coverage.md                 #   覆盖度/前沿账本:已挖到哪、哪条跨仓边还没接上(只追加)
-  # 运行视图活在 repos/{repo}/flows/ 深挖 + use-cases,靠 view:runtime 承载,无工作区目录。
-  # 影响视图纯查询派生:query 沿 depends-on + 反向双链现算「改 X 炸什么」,不落页。
-  extra/                        # 兜底:六视图都承载不了的外部知识(可选,update 模式 B 兜底专用)
-    {标题}.md                   #   type:extra view:meta, init 不预建
+  # ── 工作区层:全部收进 global/(对应 frontmatter repo: global)──
+  global/
+    use-cases/                  # 用例视图(+1):跨仓场景目录 = agent 主入口
+      {用例名}.md               #   (只新增,不改旧)
+    domains/                    # 逻辑视图:业务域
+      {业务域}.md               #   (只新增,不改旧)
+    contracts/                  # 契约视图:跨边界契约
+      {契约名}.md               #   (只新增,不改旧)
+    architecture/               # 实现视图·工作区汇总
+      system-architecture.md    #   工作区唯一人工叙事总览(增量不碰;跨仓结构变化由 update 刷新)
+      coverage.md               #   覆盖度/前沿账本:已挖到哪、哪条跨仓边还没接上(只追加)
+    # 运行视图活在 repos/{repo}/flows/ 深挖 + use-cases,靠 view:runtime 承载,无工作区目录。
+    # 影响视图纯查询派生:query 沿 depends-on + 反向双链现算「改 X 炸什么」,不落页。
+    extra/                      # 兜底:六视图都承载不了的外部知识(可选,update 模式 B 兜底专用)
+      {标题}.md                 #   type:extra view:meta, init 不预建
 
-  # ── 仓库层:每仓六视图细节,保持扁平 ──
+  # ── 仓库层:每仓六视图细节,保持扁平(与 global/ 并列)──
   repos/{repo-name}/
     architecture.md             # 实现:本仓静态结构 + 仓库路由(链向 modules/flows/契约)
     glossary.md                 # 逻辑:术语→链接索引(不存第二份定义)
@@ -69,12 +70,13 @@ code-kb/
 
 ### 页面取舍
 
-- 跨仓关注点不单独成页：接口归 `contracts/`、风险归仓内 `runtime-notes`、依赖与爆炸半径由 query 从 `depends-on` + 反向双链现算（不落页）。
-- `architecture/coverage.md` 是工作区唯一的**覆盖度/前沿账本**：诚实记录每仓挖到什么深度、哪些跨仓边只找到一端还没接上、有哪些已知盲区。它让"增量永远不完整"从负债变成可读的待补地图——agent 建立全局认识时必读，知道哪里能下结论、哪里是盲区。只追加，不做综合改写。
-- 跨仓边只先找到一端时建**单边契约**（`contracts/{X}` 标 `status: partial`），并在 `coverage.md` 悬挂边表挂账；等另一端的仓 ingest 进来再接合，不编造假对端。
+- 工作区层全部住在 `global/` 下（`global/use-cases/`、`global/domains/`、`global/contracts/`、`global/architecture/`、`global/extra/`），对应 frontmatter `repo: global`；`index.md`/`log.md`/`repos/` 与 `global/` 并列。
+- 跨仓关注点不单独成页：接口归 `global/contracts/`、风险归仓内 `runtime-notes`、依赖与爆炸半径由 query 从 `depends-on` + 反向双链现算（不落页）。
+- `global/architecture/coverage.md` 是工作区唯一的**覆盖度/前沿账本**：诚实记录每仓挖到什么深度、哪些跨仓边只找到一端还没接上、有哪些已知盲区。它让"增量永远不完整"从负债变成可读的待补地图——agent 建立全局认识时必读，知道哪里能下结论、哪里是盲区。只追加，不做综合改写。
+- 跨仓边只先找到一端时建**单边契约**（`global/contracts/{X}` 标 `status: partial`），并在 `coverage.md` 悬挂边表挂账；等另一端的仓 ingest 进来再接合，不编造假对端。
 - `glossary` 是术语→链接索引，不存第二份定义。
 - `runtime-notes` 在 error-handling 与 gotchas 内容都较薄时合一；任一方内容量大时各自独立成页。它同时兼任跨边界/已知地雷的人工风险笔记落点。
-- `extra/` 是**最后手段**：仅当一条外部知识与现有库毫无关联、且补齐 `domains/`/`contracts/`/`use-cases/` 视图层页后仍无页能承载时，才建 `extra/{标题}.md`。能进六视图的知识不许塞 `extra/`；`init` 不预建该目录。
+- `global/extra/` 是**最后手段**：仅当一条外部知识与现有库毫无关联、且补齐 `global/domains/`、`global/contracts/`、`global/use-cases/` 视图层页后仍无页能承载时，才建 `global/extra/{标题}.md`。能进六视图的知识不许塞 `extra/`；`init` 不预建该目录。
 - 仓内不复刻视图文件夹；只有 `modules/`、`flows/` 这类多实例单元才成文件夹。
 
 ## 工作区页面的维护方式（决定增量刷新行为）
@@ -83,9 +85,9 @@ code-kb/
 
 | 维护方式 | 哪些页 | 增量时怎么处理 |
 |---|---|---|
-| **只新增**（发现新的加一页，不改旧） | `contracts/{X}`、`domains/{X}`、`use-cases/{X}` | 发现新的就**新增一页**，从不回改已有页 |
-| **只追加**（前沿账本，记已知盲区） | `architecture/coverage.md` | **append 一行**：新挖的仓登记深度、新发现的悬挂边挂账；接上一端时把对应行翻成"已接合"，不综合改写 |
-| **人工叙事**（需人工综合判断） | `system-architecture` | 增量时**不碰**；由 `obsidian-kb-update` 在跨仓结构变化时**直接重写刷新** |
+| **只新增**（发现新的加一页，不改旧） | `global/contracts/{X}`、`global/domains/{X}`、`global/use-cases/{X}` | 发现新的就**新增一页**，从不回改已有页 |
+| **只追加**（前沿账本，记已知盲区） | `global/architecture/coverage.md` | **append 一行**：新挖的仓登记深度、新发现的悬挂边挂账；接上一端时把对应行翻成"已接合"，不综合改写 |
+| **人工叙事**（需人工综合判断） | `global/architecture/system-architecture.md` | 增量时**不碰**；由 `obsidian-kb-update` 在跨仓结构变化时**直接重写刷新** |
 
 依赖图 / 技术栈 / 数据流 / 影响面**不物化成页**：它们是 `depends-on` + 双链的派生物，由 query 即时遍历回答，永远 fresh，不进维护循环。
 
@@ -111,5 +113,5 @@ code-kb/
 
 - **不**默认生成 `indexes/`、`_map` 这类 thin 索引/地图页。
 - 视图索引、依赖图、爆炸半径**靠 frontmatter 查询 + 双链遍历即时得出**，不物化。
-- 持久知识住在可读页面里：`use-cases/`、`domains/`、`contracts/`、`repos/`、`architecture/system-architecture.md` 是知识的权威来源；`architecture/coverage.md` 是覆盖度与盲区的权威来源。
+- 持久知识住在可读页面里：`global/use-cases/`、`global/domains/`、`global/contracts/`、`repos/`、`global/architecture/system-architecture.md` 是知识的权威来源；`global/architecture/coverage.md` 是覆盖度与盲区的权威来源。
 - `coverage.md` **不**是派生地图：它记的是 query 算不出来的东西——"还没 ingest 的仓"和"只找到一端的边"。已 ingest 范围内的依赖/影响仍由 query 现算，不进账本。

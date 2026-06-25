@@ -99,6 +99,6 @@ aliases:
 
 **`status`：**
 - `active`：当前有效。
-- `partial`：**仅契约页**——跨边界只找到一端（producer 或 consumer 之一），另一端待对应仓 ingest。必须在 `architecture/coverage.md` 悬挂边表挂账；对端找到后补全 + 翻回 `active`。
+- `partial`：**仅契约页**——跨边界只找到一端（producer 或 consumer 之一），另一端待对应仓 ingest。必须在 `global/architecture/coverage.md` 悬挂边表挂账；对端找到后补全 + 翻回 `active`。
 - `draft`：草稿。
 - `deprecated`：已废弃。
