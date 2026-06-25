@@ -290,11 +290,18 @@ using-obsidian/scripts/obsidian-kb.mjs
 ```bash
 node using-obsidian/scripts/obsidian-kb.mjs resolve --json
 node using-obsidian/scripts/obsidian-kb.mjs init
+node using-obsidian/scripts/obsidian-kb.mjs types                       # 列出可 scaffold 的页型
+node using-obsidian/scripts/obsidian-kb.mjs scaffold module --repo {repo} --title {模块名}
+node using-obsidian/scripts/obsidian-kb.mjs scaffold flow --repo {repo} --topic {分析主题}    # 一次吐深流程 6 件套
+node using-obsidian/scripts/obsidian-kb.mjs scaffold contract --partial --side producer \
+  --title {契约名} --known {repo} --evidence "{path:func()}"            # 建单边契约 + 自动挂账 coverage
 node using-obsidian/scripts/obsidian-kb.mjs search "业务开通" --json
 node using-obsidian/scripts/obsidian-kb.mjs lint
 node using-obsidian/scripts/obsidian-kb.mjs links contracts/AllocateResource.md --json
 node using-obsidian/scripts/obsidian-kb.mjs report --json
 ```
+
+`scaffold` 按 `obsidian-kb-authoring/templates/{type}.template.md` 真模板吐合规骨架：机械字段（title/repo/created/updated）已填，其余 `<!-- 填:… -->` 由 agent 补；目标页已存在且未加 `--force` 时跳过，不覆盖人工内容。页面结构的单一来源就是这些模板文件，`lint` 也据此反推必需 section。
 
 helper 只是确定性辅助工具，不改变 skill 的权限规则。只读查询不能因为 helper 存在就自动写入知识库。
 

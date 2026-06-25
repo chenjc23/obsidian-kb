@@ -100,11 +100,13 @@ ingest 和 deep-analysis 增量时**只做加法 + 打 stale**，从不回改旧
 - 新代码与旧笔记矛盾时，改笔记并说明变了什么行为。
 - 证据不全时降 `confidence`，不要猜。
 
-## 收尾检查
+## 收尾闸门（逐条核对，勿跳）
+
+收工前逐条过，缺一条就回去补：
 
 - 受影响的页 `updated` 是当天。
-- `sources` 含支撑更新结论的变更文件。
-- 链接仍有效、仍相关；新链引到的已有页有反向链。
-- 之前打 stale 的 `system-architecture.md` 已刷新。
+- `sources` 含支撑更新结论的变更文件（不带行号的 durable 引用）。
+- 链接仍有效、仍相关；新链引到的已有页有反向链 → 见 references/link-contract。
+- 之前打 stale 的 `system-architecture.md` 已刷新（这轮没动到则保持原状）。
 - 对端已浮现的 `partial` 契约已接合（补全两端 + `coverage.md` 行翻"已接合"）；仍悬挂的留 `partial` 不强接。
 - `log.md` 记了改了什么、为什么。

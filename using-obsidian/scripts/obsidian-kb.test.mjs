@@ -87,6 +87,11 @@ See [[domains/Domain A]] and [[contracts/Contract A|contract]].
   assert.deepEqual(extractWikiLinks(note), ['domains/Domain A', 'contracts/Contract A']);
 });
 
+test('extractWikiLinks ignores links inside HTML comments', () => {
+  const note = '# X\nReal [[domains/Real]].\n<!-- 填:示例 [[repos/{repo}/modules/X]] 不算链接 -->';
+  assert.deepEqual(extractWikiLinks(note), ['domains/Real']);
+});
+
 test('parseFrontmatter supports CRLF line endings', () => {
   const note = [
     '---',
@@ -204,6 +209,39 @@ sources:
     );
     assert.equal(
       result.issues.some((issue) => issue.message === 'Invalid type: unknown-type'),
+      true,
+    );
+  } finally {
+    await rm(workspace, { recursive: true, force: true });
+  }
+});
+
+test('lintKnowledgeBase reports missing template-required sections', async () => {
+  const workspace = await makeTempWorkspace();
+  const kbRoot = path.join(workspace, 'code-kb');
+  try {
+    await initKnowledgeBase({ kbRoot });
+    // module 页缺 `## 依赖（出）` 等模板必需 section。
+    await writeNote(kbRoot, 'repos/svc/modules/M.md', `---
+title: M
+type: module
+repo: svc
+created: 2026-06-25
+updated: 2026-06-25
+confidence: high
+status: active
+sources:
+  - repos/svc/src/m.cpp:run()
+---
+# 模块：M
+See [[contracts/X]].
+
+## 职责
+负责编排。
+`);
+    const result = await lintKnowledgeBase({ kbRoot });
+    assert.equal(
+      result.issues.some((issue) => issue.type === 'template' && /依赖（出）/.test(issue.message)),
       true,
     );
   } finally {

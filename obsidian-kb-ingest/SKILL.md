@@ -71,9 +71,10 @@ description: Use to create or refresh the first-pass Obsidian code knowledge bas
 
 1. **逻辑视图** → `{kb-root}/domains/{业务域}.md`：从 glossary、模块职责、README 领域语言聚类出业务域，定义概念、不变量、状态、相邻域，链向实现该域的流程。
 2. **契约视图** → `{kb-root}/contracts/{契约名}.md`：把首扫发现的跨边界契约（HTTP/RPC API、MQ topic、event、协议消息、TLV/frame）提升为独立契约页，记录消息标识、payload schema、producer/consumer、接收方发现证据。
-   - **只找到一端时**（producer 或 consumer 在尚未 ingest 的仓，或对端没搜到）：照常建页、填已知端、未知端留空、`status: partial`，**别编造假对端**。同步在 `coverage.md` 悬挂边表挂账（见步骤 4）。
+   - 建页优先用 `obsidian-kb.mjs scaffold contract --repo {repo} --title {契约名}` 拿骨架再填（using-obsidian 有命令清单）。
+   - **只找到一端时**（producer 或 consumer 在尚未 ingest 的仓，或对端没搜到）：用 `scaffold contract --partial --side {producer|consumer} --title {契约名} --known {repo} --evidence {证据}`，它一次建好 partial 页**并自动在 `coverage.md` 悬挂边挂账**，未知端留空、**别编造假对端**。
 3. 这两类是**只新增页**：发现新的加一页，不回改已有页。深度的端到端字段映射留给 deep-analysis。
-4. **append `architecture/coverage.md`**（无则按 page-shapes 的 coverage 骨架建）：① 本仓覆盖度行（深度 = `只地形扫描`/`模块已解析`/`关键流程已深挖`）② 本次发现的悬挂边（指向未 ingest 仓的调用、单边 partial 契约）③ 已知盲区。这是**只追加**，不回改旧行；接上某端时才把对应行翻"已接合"。
+4. **append `architecture/coverage.md`**（partial 契约已由 scaffold 自动挂账；其余手动追加）：① 本仓覆盖度行（深度 = `只地形扫描`/`模块已解析`/`关键流程已深挖`）② 本次发现的悬挂边（指向未 ingest 仓的调用、单边 partial 契约）③ 已知盲区。这是**只追加**，不回改旧行；接上某端时才把对应行翻"已接合"。
 
 ## Phase 6：双向链接（见 authoring `references/link-contract.md`）
 
@@ -151,3 +152,14 @@ description: Use to create or refresh the first-pass Obsidian code knowledge bas
 - 入口或依赖不清时标 `confidence: low`。
 - 首扫幂等：对未变源码重跑应产生等价笔记。
 - 保留人工编辑：合并而非覆盖。
+
+## 收尾闸门（逐条核对，勿跳）
+
+收工前逐条过，缺一条就回去补。规则细节见各 references，这里只列动作：
+
+- 新页先 `scaffold {type}` 拿骨架再填，别手搓 frontmatter / section → 见 using-obsidian。
+- 每页 `updated` 是今天，`sources` 有不带行号的 durable 证据 → 见 references/frontmatter-schema。
+- 关系双向闭环：链出去的页都反向链回来 → 见 references/link-contract。
+- 该打 `stale` 的人工叙事页（尤其 `system-architecture.md`）打了 → 见 references/frontmatter-schema。
+- 每个 `status: partial` 契约已在 `architecture/coverage.md` 挂账 → 用 `scaffold contract --partial` 自动挂。
+- `log.md` 记了这轮扫了什么、生成了哪些页。

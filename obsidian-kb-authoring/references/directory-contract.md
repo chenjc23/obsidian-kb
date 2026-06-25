@@ -10,6 +10,19 @@
 4. **folder vs 单文件判据**：每实例是"独立大页"→ 文件夹；实例小而多 → 单文件分 section，大到撑不住再拆文件夹。
 5. **视图不必平均分配目录**：按该视图"持久手写内容"多少加权。影响/运行视图**不物化成工作区页**——影响靠 query 即时遍历、运行活在仓内 flows/。
 
+## 单一来源纪律
+
+四类规则各有唯一权威来源，别处一律引用、不复述，防止多份定义漂移：
+
+| 规则 | 唯一来源 | 怎么用 |
+|---|---|---|
+| **页面结构**（每页有哪些 section） | `obsidian-kb-authoring/templates/{type}.template.md` 真模板文件 | 新建页优先 `scaffold {type}` 吐骨架；lint 从模板反推必需 section；改结构改模板 |
+| **frontmatter 字段/枚举/默认值** | [frontmatter-schema.md](frontmatter-schema.md) | 每次写 frontmatter 查它 |
+| **目录路径/放哪/是否新建** | 本文件（directory-contract.md） | 决定文件落点查它 |
+| **双链关系/影响传播边** | [link-contract.md](link-contract.md) | 每次建关系、做影响分析查它 |
+
+> 其它 skill（ingest / deep-analysis / update / lint）**不得重新声明**结构、字段、路径或关系，只引用上述来源。
+
 ## 目录树
 
 ```text

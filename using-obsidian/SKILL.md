@@ -48,6 +48,29 @@ node {using-obsidian-skill-root}/scripts/obsidian-kb.mjs resolve --json
 
 If the helper only resolves the default path and that path does not exist, perform the automatic discovery steps above manually before asking the user.
 
+### Helper Commands
+
+零依赖 helper（`scripts/obsidian-kb.mjs`）提供这些子命令，写页前优先用 `scaffold` 拿合规骨架：
+
+```bash
+# 列出全部可 scaffold 的页型
+node {using-obsidian-skill-root}/scripts/obsidian-kb.mjs types
+
+# 按页型生成单页骨架（机械字段已填好，无 {{ }} 残留）
+node {…}/scripts/obsidian-kb.mjs scaffold module --repo {repo} --title {模块名} --kb-root {kb-root}
+
+# 深流程一次生成 6 件套（调用树/主干流程/分支主题/跨边界数据流/数据结构/自查报告）
+node {…}/scripts/obsidian-kb.mjs scaffold flow --repo {repo} --topic {分析主题} --kb-root {kb-root}
+
+# 单边契约：建 partial 页 + 自动在 architecture/coverage.md 悬挂边挂账
+node {…}/scripts/obsidian-kb.mjs scaffold contract --partial --side producer \
+  --title {契约名} --known {repo} --evidence "{path:func()}" --kb-root {kb-root}
+
+# 其余：init / lint / links / search / report（页面结构单一来源 = obsidian-kb-authoring/templates/）
+```
+
+`scaffold` 只吐骨架不填内容；机械字段（title/repo/created/updated）已填，其余 `<!-- 填:… -->` 由 agent 补。目标页已存在且未加 `--force` 时跳过，不覆盖人工内容。
+
 After discovering `{kb-root}`, route the task by intent rather than by the wording of the user's example. For read-only tasks, use `obsidian-kb-query`; for write-oriented tasks, use the smallest write skill that matches the intent.
 
 ## Skill Routing

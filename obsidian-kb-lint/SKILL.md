@@ -29,6 +29,10 @@ description: "Use to inspect an Obsidian code knowledge base for health issues: 
 - 日期合理、不超前。
 - **禁用字段要报**：`scope`、把已有字段塞进 tag 的写法（`code-kb/{type}`、`domain/{x}`）、与正文双链各自独立手维护的关系字段。
 
+### 2b. 模板符合度（页面结构）
+
+页面结构的唯一来源是 `obsidian-kb-authoring/templates/{type}.template.md`（见 directory-contract「单一来源纪律」）。脚本 `lint` 会从对应模板反推必需 `## section`，缺失则报 `warning`（`type: template`）。手查时：拿页面 `type` 对应的模板，核对正文 `## 标题` 覆盖了模板里非 `<!-- optional -->` 的刚性 section。`flow` 深流程文件夹各页形状见 `page-shapes.md`，不在此机械校验。
+
 ### 3. 孤儿页
 
 找没有入链的页。`index.md`、`log.md` 这类入口排除。

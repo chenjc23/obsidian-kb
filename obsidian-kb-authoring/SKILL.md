@@ -27,7 +27,8 @@ description: Use whenever creating, editing, or reviewing multi-repository Obsid
 | [references/view-model.md](references/view-model.md) | 六视图定义、domain/use-case 名词动词之分、type→view 映射、消费侧脊柱 | 决定页面归属哪个视图、用例 vs 域分不清时 |
 | [references/directory-contract.md](references/directory-contract.md) | 锁定目录树、folder/file 判据、两种维护方式、增量铁律 | 决定文件放哪、是否新建/合并页、增量该不该改某页 |
 | [references/frontmatter-schema.md](references/frontmatter-schema.md) | **唯一** frontmatter schema、三档字段、枚举、去重去冗余 | 每次写 frontmatter |
-| [references/page-shapes.md](references/page-shapes.md) | 各 type 页面骨架、深流程瘦身后的形状 | 每次新建页面 |
+| `templates/{type}.template.md` | **页面结构单一来源**：真模板文件，scaffold 吐骨架、lint 校验必需 section | 每次新建页面——优先 `scaffold {type}` 生成再填 |
+| [references/page-shapes.md](references/page-shapes.md) | 页型索引表（页型→模板→刚性边界），脚本不可用时的人工兜底 | 选不准用哪个模板、或手搓页面时 |
 | [references/link-contract.md](references/link-contract.md) | 双链强制双向、影响视图传播边、可校验字段 | 每次建立关系、做影响分析 |
 | [references/kb-root-resolution.md](references/kb-root-resolution.md) | 找知识库根 `{kb-root}` 的确定性解析顺序、读写兜底 | 每次需要定位或新建知识库根 |
 
