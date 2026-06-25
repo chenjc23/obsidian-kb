@@ -28,8 +28,8 @@ flowchart TD
 ## 核心模块（仓库路由）
 <!-- 填:[[repos/{repo}/modules/X]] · [[repos/{repo}/modules/Y]] -->
 
-## 关键流程入口
-<!-- 填:[[repos/{repo}/flows/{主题}]]（已深挖）· 候选见 [[repos/{repo}/candidate-flow]] -->
+## 流程入口
+<!-- 填:业务最重要或调用链最长的流程入口;已深挖链 [[repos/{repo}/flows/{主题}]];全量识别流程见 [[repos/{repo}/candidate-flow]] -->
 
 ## 对外契约 / 数据
 <!-- 填:[[repos/{repo}/api-surface]] · [[repos/{repo}/data-models]] -->

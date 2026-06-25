@@ -56,7 +56,7 @@ code-kb/
     key-implementations.md      # 实现:复杂算法/核心逻辑
     runtime-notes.md            # 运行:error-handling + gotchas 合并(薄时合并,有量才拆回)
     testing-strategy.md         # 视图正交的 dev-process facet,有内容才生成
-    candidate-flow.md           # 运行:次关键流程候选清单(待确认深挖)
+    candidate-flow.md           # 运行:全量已识别流程清单(自动深挖进度)
     modules/{模块名}.md         # 实现:多实例 → 文件夹
     flows/                      # 运行/用例:每个深挖流程一个文件夹(无单文件浅流程页)
       {分析主题}/               #   obsidian-kb-deep-analysis 产物
@@ -85,7 +85,7 @@ code-kb/
 
 | 维护方式 | 哪些页 | 增量时怎么处理 |
 |---|---|---|
-| **只新增**（发现新的加一页，不改旧） | `global/contracts/{X}`、`global/domains/{X}`、`global/use-cases/{X}` | 发现新的就**新增一页**，从不回改已有页 |
+| **只新增 + 最小接线**（发现新的加一页，已有页不重写叙事） | `global/contracts/{X}`、`global/domains/{X}`、`global/use-cases/{X}` | 发现新的就**新增一页**；已有页只允许追加证据支撑的反向链接、使用者列表或状态接合，不做综合改写 |
 | **只追加**（前沿账本，记已知盲区） | `global/architecture/coverage.md` | **append 一行**：新挖的仓登记深度、新发现的悬挂边挂账；接上一端时把对应行翻成"已接合"，不综合改写 |
 | **人工叙事**（需人工综合判断） | `global/architecture/system-architecture.md` | 增量时**不碰**；由 `obsidian-kb-update` 在跨仓结构变化时**直接重写刷新** |
 
@@ -103,7 +103,7 @@ code-kb/
 `obsidian-kb-ingest` / `obsidian-kb-deep-analysis` 每次增量**只做加法**：
 
 - 写仓内页（其自然产物）。
-- **新增**只新增页（contracts/domains/use-cases），从不回改已有页。
+- **新增 + 最小接线**视图层页（contracts/domains/use-cases）：新发现的页就创建；已有页只追加反向链接、使用者条目或证据，不重写既有叙事。
 - **append `coverage.md`**：登记本仓 ingest 深度；扫到指向未 ingest 仓的调用、或只找到一端的契约，就挂账成悬挂边（必要时建 `status: partial` 单边契约页）。
 - append `log.md`。
 

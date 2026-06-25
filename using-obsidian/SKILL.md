@@ -91,8 +91,8 @@ When multiple intents appear in one request, run them in this order:
 
 1. `obsidian-kb-query` to understand current knowledge.
 2. `obsidian-kb-ingest` or `obsidian-kb-update` to create or revise pages when explicitly requested.
-3. Ask the user to confirm any `obsidian-kb-ingest` deep-analysis candidate table before running deep analysis.
-4. `obsidian-kb-deep-analysis` for confirmed focused flow analysis.
+3. Let `obsidian-kb-ingest` finish its full phase order before any deep-analysis execution: discovery first, then supporting pages/view-layer pages/linking/coverage/log, then automatic serial deep analysis.
+4. `obsidian-kb-deep-analysis` for focused flow analysis; when called from ingest, every identified flow is automatic serial work, while `candidate-flow.md` is the full flow tracking ledger.
 5. `obsidian-kb-lint` to verify the final knowledge base.
 
 ## Query Is Read-Only
@@ -124,26 +124,26 @@ Call `obsidian-kb-query` when the agent needs business or code context:
 
 ## Deep Analysis Candidate Orchestration
 
-When `obsidian-kb-ingest` finishes with a `Deep Analysis 候选流程确认表`, do not start deep analysis automatically.
+When `obsidian-kb-ingest` reaches deep-analysis execution, it must already have completed its earlier phases: repository terrain, modules, flow discovery/ranking, supporting pages, view-layer domain/contract extraction, bidirectional links, coverage, and log.
 
-Ask the user whether to analyze the suggested rows. The user may approve all rows, approve selected rows, reorder rows, or decline.
+During ingest, Phase 3 discovers, deduplicates, and orders flows for analysis; Phase 8 is the single execution gate for deep analysis. Every identified flow runs automatically in that order. `candidate-flow.md` is the traceable ledger for all identified flows, analysis order, risk, and status.
 
-If the user approves multiple rows and sub-agents are available, the main agent must orchestrate them serially:
+If multiple flows need deep analysis and sub-agents are available, the main agent must orchestrate them serially:
 
-1. Create exactly one sub-agent for the first confirmed flow.
+1. Create exactly one sub-agent for the first queued flow.
 2. Give that sub-agent only one flow, its entry/interface evidence, the relevant repository roots, `{kb-root}`, and the instruction to use `obsidian-kb-deep-analysis` plus `obsidian-kb-authoring`.
 3. Wait until that sub-agent finishes, writes its notes, and returns a summary.
 4. Review the result for obvious missing files, low-confidence gaps, or failed writes.
-5. Only then create the next sub-agent for the next confirmed flow.
+5. Only then create the next sub-agent for the next queued flow.
 
-Do not create multiple deep-analysis sub-agents in parallel. Do not batch-create sub-agents. Do not create the next sub-agent until the previous sub-agent has fully completed and returned its result. Cross-flow parallelism is forbidden because deep analyses update shared pages such as `data-models.md`, `architecture.md`, `global/contracts/`, `runtime-notes.md`, and `log.md`.
+Do not create multiple deep-analysis sub-agents in parallel. Do not batch-create sub-agents. Do not create the next sub-agent until the previous sub-agent has fully completed and returned its result. Cross-flow parallelism is forbidden because deep analyses update shared pages such as `data-models.md`, `architecture.md`, `global/domains/`, `global/use-cases/`, `global/contracts/`, `runtime-notes.md`, and `log.md`.
 
-If sub-agents are unavailable, the main agent must run the confirmed flows one by one in the same serial order.
+If sub-agents are unavailable, the main agent must run the queued flows one by one in the same serial order.
 
-After all confirmed deep analyses finish:
+After all queued deep analyses finish:
 
 - Run or recommend `obsidian-kb-lint`.
-- Summarize completed flows, generated pages, cross-boundary messages, evidence confidence, and remaining gaps.
+- Summarize completed flows, generated pages, view-layer pages added or connected, cross-boundary messages, evidence confidence, and remaining gaps.
 
 ## Shared Authoring Rules
 

@@ -2,7 +2,7 @@
 
 这是一个面向 agent 的 Obsidian 代码知识库技能套件，用来构建、读取、更新和治理多仓代码知识库。
 
-它的目标不是生成普通文档，而是给 agent 提供可检索、可追溯、可用于研发决策的上下文：业务域、架构、模块、接口、协议、关键流程、跨仓依赖、风险点和源码证据。
+它的目标不是生成普通文档，而是给 agent 提供可检索、可追溯、可用于研发决策的上下文：业务域、架构、模块、接口、协议、流程、跨仓依赖、风险点和源码证据。
 
 ## 快速开始（常用场景）
 
@@ -38,7 +38,7 @@
 | 首次摄入代码仓 | `obsidian-kb-ingest` + `obsidian-kb-authoring` |
 | 读取知识库、分析影响、查询上下文 | `obsidian-kb-query` |
 | 代码变更后更新知识库 | `obsidian-kb-update` + `obsidian-kb-authoring` |
-| 深入分析关键流程/函数/协议链路 | `obsidian-kb-deep-analysis` + `obsidian-kb-authoring` |
+| 深入分析流程/函数/协议链路 | `obsidian-kb-deep-analysis` + `obsidian-kb-authoring` |
 | 检查知识库健康度 | `obsidian-kb-lint` |
 | 编写 Obsidian Markdown | `obsidian-markdown` |
 
@@ -102,7 +102,7 @@ code-kb/
     key-implementations.md
     runtime-notes.md          # error-handling + gotchas 合并
     testing-strategy.md
-    candidate-flow.md         # 次关键流程候选清单
+    candidate-flow.md         # 全量已识别流程清单（自动深挖进度）
     modules/{模块名}.md
     flows/{分析主题}/          # 深挖流程文件夹（deep-analysis 产物）
 ```
@@ -123,34 +123,37 @@ agent 会创建 `code-kb/` 的基础结构和种子页面。
 Use using-obsidian to ingest the repositories under this workspace into code-kb.
 ```
 
-`obsidian-kb-ingest` 会先做仓库地形扫描，再生成架构（仓库路由）、模块、接口、数据模型、关键流程，以及业务域与契约页。
+`obsidian-kb-ingest` 会先做仓库地形扫描，再生成架构（仓库路由）、模块、接口、数据模型、流程清单，以及业务域与契约页。
 
 地形扫描只用于快速识别仓库形状，不固定深度、不是业务流程发现上限。agent 必须继续深入扫描入口、接口、handler、协议分发、消息消费、状态机、定时任务和核心 orchestrator。
 
-摄入结束时必须输出：
+流程发现阶段必须形成追踪表；深度分析在补充页、视图层、双链和 coverage/log 建好后统一串行执行：
 
 ```markdown
-## Deep Analysis 候选流程确认表
+## Deep Analysis 流程追踪表
 
-| 序号 | 流程名称 | 入口/接口 | 触发方式 | 涉及仓库/模块 | 是否跨消息边界 | 风险等级 | 推荐原因 | 建议分析 |
+| 分析顺序 | 流程名称 | 入口/接口 | 触发方式 | 涉及仓库/模块 | 是否跨消息边界 | 风险等级 | 推荐原因 | 状态 |
 |---|---|---|---|---|---|---|---|---|
 ```
 
-用户确认后，主 agent 优先以子 agent 形式调度 deep-analysis：
+主 agent 优先以子 agent 形式串行调度 deep-analysis：
 
 - 一个子 agent 只分析一个流程。
 - 必须等上一个子 agent 完成后，才能创建下一个。
 - 不允许批量创建子 agent。
 - 禁止并行 deep-analysis。
 - 如果环境没有子 agent 能力，则由主 agent 串行执行。
+- 所有识别到的流程都写入追踪表，并按表中的分析顺序自动串行深挖。
 
-### 3. 深度分析关键流程
+### 3. 深度分析流程
 
 ```text
-Use using-obsidian. Run deep analysis for the approved candidate flows from the ingest table.
+Use using-obsidian. Run deep analysis for queued flows from the ingest tracking table.
 ```
 
 `obsidian-kb-deep-analysis` 默认连续执行所有阶段，不在阶段之间暂停。
+
+深度分析如果识别出新的业务域、端到端用例或跨边界契约，应同步新增或最小接线到 `global/domains/`、`global/use-cases/`、`global/contracts/`，并维护双向链接；不能只把这些知识留在流程文件夹里。
 
 Phase 2 必须主动发现关键分支流程，并逐个展开。agent 不能只分析主干附近的显眼分支，也不能用“其他分支类似”“暂不展开”“略”跳过关键分支。
 

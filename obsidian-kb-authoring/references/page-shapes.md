@@ -1,6 +1,6 @@
 # 页面形状（Page Shapes）索引
 
-各 `type` 的页面骨架**不再在此内嵌**——骨架的唯一来源是 `obsidian-kb-authoring/templates/{type}.template.md`。本文件只是路由索引：要写哪种页，先 `scaffold {type}` 拿骨架（或直接读对应模板），骨架里的 `<!-- 填:… -->` 内联提示就是过去写在这里的指引。
+各 `type` 的页面骨架以 `obsidian-kb-authoring/templates/{type}.template.md` 为唯一来源。本文件只是路由索引：要写哪种页，先 `scaffold {type}` 拿骨架（或直接读对应模板），骨架里的 `<!-- 填:… -->` 内联提示承载写作指引。
 
 通用写作规则见 SKILL.md：中文 prose、保留代码标识符原文、结论先行（前三行说清这页为何重要）、一页一主题。所有页面 frontmatter 一律遵循 [frontmatter-schema.md](frontmatter-schema.md)。
 
@@ -13,8 +13,8 @@
 | `contract` | 跨边界契约，定义一次被多 flow 引用 | `templates/contract.template.md` | 消息/接口标识 / Payload Schema / Producer / Consumer / 接收方发现证据 / 使用该契约的流程 |
 | `coverage` | 工作区覆盖度/前沿账本（唯一、只追加） | `templates/coverage.template.md` | 仓库覆盖度 / 悬挂的跨仓边 / 已知盲区 |
 | `module` | 单模块职责 + 依赖（多实例） | `templates/module.template.md` | 职责 / 公共接口 / 依赖（出）/ 被依赖（入·反向链接）/ 相关流程 |
-| `architecture` | 仓库实现视图 + 路由 + 架构图（system-architecture 复用此模板，落点为工作区） | `templates/architecture.template.md` | 架构图 / 分层与职责 / 核心模块 / 关键流程入口 / 对外契约·数据 / 设计模式 |
-| `candidate` | 次关键流程候选清单 | `templates/candidate-flow.template.md` | Deep Analysis 候选流程清单 |
+| `architecture` | 仓库实现视图 + 路由 + 架构图（system-architecture 复用此模板，落点为工作区） | `templates/architecture.template.md` | 架构图 / 分层与职责 / 核心模块 / 流程入口 / 对外契约·数据 / 设计模式 |
+| `candidate` | 全量已识别流程清单（自动深挖进度） | `templates/candidate-flow.template.md` | Deep Analysis 流程清单 |
 | `glossary` | 仓内术语表 | `templates/glossary.template.md` | 术语 |
 | `api-surface` | 仓内对外接口面 | `templates/api-surface.template.md` | 对外接口 |
 | `data-model` | 仓内核心数据结构 | `templates/data-models.template.md` | 核心结构 |
