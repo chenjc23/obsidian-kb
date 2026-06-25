@@ -1,24 +1,23 @@
-# 六视图模型（View Model）
+# 五视图模型（View Model）
 
-代码知识库按软件架构 **4+1 视图**改造，针对"逆向提炼 + agent 消费"的场景做了调整：去掉部署视图（辅助编码不需要硬件/集群拓扑），并把**契约**和**影响**提升为一等视图。
+代码知识库按软件架构 **4+1 视图**改造，针对"逆向提炼 + agent 消费"的场景做了调整：部署视图替换为**契约视图**，用于承载跨仓接口、协议、消息和 producer/consumer 边界。
 
-最终六视图：**用例 / 逻辑 / 实现 / 运行 / 契约 / 影响**。
+最终五视图：**用例 / 逻辑 / 实现 / 运行 / 契约**。影响分析不是常驻视图；它由 query 沿 `depends-on`、`producer`/`consumer` 和正文反向双链即时推导。
 
 > 视图是**完整性透镜 + 页面查询维度**，不是物理目录树。
 > 物理布局按"作用域"两层切（工作区 catalog + 仓内扁平）；视图维度靠页面 frontmatter 的 `view:` 字段承载。详见 [directory-contract.md](directory-contract.md)。
 
-## 六视图定义
+## 五视图定义
 
 | 视图 | `view` 值 | 回答的问题 | 性质 | 主要页面 | 作用域 |
 |---|---|---|---|---|---|
 | 用例视图（+1） | `usecase` | 用户/外部系统**想完成什么** | 动态·行为 | `global/use-cases/` | 工作区为主 |
-| 逻辑视图 | `logical` | 系统里**有哪些业务概念** | 静态·结构 | `global/domains/`、仓内 `glossary` | 工作区为主 |
-| 实现视图 | `development` | 代码**怎么静态组织的** | 静态·代码 | `global/architecture/`、仓内 `architecture`/`modules`/`data-models`/`key-implementations` | 仓内为主 + 工作区汇总 |
+| 逻辑视图 | `logical` | 系统里**有哪些业务概念与架构结构** | 静态·结构 | `global/domains/`、`global/architecture/`、仓内 `architecture`/`glossary` | 工作区为主 + 仓内架构 |
+| 实现视图 | `development` | 代码**怎么落地、复用和配置** | 静态·代码 | 仓内 `modules`/`data-models`/`key-implementations`/`config-and-env`/`testing-strategy` | 仓内为主 |
 | 运行视图 | `runtime` | 运行时**发生了什么** | 动态·流程 | 仓内 `flows/`、深流程 | 仓内为主 |
 | 契约视图 | `contract` | 跨边界**怎么对话** | 静态·接口 | `global/contracts/`、仓内 `api-surface` | 工作区为主 |
-| 影响视图 | `impact` | 改 X **会炸什么** | 推导·关系 | `depends-on` + 反向双链（查询派生，无常驻页） | 全库（query 即时遍历） |
 
-## 用例视图 vs 逻辑视图（最易混淆，务必分清）
+## 用例视图 vs 逻辑视图（容易混淆，必须分清）
 
 判据：**名词世界 vs 动词世界**。
 
@@ -48,7 +47,7 @@
 | `domain` | `logical` | — |
 | `glossary` | `logical` | — |
 | `module` | `development` | — |
-| `architecture` | `development` | — |
+| `architecture` | `logical` | — |
 | `data-model` | `development` | — |
 | `implementation` | `development` | — |
 | `config` | `development` | — |
@@ -57,21 +56,21 @@
 | `runtime-notes` | `runtime` | — |
 | `contract` | `contract` | — |
 | `api-surface` | `contract` | — |
-| `risk` | `impact` | — |
+| `risk` | `runtime` | — |
 | `index` / `log` | `meta` | — |
 | `extra` | `meta` | — |
 
-## 消费侧脊柱（设计自检用）
+## 查询入口（设计自检用）
 
-agent 做需求分析 / 方案设计 / 影响面判断时，热路径应贯穿这条脊柱——任何页面若不在脊柱上、也不被脊柱链接，要质疑它是否该存在：
+agent 做需求分析 / 方案设计 / 影响面判断时，先按问题选择入口，再沿关系边收敛。任何页面若既不能作为入口，也不被这些关系边连接，要质疑它是否该存在。
 
+```text
+业务/场景问题        → use-cases → flows / contracts / domains
+概念/边界问题        → domains / glossary → flows / modules
+实现定位问题         → architecture → modules / flows / sources
+接口/协议/消息问题    → contracts / api-surface → producer / consumer / flows
+调试/运行问题        → flows → runtime-notes / contracts / modules
+影响分析问题         → 被改实体 → contracts / data-models / modules → 反向双链扩散
 ```
-use-cases（入口）
-  → domains / contracts（概念 + 接口）
-    → flows / modules（实现）
-      → depends-on + 反向双链（影响，现算）
-        → runtime-notes（警示）
-```
 
-> 对 agent 而言目录不是效率杠杆——它靠 **frontmatter 查询 + 双链遍历**导航。
-> 真正的消费效率赢在 [frontmatter-schema.md](frontmatter-schema.md)（可查询性）和 [link-contract.md](link-contract.md)（双链强制双向），不在文件夹分类。
+目录用于缩小候选范围；真正的消费效率来自 [frontmatter-schema.md](frontmatter-schema.md)（可查询性）和 [link-contract.md](link-contract.md)（双链强制双向）。

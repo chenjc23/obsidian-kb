@@ -10,9 +10,9 @@ confidence: <!-- 填:high|medium|low -->
 status: active
 contract-kind: <!-- 填:http|rpc|mq|event|tlv|socket|frame -->
 producer:
-  - <!-- 填:仓名;status:partial 时未知一端留空并在 coverage 挂账 -->
+  - <!-- 填:仓名;status:partial 时未知一端留空并在 coverage 记录 -->
 consumer:
-  - <!-- 填:仓名;status:partial 时未知一端留空并在 coverage 挂账 -->
+  - <!-- 填:仓名;status:partial 时未知一端留空并在 coverage 记录 -->
 version: <!-- 填:v1 -->
 ---
 

@@ -31,7 +31,7 @@ test('scaffoldPartialContract creates page and appends coverage row atomically',
   assert.match(c, /consumer:\r?\n {2}- <!-- 填:/);
   const cov = await readFile(path.join(root, 'global/architecture/coverage.md'), 'utf8');
   assert.match(cov, /OrderPaid/);
-  assert.match(cov, /悬挂/);
+  assert.match(cov, /待接合/);
   assert.ok(res.coverageRow);
 });
 

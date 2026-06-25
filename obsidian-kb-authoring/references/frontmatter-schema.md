@@ -56,13 +56,13 @@ contract-kind: http              # http | rpc | mq | event | tlv | socket | fram
 producer:
   - resource-service
 consumer:
-  - order-service                # status:partial 时,未知的一端留空,在 coverage.md 挂账
+  - order-service                # status:partial 时,未知的一端留空,在 coverage.md 记录
 version: v1
 
 # module 页
 public-entry:
   - src/modules/order/index.ts
-depends-on:                      # 模块依赖,影响视图遍历的边,强制 + 可校验
+depends-on:                      # 模块依赖,影响分析遍历的边,强制 + 可校验
   - resource-service/资源分配
 
 # use-case 页
@@ -80,7 +80,7 @@ aliases:
   - Service Provisioning
 ```
 
-**重复声明禁令（务必遵守）：**
+**重复声明约束：**
 
 - `tags` **不得**重复声明 `type`/`view`/`repo`/`domain`——它们各有专用字段。不使用 `code-kb/{type}`、`domain/{x}` 这类把已有字段塞进 tag 的写法。
 - `domain` 用 Tier 3 结构化字段，不用 tag。
@@ -90,7 +90,7 @@ aliases:
 **`type`：**
 `use-case` · `domain` · `glossary` · `flow` · `candidate` · `contract` · `module` · `architecture` · `api-surface` · `data-model` · `config` · `implementation` · `runtime-notes` · `risk` · `index` · `log` · `coverage` · `extra`
 
-**`view`：** `usecase` · `logical` · `development` · `runtime` · `contract` · `impact` · `meta`
+**`view`：** `usecase` · `logical` · `development` · `runtime` · `contract` · `meta`
 
 **`confidence`：**
 - `high`：被显式源码或稳定架构笔记直接支撑。
@@ -99,6 +99,6 @@ aliases:
 
 **`status`：**
 - `active`：当前有效。
-- `partial`：**仅契约页**——跨边界只找到一端（producer 或 consumer 之一），另一端待对应仓 ingest。必须在 `global/architecture/coverage.md` 悬挂边表挂账；对端找到后补全 + 翻回 `active`。
+- `partial`：**仅契约页**——跨边界只找到一端（producer 或 consumer 之一），另一端待对应仓 ingest。必须在 `global/architecture/coverage.md` 待接合边表记录；对端找到后补全 + 翻回 `active`。
 - `draft`：草稿。
 - `deprecated`：已废弃。

@@ -86,13 +86,13 @@ code-kb/
       {业务域}.md
     contracts/                # 契约视图：跨边界契约
       {契约名}.md
-    architecture/             # 实现视图·工作区汇总
+    architecture/             # 逻辑视图·工作区架构
       system-architecture.md  # 唯一人工叙事总览（含跨仓架构图）
-      coverage.md             # 覆盖度/前沿账本：已挖到哪、哪条跨仓边还没接上
+      coverage.md             # 覆盖记录：已挖到哪、哪条跨仓边还没接上
     # 运行视图活在 repos/{repo}/flows/ + use-cases，靠 view:runtime 承载，无工作区目录。
     # 依赖图/数据流/技术栈/影响面不物化成页——由 query 沿 depends-on + 反向双链即时遍历得出。
 
-  # 仓库层：每仓六视图细节，保持扁平（与 global/ 并列）
+  # 仓库层：每仓五视图细节，保持扁平（与 global/ 并列）
   repos/{repo-name}/
     architecture.md           # 本仓静态结构 + 仓库路由（含架构图）
     glossary.md
@@ -177,18 +177,18 @@ repos/{repo-name}/flows/{分析主题}/
 读取知识库，帮我分析修改 OrderRequest.resourceId 字段会影响哪些流程。
 ```
 
-这类请求使用 `obsidian-kb-query`（只读）。检索沿消费脊柱走，分两阶段：
+这类请求使用 `obsidian-kb-query`（只读）。检索沿查询路径走，分两阶段：
 
 1. 自动发现 `{kb-root}`。
-2. 判断问题落在哪个视图（用例 / 逻辑 / 实现 / 运行 / 契约 / 影响），定位入口。
+2. 判断问题落在哪个视图（用例 / 逻辑 / 实现 / 运行 / 契约），定位入口；影响分析由关系边即时推导。
 3. 定位：抽取实体（业务词、类、字段、接口、协议、消息、模块、文件），用 `rg` 在 frontmatter、标题、别名、正文、`sources` 里搜出锚点页。
 4. 遍历：从锚点页沿 frontmatter 关系字段（`producer`/`consumer`/`depends-on`/`related-*`/`entry-point`）和正文双链（含反向链）逐跳扩散。
-5. 改字段/接口这类影响面问题，沿 `depends-on` + 反向双链**现算**爆炸半径（无现成依赖图页），并追到跨边界的 `global/contracts/` 与收发两端；命中 `status: partial` 契约说明对端仓还没 ingest，把缺口报进 `knowledge_gaps`。
-6. 跨子系统/多模块问题先读 `global/architecture/coverage.md`（地基，恒在）建全局认识，知道哪能下结论、哪是盲区；`global/architecture/system-architecture.md` 若已生成再叠加它的跨仓架构叙事——增量早期它常常还不存在，缺席是正常的，别等它。
+5. 改字段/接口这类影响面问题，沿 `depends-on` + 反向双链**现算**影响范围（无现成依赖图页），并追到跨边界的 `global/contracts/` 与收发两端；命中 `status: partial` 契约说明对端仓还没 ingest，把缺口报进 `knowledge_gaps`。
+6. 跨子系统/多模块问题先读 `global/architecture/coverage.md`（基础入口，恒在）建全局认识，知道哪能下结论、哪是盲区；`global/architecture/system-architecture.md` 若已生成再叠加它的跨仓架构叙事。
 7. 知识库太浅时读源码验证，保持只读。
 7. 输出受影响流程、契约、模块、数据结构、跨边界消息、风险、证据和知识库缺口。
 
-检索心法与问题路由表见 `obsidian-kb-query`。
+检索策略与影响分析规则见 `obsidian-kb-query`。
 
 查询默认只读，必须返回：
 
@@ -221,7 +221,7 @@ Use using-obsidian to update the knowledge base for these changed files.
 - 相关 flow 页面
 - 深流程文件夹
 - `跨边界数据流.md`
-- `global/architecture/coverage.md`（接合悬挂边、刷新仓覆盖度）
+- `global/architecture/coverage.md`（接合待接合边、刷新仓覆盖度）
 
 依赖图/数据流/影响面不是页面，不在更新范围——由 query 现算。
 
@@ -291,14 +291,14 @@ node using-obsidian/scripts/obsidian-kb.mjs types                       # 列出
 node using-obsidian/scripts/obsidian-kb.mjs scaffold module --repo {repo} --title {模块名}
 node using-obsidian/scripts/obsidian-kb.mjs scaffold flow --repo {repo} --topic {分析主题}    # 一次吐深流程 6 件套
 node using-obsidian/scripts/obsidian-kb.mjs scaffold contract --partial --side producer \
-  --title {契约名} --known {repo} --evidence "{path:func()}"            # 建单边契约 + 自动挂账 coverage
+  --title {契约名} --known {repo} --evidence "{path:func()}"            # 建单边契约 + 自动记录到 coverage
 node using-obsidian/scripts/obsidian-kb.mjs search "业务开通" --json
 node using-obsidian/scripts/obsidian-kb.mjs lint
 node using-obsidian/scripts/obsidian-kb.mjs links global/contracts/AllocateResource.md --json
 node using-obsidian/scripts/obsidian-kb.mjs report --json
 ```
 
-`scaffold` 按 `obsidian-kb-authoring/templates/{type}.template.md` 真模板吐合规骨架：机械字段（title/repo/created/updated）已填，其余 `<!-- 填:… -->` 由 agent 补；目标页已存在且未加 `--force` 时跳过，不覆盖人工内容。页面结构的单一来源就是这些模板文件，`lint` 也据此反推必需 section。
+`scaffold` 按 `obsidian-kb-authoring/templates/{type}.template.md` 真模板生成合规骨架：机械字段（title/repo/created/updated）已填，其余 `<!-- 填:… -->` 由 agent 补；目标页已存在且未加 `--force` 时跳过，不覆盖人工内容。页面结构的单一来源就是这些模板文件，`lint` 也据此反推必需 section。
 
 helper 只是确定性辅助工具，不改变 skill 的权限规则。只读查询不能因为 helper 存在就自动写入知识库。
 

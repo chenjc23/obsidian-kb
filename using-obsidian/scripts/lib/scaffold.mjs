@@ -70,9 +70,9 @@ export async function scaffoldPartialContract({ kbRoot, title, side, known, evid
     });
   }
 
-  // 3) 在「悬挂的跨仓边」表后 append 一行。
+  // 3) 在「待接合的跨仓边」表后 append 一行。
   const missingCell = missingGuess ? `对端未知（疑在 ${missingGuess}）` : '对端未知';
-  const coverageRow = `| ${title} | ${side}: ${known} | ${missingCell} | ${evidence} | [[global/contracts/${title}]] | 悬挂 |`;
+  const coverageRow = `| ${title} | ${side}: ${known} | ${missingCell} | ${evidence} | [[global/contracts/${title}]] | 待接合 |`;
   const current = await readFile(coverageFull, 'utf8');
   const updated = appendHangingRow(current, coverageRow);
   await writeFile(coverageFull, updated, 'utf8');
@@ -80,12 +80,12 @@ export async function scaffoldPartialContract({ kbRoot, title, side, known, evid
   return { created: [contractPath, coveragePath], coverageRow };
 }
 
-// 在「悬挂的跨仓边」表头分隔行（|---|...）之后插入新行；占位注释保留在表尾。
+// 在「待接合的跨仓边」表头分隔行（|---|...）之后插入新行；占位注释保留在表尾。
 function appendHangingRow(markdown, row) {
   const lines = markdown.split('\n');
   let headerIdx = -1;
   for (let i = 0; i < lines.length; i += 1) {
-    if (/悬挂的跨仓边/.test(lines[i])) {
+    if (/待接合的跨仓边/.test(lines[i])) {
       headerIdx = i;
       break;
     }
