@@ -1,156 +1,102 @@
-# Obsidian Code KB Skill Suite
+<h1 align="center">Obsidian Code KB Skill Suite</h1>
 
-这是一个面向 agent 的 Obsidian 代码知识库技能套件，用来构建、读取、更新和治理多仓代码知识库。
+<p align="center">
+  <strong>面向 agent 软件设计与开发的工程知识库。</strong>
+  <br />
+  <em>把代码事实、系统架构、业务流程、跨仓契约和影响关系沉淀为可追溯、可查询、可增量演进的内部知识资产。</em>
+</p>
 
-它的目标不是生成普通文档，而是给 agent 提供可检索、可追溯、可用于研发决策的上下文：业务域、架构、模块、接口、协议、流程、跨仓依赖、风险点和源码证据。
+<p align="center">
+  <a href="#-快速开始"><img src="https://img.shields.io/badge/Quick_Start-blue" alt="Quick Start" /></a>
+  <a href="#-核心优势"><img src="https://img.shields.io/badge/Core_Model-five_views-7c3aed" alt="Five View Model" /></a>
+  <a href="#-如何支撑-agent-设计与开发"><img src="https://img.shields.io/badge/Agent_Engineering-context_ready-00a67e" alt="Agent Engineering" /></a>
+  <a href="#-under-the-hood"><img src="https://img.shields.io/badge/Under_the_Hood-incremental_architecture-d4a574" alt="Under the Hood" /></a>
+</p>
 
-## 快速开始（常用场景）
+---
 
-在项目工程根目录进入 agent，按三步走：
+**当 agent 要参与真实的软件设计和开发，它缺的往往不是“再多读几个文件”，而是一套能在不同阶段提供不同抽象层次的工程知识底座。**
 
-**第一步 · 解构代码仓**，生成架构、模块、功能、流程、术语等知识：
+需求理解时，它需要知道业务域、用例和系统边界。方案设计时，它需要知道模块职责、跨仓契约、耦合关系和风险点。编码实现时，它需要准确定位入口、数据结构、主干流程、分支处理和源码证据。代码评审和影响分析时，它需要沿业务、流程、契约、模块之间的关系快速推导影响面。
 
-```text
-/obsidian-kb-ingest {代码仓路径}
-```
+`Obsidian Code KB Skill Suite` 预期解决的就是这件事：把大规模软件系统里的代码事实、业务理解和架构关系沉淀成一个可持续演进的 Obsidian 知识库，让 agent 高效完成软件设计和开发，也让开发人员快速理解系统和业务，形成长期有效的工程资产。
 
-**第二步 · 深度分析**（可选）。如果是比较关注的业务流程、且当前知识库尚未识别，可指定它做深度分析：
+> 它不是普通 wiki，也不是一次性代码扫描报告。它是一套面向 agent 消费的工程知识建模方法：五视图模型、增量架构抽象、核心业务流预编译、双向链接影响传播。
 
-```text
-/obsidian-kb-deep-analysis {流程名称} {相关联的一两个接口}
-```
+---
 
-**第三步 · 基于知识库回答问题**。可结合 brainstorming 等 skill 使用；当知识库认识不足时，agent 会主动读取源码补足后再作答：
+## ✨ 核心优势
 
-```text
-/obsidian-kb-query 回答{...问题}
-```
+<table>
+  <tr>
+    <td width="50%" valign="top">
+      <h3>🧭 五视图模型 + 代码事实</h3>
+      <p>按用例、逻辑、实现、运行、契约五个视角组织知识，让 agent 在需求理解、方案设计、编码实现、评审分析时获得不同抽象层次和粒度的工程上下文。</p>
+    </td>
+    <td width="50%" valign="top">
+      <h3>🏗️ 增量构建系统架构</h3>
+      <p>面向超大 C++ / 多仓系统，先按子系统和模块逐步建设，增量保存用例、业务域、契约沉淀跨子系统关联，最终派生上层系统架构视图。</p>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" valign="top">
+      <h3>🧩 预编译核心业务流</h3>
+      <p>提前沉淀主干流程、关键处理、跨仓接口、数据流和分支逻辑，让 agent 能按需求或问题语义快速索引到连贯、聚焦的业务认识。</p>
+    </td>
+    <td width="50%" valign="top">
+      <h3>🔗 双向链接影响遍历</h3>
+      <p>用双向链接关联契约、业务、流程和模块，支撑 agent 在方案设计、影响分析和代码评审时遍历耦合场景、影响范围和风险点。</p>
+    </td>
+  </tr>
+</table>
 
-## 核心入口
+### 1. 五视图模型 + 代码事实
 
-优先使用 `using-obsidian`。
+软件设计和开发在不同阶段需要不同层次、不同粒度的知识。
 
-它是路由 skill，负责判断用户意图，然后调用最小必要的执行 skill：
+需求阶段需要的是系统架构、模块职责和业务域等；方案阶段需要的是系统边界、模块职责和契约关系；实现阶段需要的是入口函数、数据结构、调用链和关键分支；评审阶段需要的是影响面、风险点和证据链。
 
-| 需求 | 使用的 skill |
-|---|---|
-| 初始化知识库 | `using-obsidian` + `obsidian-kb-authoring` |
-| 首次摄入代码仓 | `obsidian-kb-ingest` + `obsidian-kb-authoring` |
-| 读取知识库、分析影响、查询上下文 | `obsidian-kb-query` |
-| 代码变更后更新知识库 | `obsidian-kb-update` + `obsidian-kb-authoring` |
-| 深入分析流程/函数/协议链路 | `obsidian-kb-deep-analysis` + `obsidian-kb-authoring` |
-| 检查知识库健康度 | `obsidian-kb-lint` |
-| 编写 Obsidian Markdown | `obsidian-markdown` |
+本知识库用改造后的五视图模型组织这些内容：
 
-## 知识库位置
+| 视图 | 解决的问题 | 典型页面 |
+|---|---|---|
+| 用例视图 | 用户、外部系统或业务流程想完成什么 | `global/use-cases/` |
+| 逻辑视图 | 系统有哪些业务概念、领域边界和架构结构 | `global/domains/`、`architecture.md`、`glossary.md` |
+| 实现视图 | 代码如何落地，模块、数据结构、配置和核心实现在哪里 | `modules/`、`data-models.md`、`config-and-env.md`、`key-implementations.md` |
+| 运行视图 | 运行时流程如何展开，主干、分支、异常和状态变化是什么 | `flows/`、`runtime-notes.md`、`candidate-flow.md` |
+| 契约视图 | 跨仓、跨模块、跨协议边界如何对话 | `global/contracts/`、`api-surface.md` |
 
-用户不需要主动告诉 agent 知识库路径。
+每一层都要求落到代码事实：`sources` 记录源码证据，`confidence` 标记置信度，证据不足时明确降级，而不是把推测写成事实。
 
-当用户说“读取知识库”“查询影响”“帮我分析某个字段会影响哪些流程”时，agent 应自动发现 `{kb-root}`：
+### 2. 支撑超大 C++ / 多仓系统的增量知识库构建
 
-1. 用户显式指定路径时，使用用户指定的路径。
-2. 当前 agent 工作目录中能检查到知识库目录时，使用检查到的目录。
-3. 否则使用当前 agent 工作目录下的 `code-kb/`。
+超大 C++ 系统或多仓系统很难一次性完整逆向。现实做法通常是按子系统、模块、协议域逐步建设知识库。但这会带来一个核心问题：
 
-agent 不应询问用户知识库应该放在哪里。
+> 如果知识库是增量构建的，如何在只理解局部子系统的过程中，逐步抽象出整个系统的上层架构视图？
 
-一个目录如果包含这些结构，通常就是知识库：
+本项目的答案是：不要先强行画一个全局大图，而是在增量过程中持续沉淀三个跨子系统的上层抽象：
 
-```text
-index.md
-log.md
-repos/
-global/   (其下 use-cases/ domains/ contracts/ architecture/)
-```
+- **用例**：记录端到端业务场景和跨模块编排。
+- **业务域**：记录稳定的业务概念、状态、不变量和相邻域。
+- **契约**：记录跨仓接口、协议消息、topic、事件、producer/consumer 和 payload schema。
 
-## 知识库结构
+每摄入一个子系统，知识库都会补充它参与了哪些用例、落在哪些业务域、生产或消费哪些契约。这样即使系统还没有完全摄入，子系统之间的关系也会通过 use-case、domain、contract 逐步显现。
 
-默认知识库根目录是：
+当积累到一定程度后，再主动触发 `update`，基于已沉淀的用例、业务域、契约和各子系统局部架构，派生并抽象出更高层的系统架构视图。这个过程不是一次性脑补全局，而是从可追溯的局部事实逐步长出全局理解。
 
-```text
-{workspace-root}/code-kb
-```
+### 3. 预编译核心业务流
 
-推荐结构（完整契约见 `obsidian-kb-authoring/references/directory-contract.md`）：
+agent 真正做需求分析、排障、方案设计时，最需要的往往不是“所有代码细节”，而是某条核心业务流的连贯认识：
 
-```text
-code-kb/
-  index.md
-  log.md
+- 入口在哪里。
+- 主干流程怎么走。
+- 关键处理和分支条件是什么。
+- 哪些数据结构被读写。
+- 跨仓接口、消息、协议如何传递。
+- 发送方和接收方分别做了什么。
+- 哪些错误、重试、超时、补偿和状态变化会影响结果。
 
-  # 工作区层：全部收进 global/（对应 frontmatter repo: global）
-  global/
-    use-cases/                # 用例视图：跨仓场景目录（agent 主入口）
-      {用例名}.md
-    domains/                  # 逻辑视图：业务域
-      {业务域}.md
-    contracts/                # 契约视图：跨边界契约
-      {契约名}.md
-    architecture/             # 逻辑视图·工作区架构
-      system-architecture.md  # 唯一人工叙事总览（含跨仓架构图）
-      coverage.md             # 覆盖记录：已挖到哪、哪条跨仓边还没接上
-    # 运行视图活在 repos/{repo}/flows/ + use-cases，靠 view:runtime 承载，无工作区目录。
-    # 依赖图/数据流/技术栈/影响面不物化成页——由 query 沿 depends-on + 反向双链即时遍历得出。
-
-  # 仓库层：每仓五视图细节，保持扁平（与 global/ 并列）
-  repos/{repo-name}/
-    architecture.md           # 本仓静态结构 + 仓库路由（含架构图）
-    glossary.md
-    api-surface.md
-    data-models.md
-    config-and-env.md
-    key-implementations.md
-    runtime-notes.md          # error-handling + gotchas 合并
-    testing-strategy.md
-    candidate-flow.md         # 全量已识别流程清单（自动深挖进度）
-    modules/{模块名}.md
-    flows/{分析主题}/          # 深挖流程文件夹（deep-analysis 产物）
-```
-
-## 推荐工作流
-
-### 1. 初始化
-
-```text
-Use using-obsidian to initialize a multi-repository code knowledge base in the current workspace.
-```
-
-agent 会创建 `code-kb/` 的基础结构和种子页面。
-
-### 2. 摄入代码仓
-
-```text
-Use using-obsidian to ingest the repositories under this workspace into code-kb.
-```
-
-`obsidian-kb-ingest` 会先做仓库地形扫描，再生成架构（仓库路由）、模块、接口、数据模型、流程清单，以及业务域与契约页。
-
-地形扫描只用于快速识别仓库形状，不固定深度、不是业务流程发现上限。agent 必须继续深入扫描入口、接口、handler、协议分发、消息消费、状态机、定时任务和核心 orchestrator。
-
-流程发现阶段必须形成 `repos/{repo}/candidate-flow.md` 全量追踪表；表结构以 `obsidian-kb-authoring/templates/candidate-flow.template.md` 为唯一来源。深度分析在补充页、视图层、双链和 coverage/log 建好后统一串行执行。
-
-主 agent 优先以子 agent 形式串行调度 deep-analysis：
-
-- 一个子 agent 只分析一个流程。
-- 必须等上一个子 agent 完成后，才能创建下一个。
-- 不允许批量创建子 agent。
-- 禁止并行 deep-analysis。
-- 如果环境没有子 agent 能力，则由主 agent 串行执行。
-- 所有识别到的流程都写入追踪表，并按表中的分析顺序自动串行深挖。
-
-### 3. 深度分析流程
-
-```text
-Use using-obsidian. Run deep analysis for queued flows from the ingest tracking table.
-```
-
-`obsidian-kb-deep-analysis` 默认连续执行所有阶段，不在阶段之间暂停。
-
-深度分析如果识别出新的业务域、端到端用例或跨边界契约，应同步新增或最小接线到 `global/domains/`、`global/use-cases/`、`global/contracts/`，并维护双向链接；不能只把这些知识留在流程文件夹里。
-
-Phase 2 必须主动发现关键分支流程，并逐个展开。agent 不能只分析主干附近的显眼分支，也不能用“其他分支类似”“暂不展开”“略”跳过关键分支。
-
-它会生成：
+因此本项目会提前编译核心业务流，生成深度流程文件夹：
 
 ```text
 repos/{repo-name}/flows/{分析主题}/
@@ -162,101 +108,272 @@ repos/{repo-name}/flows/{分析主题}/
   自查报告.md
 ```
 
-通信领域流程不能停在消息边界。遇到 TLV、协议报文、socket、MQ、RPC、event、topic、command ID、handler registry 等边界时，agent 必须默认扫描整个 workspace，继续定位对端处理逻辑。
+这让 agent 可以根据需求或问题语义快速索引到一组连贯、聚焦、带源码证据的业务认识，而不是临时从零开始读一整片代码。
 
-跨边界分析不能只标明接口、topic、消息 ID、TLV type 或 handler 名称。必须把发送方和接收方的完整处理逻辑都分析出来：
+### 4. 双向链接支撑方案设计和影响遍历
 
-- 发送方：触发入口、前置条件、字段来源、校验、payload 构造、编码、发送调用、发送前后状态变化、错误处理、重试/超时。
-- 接收方：接收入口、解码/解析、分发映射、handler、校验、字段消费、业务处理、状态变化、副作用、响应/ACK/NACK、回调或后续消息。
+软件设计很少只改一个点。一个字段、接口或流程变化，可能牵动业务场景、跨仓契约、模块依赖、运行风险和测试策略。
 
-如果找不到对端实现，要标记 `confidence: low`，记录缺失证据，不能编造行为。
+本知识库要求业务、流程、契约、模块之间建立双向链接：
 
-### 4. 读取知识库做影响分析
+- 用例 ↔ 流程。
+- 业务域 ↔ 流程。
+- 流程 ↔ 契约。
+- 流程 ↔ 模块。
+- 契约 ↔ producer / consumer。
+- 模块 ↔ 模块依赖。
+
+这些关系是 agent 在方案设计、影响分析、代码评审时遍历耦合场景、影响范围和风险点的基础图结构。
+
+---
+
+## 🚀 快速开始
+
+在项目工程根目录进入 agent，按三步走。
+
+### 1. 解构代码仓
+
+生成架构、模块、功能、流程、术语等知识：
 
 ```text
-读取知识库，帮我分析修改 OrderRequest.resourceId 字段会影响哪些流程。
+/obsidian-kb-ingest {代码仓路径}
 ```
 
-这类请求使用 `obsidian-kb-query`（只读）。检索沿查询路径走，分两阶段：
+默认知识库根目录（也可以在ingest时指定）：
 
-1. 自动发现 `{kb-root}`。
-2. 判断问题落在哪个视图（用例 / 逻辑 / 实现 / 运行 / 契约），定位入口；影响分析由关系边即时推导。
-3. 定位：抽取实体（业务词、类、字段、接口、协议、消息、模块、文件），用 `rg` 在 frontmatter、标题、别名、正文、`sources` 里搜出锚点页。
-4. 遍历：从锚点页沿 frontmatter 关系字段（`producer`/`consumer`/`depends-on`/`related-*`/`entry-point`）和正文双链（含反向链）逐跳扩散。
-5. 改字段/接口这类影响面问题，沿 `depends-on` + 反向双链**现算**影响范围（无现成依赖图页），并追到跨边界的 `global/contracts/` 与收发两端；命中 `status: partial` 契约说明对端仓还没 ingest，把缺口报进 `knowledge_gaps`。
-6. 跨子系统/多模块问题先读 `global/architecture/coverage.md`（基础入口，恒在）建全局认识，知道哪能下结论、哪是盲区；`global/architecture/system-architecture.md` 若已生成再叠加它的跨仓架构叙事。
-7. 知识库太浅时读源码验证，保持只读。
-7. 输出受影响流程、契约、模块、数据结构、跨边界消息、风险、证据和知识库缺口。
+```text
+{workspace-root}/code-kb
+```
 
-检索策略与影响分析规则见 `obsidian-kb-query`。
+首次摄入会建立基础广度：仓库地形、架构路由、模块边界、接口面、数据模型、配置、运行风险、业务域和跨边界契约等知识；并识别核心业务流程进行自动的深度分析。
 
-查询默认只读，必须返回：
+### 2. 深度分析关键流程
+
+某个业务流程对需求实现比较关键，且当前知识库尚未识别清楚，可以指定它做深度分析：
+
+```text
+/obsidian-kb-deep-analysis {流程名称} {相关联的一两个接口}
+```
+
+深度分析会补全主干、分支、跨边界数据流、数据结构和自查报告。针对消息类流程，会默认继续定位对端处理逻辑。
+
+### 3. 使用知识库查询
+
+结合知识库做实现定位、需求分析、影响分析、调试或评审：
+
+```text
+/obsidian-kb-query 回答{...问题}
+```
+
+或：
+
+```text
+读取{...需求}，使用 obsidian-kb-query 技能挖掘代码相关现状和需求在现状上需要的变更锚点
+```
+
+查询默认只读。知识库信息不足时，agent 会读取源码补足证据再回答，但不会顺手写回知识库。
+
+
+---
+
+## 🧠 如何支撑 Agent 设计与开发
+
+### 需求理解阶段
+
+agent 先从系统架构、用例视图、业务域和 coverage 建立背景认识：
+
+- 当前需求属于哪个业务域。
+- 涉及哪些端到端用例。
+- 哪些子系统已经被知识库覆盖。
+- 哪些跨仓边界还是 partial 或未知。
+
+这样可以避免 agent 一开始就陷入局部代码文件，而是先拿到业务和系统边界。
+
+### 方案设计阶段
+
+agent 从 use-case、domain、contract、module、flow 之间的双向链接扩散：
+
+- 找相关业务流程。
+- 找 producer/consumer 和跨仓契约。
+- 找相关模块和被依赖模块。
+- 找运行风险、错误处理和已知陷阱。
+- 找知识库明确标出的盲区。
+
+这一步的目标是帮助 agent 在设计方案时主动看到耦合场景、影响范围和潜在风险，而不是只给出局部实现建议。
+
+### 编码实现阶段
+
+agent 进入仓内实现视图和运行视图：
+
+- `architecture.md` 找仓库结构和路由入口。
+- `modules/` 找模块职责和依赖。
+- `data-models.md` 找关键结构和字段语义。
+- `flows/{分析主题}/` 找主干流程、关键分支和跨边界数据流。
+- `sources` 回到源码验证事实。
+
+这让编码实现有明确落点，也能减少重复读代码的成本。
+
+### 评审与影响分析阶段
+
+agent 沿影响传播边遍历：
+
+- 契约页的 `producer` / `consumer`。
+- 模块页的 `depends-on`。
+- 流程页的 `entry-point` / `related-contracts` / `related-modules`。
+- 正文 wikilinks 的反向链。
+
+输出受影响流程、契约、模块、数据结构、跨边界消息、运行风险和知识缺口。
+
+---
+
+## 🧩 增量构建到系统架构抽象
+
+大系统知识库不可能一口气完整生成。这个项目把“增量构建”和“系统级抽象”拆成两个节奏。
+
+### 第一步：按子系统逐步摄入
+
+每个子系统先产生自己的局部知识：
+
+```text
+repos/{repo-name}/
+  architecture.md
+  modules/
+  api-surface.md
+  data-models.md
+  runtime-notes.md
+  candidate-flow.md
+  flows/
+```
+
+此时的重点是忠实记录代码事实：模块职责、入口、接口、数据结构、运行风险和候选流程。
+
+### 第二步：沉淀跨子系统关联
+
+摄入和深挖过程中，持续把跨子系统知识提升到工作区层：
+
+```text
+global/
+  use-cases/
+  domains/
+  contracts/
+  architecture/coverage.md
+```
+
+其中：
+
+- `use-cases/` 记录端到端业务场景和跨模块编排。
+- `domains/` 记录业务概念、状态、不变量和相邻域。
+- `contracts/` 记录 HTTP/RPC/MQ/event/TLV/socket/frame 等跨边界契约。
+- `coverage.md` 记录哪些仓已摄入、摄入深度、待接合边和已知盲区。
+
+这些页面让“局部子系统知识”逐渐变成“跨子系统关系网络”。
+
+### 第三步：主动触发 update 抽象系统架构
+
+当用例、业务域、契约和多个子系统局部架构积累到一定程度后，通过增量更新流程触发更高层抽象：
+
+1. 读取系统用例，识别跨子系统业务编排。
+2. 读取业务域，识别核心领域边界和相邻域。
+3. 读取契约，识别 producer/consumer、消息流和接口依赖。
+4. 读取各子系统 `architecture.md`，获得局部架构。
+5. 结合 coverage 中的待接合边和盲区，派生系统级架构视图。
+
+也就是说，上层系统架构不是凭空生成，而是从 use-case、domain、contract 和 repo architecture 这些可追溯事实中抽象出来。
+
+---
+
+## 📦 知识库产物结构
+
+```text
+code-kb/
+  index.md
+  log.md
+
+  global/
+    use-cases/
+      {用例名}.md
+    domains/
+      {业务域}.md
+    contracts/
+      {契约名}.md
+    architecture/
+      system-architecture.md
+      coverage.md
+    extra/
+      {标题}.md
+
+  repos/{repo-name}/
+    architecture.md
+    glossary.md
+    api-surface.md
+    data-models.md
+    config-and-env.md
+    key-implementations.md
+    runtime-notes.md
+    testing-strategy.md
+    candidate-flow.md
+    modules/{模块名}.md
+    flows/{分析主题}/
+      调用树.md
+      主干流程.md
+      {分支主题}.md
+      跨边界数据流.md
+      数据结构.md
+      自查报告.md
+```
+
+这些页面共同形成 agent 和开发人员共享的工程知识资产：
+
+- 人可以通过 Obsidian 阅读、跳转、理解系统。
+- agent 可以通过 frontmatter、wikilinks、sources 和页面结构检索、推理、验证。
+
+---
+
+## 🔧 Under the Hood
+
+### 视图是抽象层，不是目录层
+
+五视图用于描述知识的抽象层次和查询路径，不强行在每个仓里复制五套目录。仓内页面保持扁平，工作区层负责承载跨仓抽象。
+
+### 代码事实优先
+
+每个结论都应有源码或稳定文档证据：
 
 ```yaml
-side_effects: none
+sources:
+  - repos/order-service/src/orders/create.ts:createOrder()
+confidence: high
 ```
 
-### 5. 代码变更后更新知识库
+没有证据就标低置信，不编造对端、不猜测字段含义、不用“类似逻辑”跳过关键流程。
 
-```text
-Use using-obsidian to update the knowledge base for these changed files.
+### partial 契约表达增量盲区
+
+跨仓边界只找到一端时，契约页使用：
+
+```yaml
+status: partial
 ```
 
-`obsidian-kb-update` 会把变更映射到受影响页面，只更新必要内容。
+并在 `global/architecture/coverage.md` 记录待接合边。它表达的是“当前知识库知道这里还没接上”，不是“没有下游”。
 
-通信领域变更要追踪两侧：
+### 影响面即时遍历
 
-- TLV/protocol/message-code/command-code
-- MQ topic/producer/consumer
-- socket/frame/parser/encoder/decoder
-- event emit/listen/subscriber
-- handler registry/dispatch table
-- RPC client/server/interface
+依赖图、影响图、数据流图不常驻成页面。它们由 query 沿结构化关系字段和双向 wikilinks 即时推导，避免静态图随增量更新漂移。
 
-这些变更可能影响：
+---
 
-- `global/contracts/`（对端浮现时接合 `status: partial` 单边契约）
-- `repos/{repo-name}/api-surface.md`
-- `repos/{repo-name}/data-models.md`
-- 相关 flow 页面
-- 深流程文件夹
-- `跨边界数据流.md`
-- `global/architecture/coverage.md`（接合待接合边、刷新仓覆盖度）
+## 🧱 页面写作规则
 
-依赖图/数据流/影响面不是页面，不在更新范围——由 query 现算。
+所有写入知识库的页面都遵守 `obsidian-kb-authoring`。
 
-### 6. 检查知识库
-
-```text
-Use using-obsidian to lint the current code-kb.
-```
-
-`obsidian-kb-lint` 检查：
-
-- 必要页面是否存在。
-- frontmatter 是否完整。
-- wikilinks 是否断裂。
-- 是否有孤立页面。
-- source evidence 是否存在或陈旧。
-- flow/module/contract 链接是否缺失。
-- 重要源码目录是否没有被知识库覆盖。
-
-默认只报告，不自动修复。只有用户明确要求修复时才写入。
-
-## 页面写作规则
-
-所有写入知识库的页面都必须遵守 `obsidian-kb-authoring`：
-
-- 中文知识 prose 为默认语言。
-- 代码标识符、路径、API、协议名、库名保持原文。
-- 每页必须有 Obsidian properties：
+核心 frontmatter：
 
 ```yaml
 ---
 title: 页面标题
 type: flow
-view: usecase          # 端到端业务场景；缺省时由 type 推出，可不写
-repo: order-service    # 仓内页 = 目录名；工作区页写 global
+repo: order-service
 created: 2026-06-12
 updated: 2026-06-12
 sources:
@@ -266,17 +383,20 @@ status: active
 ---
 ```
 
-完整 frontmatter 规范见 `obsidian-kb-authoring/references/frontmatter-schema.md`。
+写作约束：
 
-- 不使用源码行号作为长期证据引用。
-- 不编造代码行为。
+- 中文知识 prose 为默认语言。
+- 代码标识符、路径、API、协议名、库名保持原文。
+- `sources` 使用 durable 引用，不使用源码行号作为长期证据。
 - 证据不足时设置 `confidence: low`。
-- 重要 domain、flow、contract、module、risk、source 关系要维护双向 wikilinks。
-- 重要写操作要记录到 `log.md`。
+- 重要 domain、flow、contract、module、risk、source 关系维护双向 wikilinks。
+- 重要写操作记录到 `log.md`。
 
-## 内置 Helper
+---
 
-`using-obsidian` 自带零依赖 Node.js helper：
+## 🛠️ Helper 命令
+
+项目带一个零依赖 Node.js helper，用于确定性机械动作，比如初始化目录、生成页面骨架、搜索、查链接、lint 和 report。
 
 ```text
 using-obsidian/scripts/obsidian-kb.mjs
@@ -287,43 +407,86 @@ using-obsidian/scripts/obsidian-kb.mjs
 ```bash
 node using-obsidian/scripts/obsidian-kb.mjs resolve --json
 node using-obsidian/scripts/obsidian-kb.mjs init
-node using-obsidian/scripts/obsidian-kb.mjs types                       # 列出可 scaffold 的页型
+node using-obsidian/scripts/obsidian-kb.mjs types
 node using-obsidian/scripts/obsidian-kb.mjs scaffold module --repo {repo} --title {模块名}
-node using-obsidian/scripts/obsidian-kb.mjs scaffold flow --repo {repo} --topic {分析主题}    # 一次吐深流程 6 件套
+node using-obsidian/scripts/obsidian-kb.mjs scaffold flow --repo {repo} --topic {分析主题}
 node using-obsidian/scripts/obsidian-kb.mjs scaffold contract --partial --side producer \
-  --title {契约名} --known {repo} --evidence "{path:func()}"            # 建单边契约 + 自动记录到 coverage
+  --title {契约名} --known {repo} --evidence "{path:func()}"
 node using-obsidian/scripts/obsidian-kb.mjs search "业务开通" --json
-node using-obsidian/scripts/obsidian-kb.mjs lint
 node using-obsidian/scripts/obsidian-kb.mjs links global/contracts/AllocateResource.md --json
+node using-obsidian/scripts/obsidian-kb.mjs lint
 node using-obsidian/scripts/obsidian-kb.mjs report --json
 ```
 
-`scaffold` 按 `obsidian-kb-authoring/templates/{type}.template.md` 真模板生成合规骨架：机械字段（title/repo/created/updated）已填，其余 `<!-- 填:… -->` 由 agent 补；目标页已存在且未加 `--force` 时跳过，不覆盖人工内容。页面结构的单一来源就是这些模板文件，`lint` 也据此反推必需 section。
+helper 只负责机械动作，不替代 agent 对代码和业务的分析判断。
 
-helper 只是确定性辅助工具，不改变 skill 的权限规则。只读查询不能因为 helper 存在就自动写入知识库。
+---
 
-## 常用提示词
+## 💬 常用提示词
 
 ```text
-使用 using-obsidian，在当前 workspace 初始化一个多仓代码知识库。
+/obsidian-kb-ingest {代码仓路径}
 ```
 
 ```text
-使用 using-obsidian，把当前 workspace 下的所有代码仓摄入到 code-kb，优先关注跨仓契约和核心端到端流程。
+/obsidian-kb-deep-analysis {流程名称} {相关联的一两个接口}
 ```
 
 ```text
-读取知识库，帮我分析修改某个类中的字段会影响哪些流程。
+/obsidian-kb-query 回答修改某个类中的字段会影响哪些流程。
 ```
 
 ```text
-使用 using-obsidian，查询哪些流程、模块或契约依赖 global/contracts/AllocateResource.md。只做只读影响分析，不要更新知识库。
+/obsidian-kb-query 回答哪些流程、模块或契约依赖 global/contracts/AllocateResource.md？只做只读影响分析，不要更新知识库。
 ```
 
 ```text
-使用 using-obsidian，根据已变更的协议 handler 和相关消息字段，增量更新知识库。
+/obsidian-kb-update 根据已变更的协议 handler 和相关消息字段，增量更新知识库。
 ```
 
 ```text
-使用 using-obsidian，检查当前 code-kb，报告断链、缺失元数据、陈旧 sources 和覆盖缺口。默认只报告，不要自动修复。
+/obsidian-kb-lint 检查当前 code-kb，报告断链、缺失元数据、陈旧 sources 和覆盖缺口。默认只报告，不要自动修复。
 ```
+
+---
+
+## 📁 项目结构
+
+```text
+.
+├── README.md
+├── using-obsidian/
+│   ├── SKILL.md
+│   └── scripts/
+│       ├── obsidian-kb.mjs
+│       └── lib/
+├── obsidian-kb-authoring/
+│   ├── SKILL.md
+│   ├── references/
+│   └── templates/
+├── obsidian-kb-ingest/
+│   ├── SKILL.md
+│   └── references/
+├── obsidian-kb-deep-analysis/
+│   └── SKILL.md
+├── obsidian-kb-query/
+│   └── SKILL.md
+├── obsidian-kb-update/
+│   └── SKILL.md
+├── obsidian-kb-lint/
+│   └── SKILL.md
+└── obsidian-markdown/
+    ├── SKILL.md
+    └── references/
+```
+
+关键规则来源：
+
+| 规则 | 唯一来源 |
+|---|---|
+| 页面结构 | `obsidian-kb-authoring/templates/{type}.template.md` |
+| frontmatter 字段和枚举 | `obsidian-kb-authoring/references/frontmatter-schema.md` |
+| 目录路径和维护方式 | `obsidian-kb-authoring/references/directory-contract.md` |
+| 双链和影响传播边 | `obsidian-kb-authoring/references/link-contract.md` |
+
+---
