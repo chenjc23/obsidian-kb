@@ -135,5 +135,6 @@ Phase 8 是 ingest 的完成门槛，也是 ingest 中唯一允许调用 `obsidi
 - 每页 `updated` 是今天，`sources` 有不带行号的 durable 证据 → 见 references/frontmatter-schema。
 - 关系双向闭环：链出去的页都反向链回来 → 见 references/link-contract。
 - 每个 `status: partial` 契约已在 `global/architecture/coverage.md` 记录 → 用 `scaffold contract --partial` 自动记录。
+- `api-surface.md` 的跨边界条目均已提升到 `global/contracts/`；本仓存在业务逻辑时 `global/domains/` 非空。缺失则返回 Phase 5 补全。
 - `log.md` 记了这轮扫了什么、生成了哪些页。
 - `candidate-flow.md` 没有遗留 `待深挖` / 空状态 / 非 `已深挖` 行；若有，返回 Phase 8，不能收工。
