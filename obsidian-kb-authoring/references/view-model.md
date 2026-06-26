@@ -5,11 +5,11 @@
 最终五视图：**用例 / 逻辑 / 实现 / 运行 / 契约**。影响分析不是常驻视图；它由 query 沿 `depends-on`、`producer`/`consumer` 和正文反向双链即时推导。
 
 > 视图是**完整性透镜 + 页面查询维度**，不是物理目录树。
-> 物理布局按"作用域"两层切（工作区 catalog + 仓内扁平）；视图维度靠页面 frontmatter 的 `view:` 字段承载。详见 [directory-contract.md](directory-contract.md)。
+> 物理布局按"作用域"两层切（工作区 catalog + 仓内扁平）；视图不是物理目录、也不是 frontmatter 字段，而是由页面 `type` 派生的透镜（映射见下表）。详见 [directory-contract.md](directory-contract.md)。
 
 ## 五视图定义
 
-| 视图 | `view` 值 | 回答的问题 | 性质 | 主要页面 | 作用域 |
+| 视图 | 透镜 id（由 type 派生） | 回答的问题 | 性质 | 主要页面 | 作用域 |
 |---|---|---|---|---|---|
 | 用例视图（+1） | `usecase` | 用户/外部系统**想完成什么** | 动态·行为 | `global/use-cases/` | 工作区为主 |
 | 逻辑视图 | `logical` | 系统里**有哪些业务概念与架构结构** | 静态·结构 | `global/domains/`、`global/architecture/`、仓内 `architecture`/`glossary` | 工作区为主 + 仓内架构 |
@@ -34,31 +34,31 @@
 ### 用例视图防呆规则（防止退化成 flow 索引）
 
 - use-case 页**只为"多 flow / 跨仓"端到端场景而建**，内容以**编排 + 链接**为主，不复述 flow 内部细节。
-- 单个 flow 就能讲完的场景，**不开 use-case 页**，直接给那个 flow 打 `view: usecase`（覆盖默认 `runtime`）。
+- 单个 flow 就能讲完的场景，**不开 use-case 页**——它作为运行视图的 `flow` 存在；够格当 agent 入口时才升一个轻量编排型 `use-case` 页。
 - use-case 是 agent 的**入口编排层**：`index.md → global/use-cases/ → (flows / global/contracts / global/domains / modules)`。
 
-## type → view 默认映射
+## type → 视图透镜映射（派生用，不落字段）
 
-`view` 字段默认由 `type` 推出，**只有跨视镜的页才需要显式覆盖**（主要是 flow 可能是 usecase）。
+视图透镜由 `type` 派生，query/lint 按此表现算，不在页面存储。
 
-| `type` | 默认 `view` | 可覆盖 |
-|---|---|---|
-| `use-case` | `usecase` | — |
-| `domain` | `logical` | — |
-| `glossary` | `logical` | — |
-| `module` | `development` | — |
-| `architecture` | `logical` | — |
-| `data-model` | `development` | — |
-| `implementation` | `development` | — |
-| `config` | `development` | — |
-| `flow` | `runtime` | → `usecase`（端到端业务场景） |
-| `candidate` | `runtime` | — |
-| `runtime-notes` | `runtime` | — |
-| `contract` | `contract` | — |
-| `api-surface` | `contract` | — |
-| `risk` | `runtime` | — |
-| `index` / `log` | `meta` | — |
-| `extra` | `meta` | — |
+| `type` | 视图透镜 |
+|---|---|
+| `use-case` | `usecase` |
+| `domain` | `logical` |
+| `glossary` | `logical` |
+| `module` | `development` |
+| `architecture` | `logical` |
+| `data-model` | `development` |
+| `implementation` | `development` |
+| `config` | `development` |
+| `flow` | `runtime` |
+| `candidate` | `runtime` |
+| `runtime-notes` | `runtime` |
+| `contract` | `contract` |
+| `api-surface` | `contract` |
+| `risk` | `runtime` |
+| `index` / `log` | `meta` |
+| `extra` | `meta` |
 
 ## 查询入口（设计自检用）
 

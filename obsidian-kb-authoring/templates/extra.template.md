@@ -1,7 +1,6 @@
 ---
 title: {{title}}
 type: extra
-view: meta
 created: {{created}}
 updated: {{updated}}
 repo: global

@@ -19,7 +19,6 @@ export { seedPage, SEED_FILES, initKnowledgeBase } from './lib/init.mjs';
 export {
   REQUIRED_PROPERTIES,
   VALID_TYPES,
-  VALID_VIEW,
   VALID_CONFIDENCE,
   VALID_STATUS,
   lintKnowledgeBase,

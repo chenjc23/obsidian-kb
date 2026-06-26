@@ -16,7 +16,7 @@ description: Use whenever creating, editing, or reviewing multi-repository Obsid
 
 知识库按软件架构 **4+1 视图**改造为五视图：**用例 / 逻辑 / 实现 / 运行 / 契约**。部署视图替换为契约视图；影响分析不是常驻视图，而是 query 基于关系边即时推导的能力。
 
-视图是**完整性透镜 + 页面查询维度**，不是物理目录。物理布局双层切（工作区 catalog + 仓内扁平），视图维度靠 frontmatter `view:` 承载。
+视图是**完整性透镜 + 页面查询维度**，不是物理目录。物理布局双层切（工作区 catalog + 仓内扁平），视图维度由页面 `type` 派生。
 
 ## 参考文件（写入前必查）
 
@@ -53,7 +53,7 @@ description: Use whenever creating, editing, or reviewing multi-repository Obsid
 
 ## 写入前最终检查
 
-- Tier 1 核心 frontmatter 齐全，`view` 正确（默认由 type 推，跨视镜才覆盖）。
+- Tier 1 核心 frontmatter 齐全。
 - `updated` 是当天。
 - `sources` 列真实证据，或正文说明为何缺失。
 - 关系双链双向闭环（见 link-contract）；新页至少一条入链或是有意的入口页。

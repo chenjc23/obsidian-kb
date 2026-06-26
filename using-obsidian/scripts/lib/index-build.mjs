@@ -37,7 +37,6 @@ export async function buildIndex({ kbRoot, writeIndexes = true }) {
       relativePath,
       title: parsed.data.title || path.basename(relativePath, '.md'),
       type: parsed.data.type || '',
-      view: parsed.data.view || '',
       repo: parsed.data.repo || '',
       created: parsed.data.created || '',
       updated: parsed.data.updated || '',

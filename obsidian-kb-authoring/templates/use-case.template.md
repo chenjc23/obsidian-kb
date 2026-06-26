@@ -1,7 +1,6 @@
 ---
 title: {{title}}
-type: flow
-view: usecase
+type: use-case
 created: {{created}}
 updated: {{updated}}
 repo: global

@@ -28,7 +28,6 @@ export const VALID_TYPES = new Set([
   'coverage',
   'extra',
 ]);
-export const VALID_VIEW = new Set(['usecase', 'logical', 'development', 'runtime', 'contract', 'meta']);
 export const VALID_CONFIDENCE = new Set(['high', 'medium', 'low']);
 export const VALID_STATUS = new Set(['active', 'partial', 'draft', 'deprecated']);
 
@@ -69,15 +68,6 @@ export async function lintKnowledgeBase({ kbRoot }) {
         type: 'frontmatter',
         page: page.relativePath,
         message: `Invalid type: ${page.type}`,
-      });
-    }
-
-    if (page.view && !VALID_VIEW.has(page.view)) {
-      issues.push({
-        severity: 'error',
-        type: 'frontmatter',
-        page: page.relativePath,
-        message: `Invalid view: ${page.view}`,
       });
     }
 

@@ -4,11 +4,10 @@ import path from 'node:path';
 
 import { today } from './context.mjs';
 
-function seedPage(title, type, view, repo, status = 'draft') {
+function seedPage(title, type, repo, status = 'draft') {
   return `---
 title: ${title}
 type: ${type}
-view: ${view}
 repo: ${repo}
 created: ${today()}
 updated: ${today()}
@@ -25,8 +24,8 @@ status: ${status}
 // init 只搭骨架：工作区视图目录（统一在 global/ 下）+ index/log。唯一聚合页
 // system-architecture 由 ingest/update 在真有内容时才建，init 不预生成。依赖/影响面不物化成页（query 现算）。
 const SEED_FILES = new Map([
-  ['index.md', seedPage('Code Knowledge Base', 'index', 'meta', 'global', 'draft')],
-  ['log.md', seedPage('Knowledge Base Log', 'log', 'meta', 'global', 'active')],
+  ['index.md', seedPage('Code Knowledge Base', 'index', 'global', 'draft')],
+  ['log.md', seedPage('Knowledge Base Log', 'log', 'global', 'active')],
 ]);
 
 export async function initKnowledgeBase({ kbRoot }) {

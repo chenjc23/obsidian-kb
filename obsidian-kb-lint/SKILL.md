@@ -23,8 +23,8 @@ description: "Use to inspect an Obsidian code knowledge base for health issues: 
 
 对照 authoring `references/frontmatter-schema.md`：
 
-- Tier 1 核心字段齐全：`title`、`type`、`created`、`updated`、`sources`、`confidence`、`status`（`view` 缺省时由 `type` 推出，可不写）。
-- `type`、`view`、`confidence`、`status` 取值在枚举内。
+- Tier 1 核心字段齐全：`title`、`type`、`created`、`updated`、`sources`、`confidence`、`status`。
+- `type`、`confidence`、`status` 取值在枚举内。
 - `sources` 非空（`index`/`log`/`generated` 页例外）。
 - 日期合理、不超前。
 - **禁用字段要报**：`scope`、把已有字段塞进 tag 的写法（`code-kb/{type}`、`domain/{x}`）、与正文双链各自独立手维护的关系字段。

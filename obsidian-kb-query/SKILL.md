@@ -39,7 +39,7 @@ query 只读。默认不跑 ingest / update / deep-analysis，不写任何东西
 影响分析问题         → 被改实体 → contracts / data-models / modules → 反向双链扩散
 ```
 
-进入锚点页后，再沿 `view:`、frontmatter 关系字段和正文双链收敛到足够回答问题的页。`view:` 字段只有五个常驻视图：`usecase` / `logical` / `development` / `runtime` / `contract`。影响分析不是独立视图枚举，而是由 query 沿 `depends-on`、`producer`/`consumer`、`related-*`、`entry-point` 和反向双链即时推导。
+进入锚点页后，再沿 `type`（及其派生视图透镜）、frontmatter 关系字段和正文双链收敛到足够回答问题的页。视图透镜由 `type` 派生（映射见 authoring `references/view-model.md`），共五个常驻视图：用例 / 逻辑 / 实现 / 运行 / 契约。。
 
 从最可能的入口开始，小步扩展；证据足够直接回答问题时停止，证据不足或链路断裂时继续沿关系边、反向链和 `sources` 扩展。不要为了省页数而提前收敛，也不要把无关目录扫完。
 
@@ -57,7 +57,7 @@ query 只读。默认不跑 ingest / update / deep-analysis，不写任何东西
 
 **第一阶段·定位（找锚点页）。** 把问题里的实体抽出来——业务词、类/结构、字段、API、文件、模块、仓库、契约、协议、消息、topic、错误码、配置、别名。用 `rg` 在 `{kb-root}` 全文搜这些词，命中 frontmatter（`title`/`aliases`/`sources`/关系字段）、标题、正文。这一步目录无所谓，就是全文 + frontmatter 命中，拿到一到几个锚点页。
 
-**第二阶段·遍历（沿关系边扩散）。** 从锚点页开始，靠 `view:` 判方向、靠 frontmatter 关系字段和正文双链逐跳走：
+**第二阶段·遍历（沿关系边扩散）。** 从锚点页开始，靠 `type`/页面所在 catalog 判方向、靠 frontmatter 关系字段和正文双链逐跳走：
 
 - 关系边（authoring `references/frontmatter-schema.md` Tier 3）：契约页的 `producer`/`consumer`、模块页的 `depends-on`、流程页的 `entry-point`/`related-contracts`/`related-flows`/`related-modules`。
 - 正文双链的**反向链**：谁链向了这页。影响面全押在它身上，缺一条反向链就静默漏报。

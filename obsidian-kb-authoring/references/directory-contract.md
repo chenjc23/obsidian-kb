@@ -6,7 +6,7 @@
 
 1. **双层按作用域切**：工作区层（跨仓 catalog）+ 仓库层（仓内细节）。
 2. **工作区层：顶层目录 ≈ 视图 catalog**。
-3. **仓库层：不复刻视图文件夹，保持扁平**；视图维度靠 frontmatter `view:` 承载。
+3. **仓库层：不复刻视图文件夹，保持扁平**；视图维度由页面 `type` 派生。
 4. **folder vs 单文件判据**：每实例是"独立大页"→ 文件夹；实例小而多 → 单文件分 section，大到撑不住再拆文件夹。
 5. **视图不必平均分配目录**：按该视图"持久手写内容"多少加权。影响/运行视图**不物化成工作区页**——影响靠 query 即时遍历、运行活在仓内 flows/。
 
@@ -41,10 +41,10 @@ code-kb/
     architecture/               # 逻辑视图·工作区架构
       system-architecture.md    #   工作区唯一人工叙事总览(增量不碰;跨仓结构变化由 update 刷新)
       coverage.md               #   覆盖记录:已挖到哪、哪条跨仓边还没接上(只追加)
-    # 运行视图活在 repos/{repo}/flows/ 深挖 + use-cases,靠 view:runtime 承载,无工作区目录。
+    # 运行视图活在 repos/{repo}/flows/ 深挖 + use-cases（type:flow 派生为运行视图）,无工作区目录。
     # 影响分析纯查询派生:query 沿 depends-on + 反向双链现算影响范围,不落页。
     extra/                      # 辅助页:五视图都承载不了的外部知识(可选,update 模式 B 专用)
-      {标题}.md                 #   type:extra view:meta, init 不预建
+      {标题}.md                 #   type:extra, init 不预建
 
   # ── 仓库层:每仓五视图细节,保持扁平(与 global/ 并列)──
   repos/{repo-name}/

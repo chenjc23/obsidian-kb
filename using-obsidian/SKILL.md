@@ -155,7 +155,7 @@ Preserve these invariants:
 - Follow `obsidian-kb-authoring` for multi-repository knowledge engineering rules.
 - Write knowledge content in Chinese by default.
 - Keep code identifiers, file paths, library names, API names, protocol names, and technical terms in original spelling.
-- Every generated page has Obsidian properties with `title`, `type`, `view`, `repo`, `created`, `updated`, `sources`, `confidence`, and `status`.
+- Every generated page has Obsidian properties with `title`, `type`, `repo`, `created`, `updated`, `sources`, `confidence`, and `status`.
 - Do not invent code details. If evidence is incomplete, mark `confidence: low` and explain what is missing.
 - Maintain bidirectional wikilinks for meaningful domain, flow, contract, module, risk, and source relationships.
 - Avoid orphan pages.

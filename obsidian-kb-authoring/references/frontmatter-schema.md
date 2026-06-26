@@ -10,7 +10,6 @@
 ---
 title: 业务开通端到端流程        # 人类可读标题
 type: flow                       # 页面种类,见下方枚举
-view: usecase                    # 架构视图;默认由 type 推出,跨视镜才显式覆盖
 created: 2026-06-12              # 创建日期
 updated: 2026-06-12              # 最近更新日期(写入时必须刷新为当天)
 sources:                         # 源码证据,durable 引用,不带行号
@@ -20,7 +19,7 @@ status: active                   # active | partial | draft | deprecated
 ---
 ```
 
-`view` 默认值由 `type` 推出（映射表见 [view-model.md](view-model.md)），**只有当页面的主视镜不同于 type 默认时**（主要是 `type: flow` 的端到端业务场景应写 `view: usecase`）才显式写出。
+> 视图（用例/逻辑/实现/运行/契约）**不是 frontmatter 字段**——由 `type` 派生，映射见 [view-model.md](view-model.md)。
 
 `sources` 通常是源码证据；**外部知识来源**可为文档路径/URL，或 `external: {简述} ({日期})`（粘贴文本无文件时）。
 
@@ -73,7 +72,7 @@ actors:
 ## Tier 4 · 可选 Obsidian UX
 
 ```yaml
-tags:                            # 仅供 Obsidian 图谱/检索;禁止编码 type/view/repo/domain
+tags:                            # 仅供 Obsidian 图谱/检索;禁止编码 type/repo/domain
   - code-kb
 aliases:
   - 开通流程
@@ -82,15 +81,13 @@ aliases:
 
 **重复声明约束：**
 
-- `tags` **不得**重复声明 `type`/`view`/`repo`/`domain`——它们各有专用字段。不使用 `code-kb/{type}`、`domain/{x}` 这类把已有字段塞进 tag 的写法。
+- `tags` **不得**重复声明 `type`/`repo`/`domain`——它们各有专用字段。不使用 `code-kb/{type}`、`domain/{x}` 这类把已有字段塞进 tag 的写法。
 - `domain` 用 Tier 3 结构化字段，不用 tag。
 
 ## 枚举值
 
 **`type`：**
 `use-case` · `domain` · `glossary` · `flow` · `candidate` · `contract` · `module` · `architecture` · `api-surface` · `data-model` · `config` · `implementation` · `runtime-notes` · `risk` · `index` · `log` · `coverage` · `extra`
-
-**`view`：** `usecase` · `logical` · `development` · `runtime` · `contract` · `meta`
 
 **`confidence`：**
 - `high`：被显式源码或稳定架构笔记直接支撑。

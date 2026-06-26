@@ -1,7 +1,6 @@
 ---
 title: {{title}}
 type: runtime-notes
-view: runtime
 created: {{created}}
 updated: {{updated}}
 repo: {{repo}}

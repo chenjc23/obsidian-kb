@@ -1,7 +1,6 @@
 ---
 title: 工程覆盖记录
 type: coverage
-view: meta
 created: {{created}}
 updated: {{updated}}
 repo: global
