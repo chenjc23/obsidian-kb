@@ -396,7 +396,7 @@ status: active
 
 ## 🛠️ Helper 命令
 
-项目带一个零依赖 Node.js helper，用于确定性机械动作，比如初始化目录、生成页面骨架、搜索、查链接、lint 和 report。
+项目带一个零依赖 Node.js helper，用于确定性机械动作，比如发现知识库根目录、初始化目录、生成页面骨架、搜索、查链接、lint 和 report。
 
 ```text
 using-obsidian/scripts/obsidian-kb.mjs

@@ -50,6 +50,69 @@ test('resolveContext honors --kb-root override', async () => {
   }
 });
 
+test('resolveContext uses cwd when it looks like a knowledge base root', async () => {
+  const workspace = await makeTempWorkspace();
+  try {
+    await initKnowledgeBase({ kbRoot: workspace });
+    const context = resolveContext({ cwd: workspace, args: ['--mode', 'read'] });
+
+    assert.equal(context.kbRoot, workspace);
+    assert.equal(context.resolution.reason, 'cwd');
+  } finally {
+    await rm(workspace, { recursive: true, force: true });
+  }
+});
+
+test('resolveContext discovers the nearest ancestor code-kb', async () => {
+  const workspace = await makeTempWorkspace();
+  const kbRoot = path.join(workspace, 'code-kb');
+  const nested = path.join(workspace, 'packages', 'service');
+  try {
+    await initKnowledgeBase({ kbRoot });
+    await mkdir(nested, { recursive: true });
+
+    const context = resolveContext({ cwd: nested, args: ['--mode', 'read'] });
+
+    assert.equal(context.kbRoot, kbRoot);
+    assert.equal(context.resolution.reason, 'ancestor-code-kb');
+  } finally {
+    await rm(workspace, { recursive: true, force: true });
+  }
+});
+
+test('resolveContext scores one-level code-kb candidates by knowledge-base shape', async () => {
+  const workspace = await makeTempWorkspace();
+  const shallow = path.join(workspace, 'alpha', 'code-kb');
+  const shaped = path.join(workspace, 'beta', 'code-kb');
+  try {
+    await mkdir(path.join(shallow, 'repos'), { recursive: true });
+    await initKnowledgeBase({ kbRoot: shaped });
+
+    const context = resolveContext({ cwd: workspace, args: ['--mode', 'read'] });
+
+    assert.equal(context.kbRoot, shaped);
+    assert.equal(context.resolution.reason, 'child-code-kb');
+    assert.deepEqual(
+      context.resolution.candidates.map((candidate) => path.basename(path.dirname(candidate.path))),
+      ['beta', 'alpha'],
+    );
+  } finally {
+    await rm(workspace, { recursive: true, force: true });
+  }
+});
+
+test('resolveContext does not fabricate kbRoot in read mode', async () => {
+  const workspace = await makeTempWorkspace();
+  try {
+    const context = resolveContext({ cwd: workspace, args: ['--mode', 'read'] });
+
+    assert.equal(context.kbRoot, undefined);
+    assert.equal(context.resolution.reason, 'not-found');
+  } finally {
+    await rm(workspace, { recursive: true, force: true });
+  }
+});
+
 test('initKnowledgeBase creates workspace directories without overwriting notes or generated indexes', async () => {
   const workspace = await makeTempWorkspace();
   const kbRoot = path.join(workspace, 'code-kb');

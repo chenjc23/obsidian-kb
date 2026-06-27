@@ -31,7 +31,8 @@ const USAGE = 'node using-obsidian/scripts/obsidian-kb.mjs <resolve|init|lint|li
 
 export async function runCli() {
   const [command = 'help', ...rest] = process.argv.slice(2);
-  const context = resolveContext({ args: rest });
+  const writeCommands = new Set(['init', 'scaffold']);
+  const context = resolveContext({ args: rest, mode: writeCommands.has(command) ? 'write' : 'read' });
 
   if (command === 'resolve') {
     printResult(context, context.json);
@@ -44,11 +45,13 @@ export async function runCli() {
   }
 
   if (command === 'lint') {
+    if (!context.kbRoot) throw new Error('No knowledge base root found. Pass --kb-root or run init for write-oriented setup.');
     printResult(await lintKnowledgeBase({ kbRoot: context.kbRoot }), context.json);
     return;
   }
 
   if (command === 'links') {
+    if (!context.kbRoot) throw new Error('No knowledge base root found. Pass --kb-root or run init for write-oriented setup.');
     const target = context.positional[0];
     if (!target) throw new Error('links requires a target');
     printResult(await getLinks({ kbRoot: context.kbRoot, target }), context.json);
@@ -56,6 +59,7 @@ export async function runCli() {
   }
 
   if (command === 'search') {
+    if (!context.kbRoot) throw new Error('No knowledge base root found. Pass --kb-root or run init for write-oriented setup.');
     const query = context.positional.join(' ');
     if (!query) throw new Error('search requires a query');
     printResult(await searchKnowledgeBase({ kbRoot: context.kbRoot, query, limit: context.limit }), context.json);
@@ -63,6 +67,7 @@ export async function runCli() {
   }
 
   if (command === 'report') {
+    if (!context.kbRoot) throw new Error('No knowledge base root found. Pass --kb-root or run init for write-oriented setup.');
     printResult(await buildReport({ kbRoot: context.kbRoot }), context.json);
     return;
   }

@@ -11,19 +11,15 @@ The suite builds and operates a multi-repository knowledge base. The primary con
 
 ## Default Paths
 
-Default knowledge base root:
+The user does not need to provide the knowledge base path for normal knowledge-base work. Use a user-provided path only when explicitly specified.
 
-```text
-{current working directory}/code-kb
+For any request that reads, queries, analyzes, updates, lints, or assesses impact through the knowledge base, resolve `{kb-root}` with the bundled helper. The helper is the source of truth for deterministic discovery and read/write fallback:
+
+```bash
+node {using-obsidian-skill-root}/scripts/obsidian-kb.mjs resolve --json
 ```
 
-Use a user-provided path only when the user explicitly specifies one.
-
-The user does not need to provide the knowledge base path for normal knowledge-base work.
-
-Apply automatic discovery for any request that asks to read, query, analyze, inspect, explain, design from, debug with, review with, update, lint, or assess impact through the knowledge base.
-
-When no path is provided, discover `{kb-root}` using the single-source resolution in `obsidian-kb-authoring/references/kb-root-resolution.md` (deterministic order + read/write fallback + the "looks-like-a-knowledge-base" test). Do not ask where the KB is or should be created unless the user explicitly asks to choose between candidates.
+Do not ask where the KB is or should be created unless the helper cannot resolve a read-only target or the user explicitly asks to choose between candidates.
 
 Do not hardcode local paths in examples or generated instructions. Prefer:
 
@@ -39,14 +35,6 @@ scripts/obsidian-kb.mjs
 ```
 
 When the whole `skills/` folder is copied to another agent, this helper moves with `using-obsidian`.
-
-When path behavior is uncertain, use the bundled helper:
-
-```bash
-node {using-obsidian-skill-root}/scripts/obsidian-kb.mjs resolve --json
-```
-
-If the helper only resolves the default path and that path does not exist, perform the automatic discovery steps above manually before asking the user.
 
 ### Helper Commands
 

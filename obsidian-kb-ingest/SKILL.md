@@ -19,7 +19,7 @@ description: Use to create or refresh the first-pass Obsidian code knowledge bas
 
 ## `{kb-root}` 解析
 
-见 authoring `references/kb-root-resolution.md`（写入类：全找不到则在 `{当前工作目录}/code-kb` 新建）。仅当源仓库根或摄入范围无法推断时才询问，**永不**问 `{kb-root}` 放哪。
+用 `node using-obsidian/scripts/obsidian-kb.mjs resolve --json` 定位；写入类命令找不到时由 helper 回退到 `{当前工作目录}/code-kb`。
 
 ## Phase 1：仓库地形扫描 → `repos/{repo}/architecture.md`
 

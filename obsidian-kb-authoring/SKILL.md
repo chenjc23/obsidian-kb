@@ -30,7 +30,6 @@ description: Use whenever creating, editing, or reviewing multi-repository Obsid
 | `templates/{type}.template.md` | **页面结构单一来源**：真模板文件，scaffold 生成页面骨架、lint 校验必需 section | 每次新建页面——优先 `scaffold {type}` 生成再填 |
 | [references/page-shapes.md](references/page-shapes.md) | 页型索引表（页型→模板→刚性边界），脚本不可用时的人工参考 | 选不准用哪个模板、或手动创建页面时 |
 | [references/link-contract.md](references/link-contract.md) | 双链强制双向、影响分析传播边、可校验字段 | 每次建立关系、做影响分析 |
-| [references/kb-root-resolution.md](references/kb-root-resolution.md) | 找知识库根 `{kb-root}` 的确定性解析顺序、读写回退规则 | 每次需要定位或新建知识库根 |
 
 > 其它 skill（ingest / deep-analysis / update）**不得自行重新声明 schema 或目录**，一律引用上述参考文件——单一来源确保各 skill 的产物一致。
 

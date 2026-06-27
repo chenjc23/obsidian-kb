@@ -21,7 +21,7 @@ query 只读。默认不跑 ingest / update / deep-analysis，不写任何东西
 
 ## 找到 `{kb-root}`
 
-见 authoring `references/kb-root-resolution.md`（只读类：完全找不到或多候选同样可能时才问用户，不臆造路径）。找到后走下面的检索协议。
+用 `node using-obsidian/scripts/obsidian-kb.mjs resolve --json` 定位。只读类找不到时不要臆造路径；只有 helper 不能解析时才询问用户。找到后走下面的检索协议。
 
 ## 检索策略：先选入口，再沿关系边收敛
 
