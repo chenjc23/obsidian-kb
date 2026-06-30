@@ -1,6 +1,8 @@
 import { readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
-import { registryPath, canonicalTypes, loadRegistry } from './registry.mjs';
+import {
+  registryPath, canonicalTypes, loadRegistry, scaffoldableTypes,
+} from './registry.mjs';
 import { requiredSections } from './template.mjs';
 
 const REF = path.join(path.dirname(registryPath()), 'references');
@@ -38,11 +40,16 @@ function renderPageShapes() {
   return rows.join('\n');
 }
 
-// T11 会向本数组追加 { file, id, render }。
+function renderTargetLeaves() {
+  const t = loadRegistry().types;
+  return scaffoldableTypes().map((k) => `| \`${k}\` | \`${t[k].target}\` |`).join('\n');
+}
+
 export const DOC_TARGETS = [
   { file: path.join(REF, 'frontmatter-schema.md'), id: 'type-enum', render: renderTypeEnum },
   { file: path.join(REF, 'view-model.md'), id: 'type-view', render: renderTypeViewTable },
   { file: path.join(REF, 'page-shapes.md'), id: 'page-shapes', render: renderPageShapes },
+  { file: path.join(REF, 'directory-contract.md'), id: 'target-leaves', render: renderTargetLeaves },
 ];
 
 export async function generateDocs({ check = false } = {}) {

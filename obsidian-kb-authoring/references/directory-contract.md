@@ -115,3 +115,31 @@ code-kb/
 - 视图索引、依赖图、影响范围**靠 frontmatter 查询 + 双链遍历即时得出**，不物化。
 - 持久知识住在可读页面里：`global/use-cases/`、`global/domains/`、`global/contracts/`、`repos/`、`global/architecture/system-architecture.md` 是知识的权威来源；`global/architecture/coverage.md` 是覆盖度与盲区的权威来源。
 - `coverage.md` **不**是派生地图：它记的是 query 算不出来的东西——"还没 ingest 的仓"和"只找到一端的边"。已 ingest 范围内的依赖/影响仍由 query 现算，不进 coverage。
+
+## 落点速查（生成）
+
+> 由 `registry.yaml` 的 `types.*.target` 经 `generate-docs` 生成，**勿手改**。`{repo}`/`{title}`/`{topic}`/`{member}` 为 scaffold 占位。
+
+| scaffold 标识 | 落点 |
+|---|---|
+<!-- GENERATED:target-leaves:start -->
+| `api-surface` | `repos/{repo}/api-surface.md` |
+| `architecture` | `repos/{repo}/architecture.md` |
+| `candidate` | `repos/{repo}/candidate-flow.md` |
+| `candidate-flow` | `repos/{repo}/candidate-flow.md` |
+| `config` | `repos/{repo}/config-and-env.md` |
+| `contract` | `global/contracts/{title}.md` |
+| `coverage` | `global/architecture/coverage.md` |
+| `data-model` | `repos/{repo}/data-models.md` |
+| `data-models` | `repos/{repo}/data-models.md` |
+| `domain` | `global/domains/{title}.md` |
+| `extra` | `global/extra/{title}.md` |
+| `flow` | `repos/{repo}/flows/{topic}/{member}.md` |
+| `glossary` | `repos/{repo}/glossary.md` |
+| `implementation` | `repos/{repo}/key-implementations.md` |
+| `key-implementations` | `repos/{repo}/key-implementations.md` |
+| `module` | `repos/{repo}/modules/{title}.md` |
+| `runtime-notes` | `repos/{repo}/runtime-notes.md` |
+| `system-architecture` | `global/architecture/system-architecture.md` |
+| `use-case` | `global/use-cases/{title}.md` |
+<!-- GENERATED:target-leaves:end -->
