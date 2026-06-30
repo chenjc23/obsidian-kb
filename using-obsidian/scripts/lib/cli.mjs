@@ -1,6 +1,7 @@
 import { resolveContext } from './context.mjs';
 import { initKnowledgeBase } from './init.mjs';
 import { lintKnowledgeBase } from './lint.mjs';
+import { inspectCandidateFlow, markCandidateFlowDone } from './candidate-flow.mjs';
 import { getLinks, searchKnowledgeBase, buildReport } from './query.mjs';
 import { scaffoldPage, scaffoldPartialContract, listTypes } from './scaffold.mjs';
 
@@ -25,7 +26,8 @@ function printResult(result, json) {
   }
 }
 
-const USAGE = 'node using-obsidian/scripts/obsidian-kb.mjs <resolve|init|lint|links|search|report|scaffold|types> [--kb-root <path>] [--limit <n>] [--json]\n'
+const USAGE = 'node using-obsidian/scripts/obsidian-kb.mjs <resolve|init|lint|links|search|report|queue|scaffold|types> [--kb-root <path>] [--limit <n>] [--json]\n'
+  + '  queue --repo <r> [--mark-done <flow-name>]\n'
   + '  scaffold <type> --repo <r> --title <t> [--topic <flow-topic>] [--force]\n'
   + '  scaffold contract --partial --side <producer|consumer> --title <t> --known <repo> --evidence <e> [--missing-guess <repo>]';
 
@@ -69,6 +71,17 @@ export async function runCli() {
   if (command === 'report') {
     if (!context.kbRoot) throw new Error('No knowledge base root found. Pass --kb-root or run init for write-oriented setup.');
     printResult(await buildReport({ kbRoot: context.kbRoot }), context.json);
+    return;
+  }
+
+  if (command === 'queue') {
+    if (!context.kbRoot) throw new Error('No knowledge base root found. Pass --kb-root or run init for write-oriented setup.');
+    const { flags } = context;
+    if (!flags.repo) throw new Error('queue requires --repo <repo>');
+    const result = flags['mark-done']
+      ? await markCandidateFlowDone({ kbRoot: context.kbRoot, repo: flags.repo, flowName: flags['mark-done'] })
+      : await inspectCandidateFlow({ kbRoot: context.kbRoot, repo: flags.repo });
+    printResult(result, context.json);
     return;
   }
 

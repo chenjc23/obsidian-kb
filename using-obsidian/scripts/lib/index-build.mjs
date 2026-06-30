@@ -46,6 +46,13 @@ export async function buildIndex({ kbRoot, writeIndexes = true }) {
       sources: arrayValue(parsed.data.sources),
       confidence: parsed.data.confidence || '',
       status: parsed.data.status || '',
+      producer: arrayValue(parsed.data.producer),
+      consumer: arrayValue(parsed.data.consumer),
+      dependsOn: arrayValue(parsed.data['depends-on']),
+      entryPoint: arrayValue(parsed.data['entry-point']),
+      relatedContracts: arrayValue(parsed.data['related-contracts']),
+      relatedFlows: arrayValue(parsed.data['related-flows']),
+      relatedModules: arrayValue(parsed.data['related-modules']),
       outgoingLinks: extractWikiLinks(markdown),
     };
     pages.push(page);

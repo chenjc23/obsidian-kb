@@ -9,7 +9,14 @@ description: "Use to inspect an Obsidian code knowledge base for health issues: 
 
 判定标准全部以 authoring 的 `references/` 为准——结构看 `directory-contract.md`、frontmatter 看 `frontmatter-schema.md`、链接看 `link-contract.md`；`{kb-root}` 定位交给 `obsidian-kb.mjs resolve`。本 skill 不重复声明这些规则，只负责怎么查、怎么报。
 
-机械检查（frontmatter 合法性、断链、孤儿、统计）可用 `using-obsidian/scripts/obsidian-kb.mjs lint` / `report` 跑一遍；脚本不可用时按下面逐项手查。
+先运行 helper；机械约束不要手查：
+
+```bash
+node using-obsidian/scripts/obsidian-kb.mjs lint --json
+node using-obsidian/scripts/obsidian-kb.mjs report --json
+```
+
+`lint` 已覆盖 frontmatter、断链、孤儿、模板 section、link-contract 关系边、partial 契约与 coverage 一致性、candidate-flow 状态、深流程文件夹核心完整性、占位符和省略词。下面只保留脚本结果解释和少量语义补查。
 
 ## 检查项
 
@@ -31,11 +38,11 @@ description: "Use to inspect an Obsidian code knowledge base for health issues: 
 
 ### 2b. 模板符合度（页面结构）
 
-页面结构的唯一来源是 `obsidian-kb-authoring/templates/{type}.template.md`（见 directory-contract「单一来源纪律」）。脚本 `lint` 会从对应模板反推必需 `## section`，缺失则报 `warning`（`type: template`）。手查时：拿页面 `type` 对应的模板，核对正文 `## 标题` 覆盖了模板里非 `<!-- optional -->` 的刚性 section。`flow` 深流程文件夹各页形状见 `page-shapes.md`，不在此机械校验。
+由 helper 从 `obsidian-kb-authoring/templates/{type}.template.md` 反推必需 section；看 `type: template`、`type: flow-folder`、`type: flow-placeholder`、`type: flow-shortcut` 问题即可。
 
 ### 3. 孤儿页
 
-找没有入链的页。`index.md`、`log.md` 这类入口排除。
+由 helper 报 `type: orphan`。只判断是否为有意入口页或确实需要补链。
 
 ### 4. 源码陈旧
 
@@ -54,23 +61,9 @@ description: "Use to inspect an Obsidian code knowledge base for health issues: 
 - 模块页 `depends-on` 与正文双链各自漂移、互相矛盾。
 - API 页与实际路由/proto 定义冲突。
 
-### 6. 影响边完整性（影响分析的关键）
+### 6. 影响边完整性与 partial 契约
 
-这几条是影响面计算的图的边，缺一条就静默漏报（见 authoring `references/link-contract.md`）：
-
-- 契约页缺 `producer` 或 `consumer` → 影响传播断裂。**例外**：`status: partial` 契约允许单边（见下条校验）。
-- 模块页缺 `depends-on` → 依赖链断裂。
-- flow 页缺 `entry-point` 或 `related-contracts` → 变更点回溯不到流程。
-- 单向链：A 链了 B，B 没有反向链回 A（glossary 索引等明确单向场景除外）。
-
-### 6b. 单边契约与待接合边一致性（coverage 记录）
-
-`status: partial` 是增量缺口的合法表达，但**必须记录并可校验**，否则缺口就静默了：
-
-- 每个 `status: partial` 契约**必须**在 `global/architecture/coverage.md` 待接合边表有对应行 → 缺行报 `warning`（缺口未记录）。
-- 反之，coverage 待接合边表里关联到契约页的行，目标契约页必须存在且确为 `partial` → 断链或已 `active` 却仍标为待接合报 `warning`（该接合未接合）。
-- 两端都齐全的契约不该停在 `partial`：`producer` 和 `consumer` 都非空却仍 `status: partial` → 报 `warning`（状态未更新，应翻 `active` 并接合记录行）。
-- coverage 覆盖度表引用的仓应在 `repos/` 下存在。
+由 helper 报 `relation-metadata`、`relation-target`、`relation-body-link`、`reciprocal-link`、`contract-linkage`、`partial-contract`、`partial-coverage`。agent 只需判断这些问题是否应修复、降置信或记录为已知缺口。
 
 ### 7. 覆盖
 

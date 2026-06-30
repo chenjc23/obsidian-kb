@@ -23,6 +23,11 @@ export {
   VALID_STATUS,
   lintKnowledgeBase,
 } from './lib/lint.mjs';
+export {
+  parseCandidateFlowTable,
+  inspectCandidateFlow,
+  markCandidateFlowDone,
+} from './lib/candidate-flow.mjs';
 export { getLinks, searchKnowledgeBase, buildReport } from './lib/query.mjs';
 export { runCli, printResult } from './lib/cli.mjs';
 

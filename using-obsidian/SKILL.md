@@ -55,6 +55,10 @@ node {…}/scripts/obsidian-kb.mjs scaffold contract --partial --side producer \
   --title {契约名} --known {repo} --evidence "{path:func()}" --kb-root {kb-root}
 
 # 其余：init / lint / links / search / report（页面结构单一来源 = obsidian-kb-authoring/templates/）
+
+# 查看/推进 candidate-flow 深挖队列
+node {…}/scripts/obsidian-kb.mjs queue --repo {repo} --json
+node {…}/scripts/obsidian-kb.mjs queue --repo {repo} --mark-done "{流程名称}"
 ```
 
 `scaffold` 只生成页面骨架不填内容；机械字段（title/repo/created/updated）已填，其余 `<!-- 填:… -->` 由 agent 补。目标页已存在且未加 `--force` 时跳过，不覆盖人工内容。

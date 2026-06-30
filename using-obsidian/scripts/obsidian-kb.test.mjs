@@ -12,6 +12,8 @@ import {
   extractWikiLinks,
   buildIndex,
   lintKnowledgeBase,
+  inspectCandidateFlow,
+  markCandidateFlowDone,
   getLinks,
   searchKnowledgeBase,
   buildReport,
@@ -305,6 +307,225 @@ See [[contracts/X]].
     const result = await lintKnowledgeBase({ kbRoot });
     assert.equal(
       result.issues.some((issue) => issue.type === 'template' && /依赖（出）/.test(issue.message)),
+      true,
+    );
+  } finally {
+    await rm(workspace, { recursive: true, force: true });
+  }
+});
+
+test('lintKnowledgeBase reports link-contract and partial coverage issues', async () => {
+  const workspace = await makeTempWorkspace();
+  const kbRoot = path.join(workspace, 'code-kb');
+  try {
+    await initKnowledgeBase({ kbRoot });
+    await writeNote(kbRoot, 'global/contracts/OrderPaid.md', `---
+title: OrderPaid
+type: contract
+repo: global
+created: 2026-06-25
+updated: 2026-06-25
+confidence: high
+status: partial
+sources:
+  - repos/order-service/src/pay.ts:emit()
+producer:
+  - order-service
+consumer: []
+---
+# OrderPaid
+Producer [[repos/order-service/modules/支付]].
+`);
+    await writeNote(kbRoot, 'repos/order-service/modules/支付.md', `---
+title: 支付
+type: module
+repo: order-service
+created: 2026-06-25
+updated: 2026-06-25
+confidence: high
+status: active
+sources:
+  - repos/order-service/src/pay.ts:emit()
+depends-on: []
+---
+# 支付
+`);
+
+    const result = await lintKnowledgeBase({ kbRoot });
+
+    assert.equal(
+      result.issues.some((issue) => issue.type === 'partial-coverage' && issue.page === 'global/contracts/OrderPaid.md'),
+      true,
+    );
+    assert.equal(
+      result.issues.some((issue) => issue.type === 'reciprocal-link' && issue.page === 'global/contracts/OrderPaid.md'),
+      true,
+    );
+  } finally {
+    await rm(workspace, { recursive: true, force: true });
+  }
+});
+
+test('lintKnowledgeBase reports required relation metadata and contract completeness', async () => {
+  const workspace = await makeTempWorkspace();
+  const kbRoot = path.join(workspace, 'code-kb');
+  try {
+    await initKnowledgeBase({ kbRoot });
+    await writeNote(kbRoot, 'global/contracts/ActiveButOneSided.md', `---
+title: ActiveButOneSided
+type: contract
+repo: global
+created: 2026-06-25
+updated: 2026-06-25
+confidence: high
+status: active
+sources:
+  - repos/a/src/api.ts:send()
+producer:
+  - a
+consumer: []
+---
+# ActiveButOneSided
+`);
+    await writeNote(kbRoot, 'repos/a/flows/F.md', `---
+title: F
+type: flow
+repo: a
+created: 2026-06-25
+updated: 2026-06-25
+confidence: high
+status: active
+sources:
+  - repos/a/src/main.ts:start()
+domain: []
+---
+# F
+`);
+
+    const result = await lintKnowledgeBase({ kbRoot });
+
+    assert.equal(
+      result.issues.some((issue) => issue.type === 'contract-linkage' && /missing consumer/.test(issue.message)),
+      true,
+    );
+    assert.equal(
+      result.issues.some((issue) => issue.type === 'relation-metadata' && /entry-point/.test(issue.message)),
+      true,
+    );
+    assert.equal(
+      result.issues.some((issue) => issue.type === 'relation-metadata' && /related-contracts/.test(issue.message)),
+      true,
+    );
+  } finally {
+    await rm(workspace, { recursive: true, force: true });
+  }
+});
+
+test('inspectCandidateFlow returns next flow and state issues', async () => {
+  const workspace = await makeTempWorkspace();
+  const kbRoot = path.join(workspace, 'code-kb');
+  try {
+    await initKnowledgeBase({ kbRoot });
+    await writeNote(kbRoot, 'repos/svc/candidate-flow.md', `---
+title: svc flows
+type: candidate
+repo: svc
+created: 2026-06-25
+updated: 2026-06-25
+confidence: medium
+status: active
+sources: []
+---
+# svc 已识别流程清单
+
+## Deep Analysis 流程清单
+| 分析顺序 | 流程名称 | 入口/接口 | 触发方式 | 涉及仓库/模块 | 是否跨消息边界 | 风险等级 | 推荐原因 | 证据链 | 可达性 | confidence | 状态 |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| 1 | 创建订单 | create() | HTTP | svc/order | 否 | high | 核心 | 注册/分发/实现 | target | high | 已深挖 |
+| 3 | 支付回调 | onPaid() | MQ | svc/pay | 是 | high | 跨边界 | 注册/分发/实现 | target | high | 待深挖 |
+| 4 | 退款 | refund() | HTTP | svc/pay | 否 | medium | 风险 | 注册/分发/实现 | target | medium |  |
+`);
+
+    const result = await inspectCandidateFlow({ kbRoot, repo: 'svc' });
+    const lint = await lintKnowledgeBase({ kbRoot });
+
+    assert.equal(result.allDone, false);
+    assert.equal(result.nextFlow.name, '支付回调');
+    assert.equal(result.issues.some((issue) => issue.type === 'order-gap'), true);
+    assert.equal(result.issues.some((issue) => issue.type === 'invalid-status'), true);
+    assert.equal(lint.issues.some((issue) => issue.type === 'candidate-order-gap'), true);
+  } finally {
+    await rm(workspace, { recursive: true, force: true });
+  }
+});
+
+test('markCandidateFlowDone updates a queued row', async () => {
+  const workspace = await makeTempWorkspace();
+  const kbRoot = path.join(workspace, 'code-kb');
+  try {
+    await initKnowledgeBase({ kbRoot });
+    await writeNote(kbRoot, 'repos/svc/candidate-flow.md', `---
+title: svc flows
+type: candidate
+repo: svc
+created: 2026-06-25
+updated: 2026-06-25
+confidence: medium
+status: active
+sources: []
+---
+# svc 已识别流程清单
+
+## Deep Analysis 流程清单
+| 分析顺序 | 流程名称 | 入口/接口 | 触发方式 | 涉及仓库/模块 | 是否跨消息边界 | 风险等级 | 推荐原因 | 证据链 | 可达性 | confidence | 状态 |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| 1 | 创建订单 | create() | HTTP | svc/order | 否 | high | 核心 | 注册/分发/实现 | target | high | 待深挖 |
+`);
+
+    const update = await markCandidateFlowDone({ kbRoot, repo: 'svc', flowName: '创建订单' });
+    const result = await inspectCandidateFlow({ kbRoot, repo: 'svc' });
+
+    assert.equal(update.updated, true);
+    assert.equal(result.allDone, true);
+    assert.equal(result.flows[0].status, '已深挖');
+  } finally {
+    await rm(workspace, { recursive: true, force: true });
+  }
+});
+
+test('lintKnowledgeBase reports deep flow folder completeness issues', async () => {
+  const workspace = await makeTempWorkspace();
+  const kbRoot = path.join(workspace, 'code-kb');
+  try {
+    await initKnowledgeBase({ kbRoot });
+    await writeNote(kbRoot, 'repos/svc/flows/开通/调用树.md', `---
+title: 开通
+type: flow
+repo: svc
+created: 2026-06-25
+updated: 2026-06-25
+confidence: high
+status: active
+sources:
+  - repos/svc/src/main.ts:start()
+entry-point:
+  - repos/svc/src/main.ts:start()
+related-contracts: []
+---
+# 调用树：开通
+
+## 调用树
+- start() ... 等
+`);
+
+    const result = await lintKnowledgeBase({ kbRoot });
+
+    assert.equal(
+      result.issues.some((issue) => issue.type === 'flow-folder' && /主干流程/.test(issue.message)),
+      true,
+    );
+    assert.equal(
+      result.issues.some((issue) => issue.type === 'flow-placeholder' || issue.type === 'flow-shortcut'),
       true,
     );
   } finally {

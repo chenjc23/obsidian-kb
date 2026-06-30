@@ -416,6 +416,7 @@ node using-obsidian/scripts/obsidian-kb.mjs search "业务开通" --json
 node using-obsidian/scripts/obsidian-kb.mjs links global/contracts/AllocateResource.md --json
 node using-obsidian/scripts/obsidian-kb.mjs lint
 node using-obsidian/scripts/obsidian-kb.mjs report --json
+node using-obsidian/scripts/obsidian-kb.mjs queue --repo {repo} --json
 ```
 
 helper 只负责机械动作，不替代 agent 对代码和业务的分析判断。

@@ -23,6 +23,7 @@ node skills/using-obsidian/scripts/obsidian-kb.mjs lint
 node skills/using-obsidian/scripts/obsidian-kb.mjs links global/contracts/AllocateResource.md --json
 node skills/using-obsidian/scripts/obsidian-kb.mjs search "业务开通" --json
 node skills/using-obsidian/scripts/obsidian-kb.mjs report --json
+node skills/using-obsidian/scripts/obsidian-kb.mjs queue --repo order-service --json
 ```
 
 After installing or copying the skills, locate the `using-obsidian` skill root and run:

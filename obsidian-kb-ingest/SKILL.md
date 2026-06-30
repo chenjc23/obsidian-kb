@@ -101,12 +101,13 @@ Phase 8 是 ingest 的完成门槛，也是 ingest 中唯一允许调用 `obsidi
 
 ### 按清单顺序自动逐个深挖
 
-深度分析是 ingest 流程的自动续作。播报一次全量流程清单后立刻按清单顺序开工：
+深度分析是 ingest 流程的自动续作。队列状态交给 helper，不手工判断表格：
 
-1. 确认 Phase 3 已用 `scaffold candidate-flow` 生成 `repos/{repo}/candidate-flow.md`，并按 `obsidian-kb-authoring/templates/candidate-flow.template.md` 填入所有识别到的流程。
-2. 按表中的 `分析顺序` 串行调用 `obsidian-kb-deep-analysis`，每完成一条就把对应行 `状态` 更新为 `已深挖`。
-3. 如果识别流程很多，仍然继续串行执行；只有用户显式打断、限定范围或要求暂停时才停。
-4. 结束 ingest 前重新读取 `candidate-flow.md`：若仍有 `待深挖`、空状态或其它非 `已深挖` 行，不得输出最终完成摘要，继续执行 Phase 8。
+1. 确认 Phase 3 已生成并填好 `repos/{repo}/candidate-flow.md`。
+2. 运行 `node using-obsidian/scripts/obsidian-kb.mjs queue --repo {repo} --json`，读取 `nextFlow`、`allDone` 和 `issues`。
+3. 按 `nextFlow` 串行调用 `obsidian-kb-deep-analysis`；每完成一条，运行 `node using-obsidian/scripts/obsidian-kb.mjs queue --repo {repo} --mark-done "{流程名称}"`。
+4. 重复第 2-3 步，直到 `allDone: true`。若 `issues` 非空，回到 Phase 3 修正 candidate-flow 表。
+5. 只有用户显式打断、限定范围或要求暂停时才停。
 
 ### 串行执行模型（执行要求）
 
@@ -137,4 +138,4 @@ Phase 8 是 ingest 的完成门槛，也是 ingest 中唯一允许调用 `obsidi
 - 每个 `status: partial` 契约已在 `global/architecture/coverage.md` 记录 → 用 `scaffold contract --partial` 自动记录。
 - `api-surface.md` 的跨边界条目均已提升到 `global/contracts/`；本仓存在业务逻辑时 `global/domains/` 非空。缺失则返回 Phase 5 补全。
 - `log.md` 记了这轮扫了什么、生成了哪些页。
-- `candidate-flow.md` 没有遗留 `待深挖` / 空状态 / 非 `已深挖` 行；若有，返回 Phase 8，不能收工。
+- `node using-obsidian/scripts/obsidian-kb.mjs queue --repo {repo} --json` 返回 `allDone: true` 且 `issues: []`。
