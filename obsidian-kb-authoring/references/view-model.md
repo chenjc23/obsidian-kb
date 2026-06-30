@@ -43,22 +43,26 @@
 
 | `type` | 视图透镜 |
 |---|---|
+<!-- GENERATED:type-view:start -->
 | `use-case` | `usecase` |
 | `domain` | `logical` |
 | `glossary` | `logical` |
+| `contract` | `contract` |
 | `module` | `development` |
 | `architecture` | `logical` |
-| `data-model` | `development` |
-| `implementation` | `development` |
-| `config` | `development` |
-| `flow` | `runtime` |
-| `candidate` | `runtime` |
-| `runtime-notes` | `runtime` |
-| `contract` | `contract` |
 | `api-surface` | `contract` |
-| `risk` | `runtime` |
-| `index` / `log` | `meta` |
+| `data-model` | `development` |
+| `config` | `development` |
+| `implementation` | `development` |
+| `runtime-notes` | `runtime` |
+| `candidate` | `runtime` |
+| `coverage` | `meta` |
 | `extra` | `meta` |
+| `flow` | `runtime` |
+| `risk` | `runtime` |
+| `index` | `meta` |
+| `log` | `meta` |
+<!-- GENERATED:type-view:end -->
 
 ## 查询入口（设计自检用）
 

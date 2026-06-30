@@ -1,6 +1,6 @@
 import { readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
-import { registryPath, canonicalTypes } from './registry.mjs';
+import { registryPath, canonicalTypes, loadRegistry } from './registry.mjs';
 
 const REF = path.join(path.dirname(registryPath()), 'references');
 
@@ -17,9 +17,15 @@ function renderTypeEnum() {
   return canonicalTypes().map((t) => `\`${t}\``).join(' · ');
 }
 
-// T9–T11 会向本数组追加 { file, id, render }。
+function renderTypeViewTable() {
+  const t = loadRegistry().types;
+  return canonicalTypes().map((k) => `| \`${k}\` | \`${t[k].view}\` |`).join('\n');
+}
+
+// T10–T11 会向本数组追加 { file, id, render }。
 export const DOC_TARGETS = [
   { file: path.join(REF, 'frontmatter-schema.md'), id: 'type-enum', render: renderTypeEnum },
+  { file: path.join(REF, 'view-model.md'), id: 'type-view', render: renderTypeViewTable },
 ];
 
 export async function generateDocs({ check = false } = {}) {
