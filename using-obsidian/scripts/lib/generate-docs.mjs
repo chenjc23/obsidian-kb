@@ -1,6 +1,7 @@
 import { readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { registryPath, canonicalTypes, loadRegistry } from './registry.mjs';
+import { requiredSections } from './template.mjs';
 
 const REF = path.join(path.dirname(registryPath()), 'references');
 
@@ -22,10 +23,26 @@ function renderTypeViewTable() {
   return canonicalTypes().map((k) => `| \`${k}\` | \`${t[k].view}\` |`).join('\n');
 }
 
-// T10–T11 会向本数组追加 { file, id, render }。
+function renderPageShapes() {
+  const t = loadRegistry().types;
+  const rows = [];
+  for (const k of canonicalTypes()) {
+    const def = t[k];
+    if (!def.template && !def.family) continue; // 跳过无模板的 meta 型(risk/index/log)
+    const tmpl = def.family
+      ? `\`templates/${def.family}/{${def.members.join(',')}}.template.md\``
+      : `\`templates/${def.template}.template.md\``;
+    const sections = def.family ? '各文件见模板内 `## section`' : (requiredSections(k).join(' / ') || '正文');
+    rows.push(`| \`${k}\` | ${def.summary || ''} | ${tmpl} | ${sections} |`);
+  }
+  return rows.join('\n');
+}
+
+// T11 会向本数组追加 { file, id, render }。
 export const DOC_TARGETS = [
   { file: path.join(REF, 'frontmatter-schema.md'), id: 'type-enum', render: renderTypeEnum },
   { file: path.join(REF, 'view-model.md'), id: 'type-view', render: renderTypeViewTable },
+  { file: path.join(REF, 'page-shapes.md'), id: 'page-shapes', render: renderPageShapes },
 ];
 
 export async function generateDocs({ check = false } = {}) {
