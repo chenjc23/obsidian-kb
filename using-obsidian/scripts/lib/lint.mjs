@@ -2,34 +2,17 @@ import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 
 import { buildIndex } from './index-build.mjs';
-import { normalizeTarget, parseFrontmatter } from './frontmatter.mjs';
+import { normalizeTarget, parseFrontmatter, arrayValue } from './frontmatter.mjs';
 import { requiredSections } from './template.mjs';
+import {
+  loadRegistry, requiredFrontmatter, validTypes, validConfidence, validStatus,
+} from './registry.mjs';
 
-// 枚举的唯一权威定义是 obsidian-kb-authoring/references/frontmatter-schema.md。
-// 本文件是它在代码里的投影，改 schema 时两边一起改。
-export const REQUIRED_PROPERTIES = ['title', 'type', 'repo', 'created', 'updated', 'confidence', 'status', 'sources'];
-export const VALID_TYPES = new Set([
-  'use-case',
-  'domain',
-  'glossary',
-  'flow',
-  'candidate',
-  'contract',
-  'module',
-  'architecture',
-  'api-surface',
-  'data-model',
-  'config',
-  'implementation',
-  'runtime-notes',
-  'risk',
-  'index',
-  'log',
-  'coverage',
-  'extra',
-]);
-export const VALID_CONFIDENCE = new Set(['high', 'medium', 'low']);
-export const VALID_STATUS = new Set(['active', 'partial', 'draft', 'deprecated']);
+// 枚举/字段的唯一权威定义是 obsidian-kb-authoring/registry.yaml；以下为其投影。
+export const REQUIRED_PROPERTIES = requiredFrontmatter();
+export const VALID_TYPES = validTypes();
+export const VALID_CONFIDENCE = new Set(validConfidence());
+export const VALID_STATUS = new Set(validStatus());
 
 function isIntentionalEntryPage(relativePath) {
   return ['index.md', 'log.md'].includes(relativePath);
@@ -103,33 +86,28 @@ export async function lintKnowledgeBase({ kbRoot }) {
       });
     }
 
-    if (page.type === 'flow') {
-      if (page.domain.length === 0) {
-        issues.push({
-          severity: 'warning',
-          type: 'flow-linkage',
-          page: page.relativePath,
-          message: 'Flow page is missing domain metadata',
-        });
-      }
-      if (!page.outgoingLinks.some((link) => link.startsWith('global/contracts/') || link.includes('/modules/'))) {
-        issues.push({
-          severity: 'warning',
-          type: 'flow-linkage',
-          page: page.relativePath,
-          message: 'Flow page should link related contracts or modules',
-        });
-      }
-    }
-
-    if (page.type === 'contract') {
-      if (!page.outgoingLinks.some((link) => link.startsWith('repos/'))) {
-        issues.push({
-          severity: 'warning',
-          type: 'contract-linkage',
-          page: page.relativePath,
-          message: 'Contract page should link producer or consumer repo/module pages',
-        });
+    // 数据化 linkage：遍历 registry 中该型的规则，任一匹配子命中即通过。
+    const def = loadRegistry().types[page.type];
+    if (def && Array.isArray(def.linkage)) {
+      for (const rule of def.linkage) {
+        let pass = false;
+        if (rule.requireFrontmatter) {
+          pass = arrayValue(page[rule.requireFrontmatter]).length > 0;
+        }
+        if (!pass && Array.isArray(rule.linkPrefixAny)) {
+          pass = page.outgoingLinks.some((l) => rule.linkPrefixAny.some((p) => l.startsWith(p)));
+        }
+        if (!pass && Array.isArray(rule.linkContainsAny)) {
+          pass = page.outgoingLinks.some((l) => rule.linkContainsAny.some((c) => l.includes(c)));
+        }
+        if (!pass) {
+          issues.push({
+            severity: 'warning',
+            type: rule.issueType || 'linkage',
+            page: page.relativePath,
+            message: rule.message,
+          });
+        }
       }
     }
 
