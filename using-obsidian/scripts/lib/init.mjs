@@ -3,6 +3,7 @@ import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
 import { today } from './context.mjs';
+import { initDirs } from './registry.mjs';
 
 function seedPage(title, type, repo, status = 'draft') {
   return `---
@@ -30,7 +31,7 @@ const SEED_FILES = new Map([
 
 export async function initKnowledgeBase({ kbRoot }) {
   await mkdir(kbRoot, { recursive: true });
-  for (const directory of ['global/use-cases', 'global/domains', 'global/contracts', 'global/architecture', 'repos']) {
+  for (const directory of initDirs()) {
     await mkdir(path.join(kbRoot, directory), { recursive: true });
   }
 
