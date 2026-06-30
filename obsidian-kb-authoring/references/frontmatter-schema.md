@@ -87,7 +87,9 @@ aliases:
 ## 枚举值
 
 **`type`：**
-`use-case` · `domain` · `glossary` · `flow` · `candidate` · `contract` · `module` · `architecture` · `api-surface` · `data-model` · `config` · `implementation` · `runtime-notes` · `risk` · `index` · `log` · `coverage` · `extra`
+<!-- GENERATED:type-enum:start -->
+`use-case` · `domain` · `glossary` · `contract` · `module` · `architecture` · `api-surface` · `data-model` · `config` · `implementation` · `runtime-notes` · `candidate` · `coverage` · `extra` · `flow` · `risk` · `index` · `log`
+<!-- GENERATED:type-enum:end -->
 
 **`confidence`：**
 - `high`：被显式源码或稳定架构笔记直接支撑。
