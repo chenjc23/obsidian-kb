@@ -18,7 +18,7 @@
 |---|---|---|
 | **页面结构**（每页有哪些 section） | `obsidian-kb-authoring/templates/{type}.template.md` 真模板文件 | 新建页优先 `scaffold {type}` 生成页面骨架；lint 从模板反推必需 section；改结构改模板 |
 | **frontmatter 字段/枚举/默认值** | [frontmatter-schema.md](frontmatter-schema.md) | 每次写 frontmatter 查它 |
-| **目录路径/落点** | `registry.yaml` 的 `types.*.target`（本文件「目录树」由其生成） | 决定文件落点查它；改落点改注册表 |
+| **目录路径/落点** | `registry.yaml` 的 `types.*.target`（`describe tree` 看全树） | 决定文件落点查它；改落点改注册表 |
 | **放哪/是否新建/维护方式** | 本文件（directory-contract.md 叙事部分） | 取舍判断、增量约束查它 |
 | **双链关系/影响传播边** | [link-contract.md](link-contract.md) | 每次建关系、做影响分析查它 |
 
@@ -26,49 +26,15 @@
 
 ## 目录树
 
-> 下面这棵树由 `registry.yaml` 的 `types.*.target` 经 `generate-docs` 生成（叶子注释取自页型 `summary`），**勿手改**。`{title}`/`{repo}`/`{topic}` 为占位。视图归属、增量"只新增不改旧"、三种维护方式等叙事见下方 `页面取舍` / `维护方式`。
->
-> 树中**不出现**的两类文件：`repos/{repo}/testing-strategy.md`（视图正交的 dev-process facet，有内容才生成，非正式页型）；以及依赖图/技术栈/影响面（不物化成页，由 query 现算）。
+目录结构由 `registry.yaml` 的 `types.*.target` 决定（落点唯一来源）。要看完整目录树运行：
 
-<!-- GENERATED:dir-tree:start -->
-```text
-code-kb/
-  index.md  # 入口，链向五视图各 catalog（人工叙事）
-  log.md  # 知识库操作流水（只追加）
-  global/
-    use-cases/
-      {title}.md  # 跨仓端到端业务场景，编排 + 链接为主
-    domains/
-      {title}.md  # 业务域概念字典
-    contracts/
-      {title}.md  # 跨边界契约，定义一次被多 flow 引用
-    architecture/
-      coverage.md  # 工作区覆盖记录（唯一、只追加）
-      system-architecture.md  # 工作区唯一人工叙事总览（复用 architecture 模板）
-    extra/
-      {title}.md  # 不属于标准页型的补充页
-  repos/
-    {repo}/
-      glossary.md  # 仓内术语→链接索引
-      modules/
-        {title}.md  # 单模块职责 + 依赖
-      architecture.md  # 仓库逻辑视图 + 路由 + 架构图
-      api-surface.md  # 仓内对外接口面
-      data-models.md  # 仓内核心数据结构
-      config-and-env.md  # 仓内配置与环境
-      key-implementations.md  # 仓内关键实现点
-      runtime-notes.md  # 仓内运行注记（错误/重试/陷阱）
-      candidate-flow.md  # 全量已识别流程清单（自动深挖进度）
-      flows/
-        {topic}/
-          调用树.md
-          主干流程.md
-          分支主题.md
-          跨边界数据流.md
-          数据结构.md
-          自查报告.md
+```bash
+node using-obsidian/scripts/obsidian-kb.mjs describe tree
 ```
-<!-- GENERATED:dir-tree:end -->
+
+`{title}`/`{repo}`/`{topic}` 为占位。视图归属、增量"只新增不改旧"、三种维护方式等叙事见下方 `页面取舍` / `维护方式`。
+
+树中**不出现**的两类文件：`repos/{repo}/testing-strategy.md`（视图正交的 dev-process facet，有内容才生成，非正式页型）；以及依赖图/技术栈/影响面（不物化成页，由 query 现算）。
 
 ### 页面取舍
 

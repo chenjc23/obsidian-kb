@@ -1,5 +1,5 @@
 # 结构唯一来源。维护者维护本文件；团队只维护 templates/*.template.md。
-# 改落点/视图/lint/枚举 → 改这里一处，然后 `node obsidian-kb.mjs generate-docs` 同步参考文档。
+# 改落点/视图/lint/枚举 → 改这里一处即可。可读视图：`node obsidian-kb.mjs describe [types|views|shapes|tree]`。
 schema:
   requiredFrontmatter: [title, type, repo, created, updated, confidence, status, sources]
   confidence: [high, medium, low]

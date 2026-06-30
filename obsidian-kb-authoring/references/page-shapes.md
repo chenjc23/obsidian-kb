@@ -6,27 +6,11 @@
 
 ## 页型索引
 
-> 下表 `<!-- GENERATED -->` 区段由 `registry.yaml`（用途/模板）+ 各模板正文 `## section`（必需边界）经 `generate-docs` 生成，**勿手改**。
+各页型的用途、模板、刚性边界（必需 `## section`）由 `registry.yaml`（用途/模板）+ 各模板正文（`## section`）派生。要写哪种页，直接 `scaffold {type}` 拿骨架即可；需要完整的页型→用途→模板→必需 section 总表时运行：
 
-| 页型(type) | 用途一句话 | 模板 | 刚性边界（lint 校验必需 section） |
-|---|---|---|---|
-<!-- GENERATED:page-shapes:start -->
-| `use-case` | 跨仓端到端业务场景，编排 + 链接为主 | `templates/use-case.template.md` | 前置条件 / 端到端编排 / 涉及业务域 / 关键判定点 / 验收 / 风险链 |
-| `domain` | 业务域概念字典 | `templates/domain.template.md` | 核心概念 / 实体与状态 / 相邻域 / 实现该域的流程 |
-| `glossary` | 仓内术语→链接索引 | `templates/glossary.template.md` | 术语 |
-| `contract` | 跨边界契约，定义一次被多 flow 引用 | `templates/contract.template.md` | 消息/接口标识 / Payload Schema / Producer / Consumer / 接收方发现证据 / 使用该契约的流程 |
-| `module` | 单模块职责 + 依赖 | `templates/module.template.md` | 职责 / 公共接口 / 依赖（出） / 被依赖（入·反向链接） / 相关流程 |
-| `architecture` | 仓库逻辑视图 + 路由 + 架构图 | `templates/architecture.template.md` | 架构图 / 分层与职责 / 核心模块（仓库路由） / 流程入口 / 对外契约 / 数据 / 设计模式 |
-| `api-surface` | 仓内对外接口面 | `templates/api-surface.template.md` | 对外接口 |
-| `data-model` | 仓内核心数据结构 | `templates/data-models.template.md` | 核心结构 |
-| `config` | 仓内配置与环境 | `templates/config.template.md` | 关键配置项 |
-| `implementation` | 仓内关键实现点 | `templates/key-implementations.template.md` | 关键实现点 |
-| `runtime-notes` | 仓内运行注记（错误/重试/陷阱） | `templates/runtime-notes.template.md` | 错误处理与重试 / 已知陷阱 / 运行风险 |
-| `candidate` | 全量已识别流程清单（自动深挖进度） | `templates/candidate-flow.template.md` | Deep Analysis 流程清单 |
-| `coverage` | 工作区覆盖记录（唯一、只追加） | `templates/coverage.template.md` | 仓库覆盖度 / 待接合的跨仓边（只找到一端） / 已知盲区 / 未解析链接 |
-| `extra` | 不属于标准页型的补充页 | `templates/extra.template.md` | 正文 |
-| `flow` | deep-analysis 深流程产物，一文件夹六件 | `templates/flow/{调用树,主干流程,分支主题,跨边界数据流,数据结构,自查报告}.template.md` | 各文件见模板内 `## section` |
-<!-- GENERATED:page-shapes:end -->
+```bash
+node using-obsidian/scripts/obsidian-kb.mjs describe shapes
+```
 
 ## 几条不在模板里、但要记住的语义约定
 

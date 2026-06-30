@@ -41,30 +41,11 @@
 
 视图透镜由 `type` 派生，query/lint 按此表现算，不在页面存储。
 
-> 下表 `<!-- GENERATED -->` 区段由 `registry.yaml` 的 `types.*.view` 经 `generate-docs` 生成，**勿手改**。
+映射的**唯一来源**是 `registry.yaml` 的 `types.*.view`。需要可读的 `type → 视图` 全表时运行：
 
-| `type` | 视图透镜 |
-|---|---|
-<!-- GENERATED:type-view:start -->
-| `use-case` | `usecase` |
-| `domain` | `logical` |
-| `glossary` | `logical` |
-| `contract` | `contract` |
-| `module` | `development` |
-| `architecture` | `logical` |
-| `api-surface` | `contract` |
-| `data-model` | `development` |
-| `config` | `development` |
-| `implementation` | `development` |
-| `runtime-notes` | `runtime` |
-| `candidate` | `runtime` |
-| `coverage` | `meta` |
-| `extra` | `meta` |
-| `flow` | `runtime` |
-| `risk` | `runtime` |
-| `index` | `meta` |
-| `log` | `meta` |
-<!-- GENERATED:type-view:end -->
+```bash
+node using-obsidian/scripts/obsidian-kb.mjs describe views
+```
 
 ## 查询入口（设计自检用）
 

@@ -24,7 +24,7 @@ export {
   lintKnowledgeBase,
 } from './lib/lint.mjs';
 export { getLinks, searchKnowledgeBase, buildReport } from './lib/query.mjs';
-export { generateDocs, DOC_TARGETS } from './lib/generate-docs.mjs';
+export { describe, describeData } from './lib/describe.mjs';
 export { runCli, printResult } from './lib/cli.mjs';
 
 const isMain = process.argv[1]
