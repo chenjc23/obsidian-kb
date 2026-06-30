@@ -30,11 +30,11 @@ function renderPageShapes() {
   const rows = [];
   for (const k of canonicalTypes()) {
     const def = t[k];
-    if (!def.template && !def.family) continue; // 跳过无模板的 meta 型(risk/index/log)
-    const tmpl = def.family
-      ? `\`templates/${def.family}/{${def.members.join(',')}}.template.md\``
+    if (!def.template && !def.members) continue; // 跳过无模板的 meta 型(risk/index/log)
+    const tmpl = def.members
+      ? `\`templates/flow/{${Object.keys(def.members).join(',')}}.template.md\``
       : `\`templates/${def.template}.template.md\``;
-    const sections = def.family ? '各文件见模板内 `## section`' : (requiredSections(k).join(' / ') || '正文');
+    const sections = def.members ? '各文件见模板内 `## section`' : (requiredSections(k).join(' / ') || '正文');
     rows.push(`| \`${k}\` | ${def.summary || ''} | ${tmpl} | ${sections} |`);
   }
   return rows.join('\n');
@@ -52,8 +52,8 @@ function renderDirTree() {
   for (const k of ordered) {
     const def = t[k];
     if (!def) continue;
-    if (def.family && Array.isArray(def.members)) {
-      for (const m of def.members) addLeaf(def.target.replaceAll('{member}', m), '');
+    if (def.members) {
+      for (const m of Object.values(def.members)) addLeaf(m.target, '');
     } else {
       addLeaf(def.target, def.summary);
     }

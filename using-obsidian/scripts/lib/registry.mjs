@@ -39,11 +39,16 @@ function validate(reg, file) {
     if (def.template != null && !existsSync(path.join(tdir, `${def.template}.template.md`))) {
       throw new Error(`registry: type ${type} template not found: ${def.template}`);
     }
-    if (def.family != null) {
-      if (!Array.isArray(def.members)) throw new Error(`registry: family ${type} needs members list`);
-      for (const m of def.members) {
-        if (!existsSync(path.join(tdir, def.family, `${m}.template.md`))) {
-          throw new Error(`registry: ${type} member template not found: ${def.family}/${m}`);
+    if (def.members != null) {
+      if (typeof def.members !== 'object' || Array.isArray(def.members)) {
+        throw new Error(`registry: ${type} members must be a mapping`);
+      }
+      for (const [name, m] of Object.entries(def.members)) {
+        if (!m || !m.template || !m.target) {
+          throw new Error(`registry: ${type} member ${name} needs template and target`);
+        }
+        if (!existsSync(path.join(tdir, `${m.template}.template.md`))) {
+          throw new Error(`registry: ${type} member template not found: ${m.template}`);
         }
       }
     }
@@ -51,7 +56,8 @@ function validate(reg, file) {
 }
 
 function types() { return loadRegistry().types; }
-const canon = (key, def) => def.enumType ?? key;
+// 一个 scaffold 标识产出的页面 type：pageType 显式声明（别名用），否则即键名本身。
+const canon = (key, def) => def.pageType ?? key;
 
 export function allTypes() { return Object.keys(types()); }
 export function validTypes() {
@@ -64,7 +70,7 @@ export function canonicalTypes() {
 }
 export function scaffoldableTypes() {
   const t = types();
-  return Object.keys(t).filter((k) => t[k].template != null || t[k].family != null).sort();
+  return Object.keys(t).filter((k) => t[k].template != null || t[k].members != null).sort();
 }
 export function requiredFrontmatter() { return loadRegistry().schema.requiredFrontmatter; }
 export function validConfidence() { return loadRegistry().schema.confidence; }

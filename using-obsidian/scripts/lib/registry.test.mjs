@@ -31,7 +31,7 @@ types:
     template: t
     target: global/x/{title}.md
     view: logical
-    enumType: alpha
+    pageType: alpha
   meta-only:
     template: null
     target: null
@@ -44,7 +44,7 @@ test('loadRegistry parses schema and derives type sets', async () => {
   assert.deepEqual(reg.schema.requiredFrontmatter, ['title', 'type']);
 });
 
-test('validTypes dedups aliases via enumType', async () => {
+test('validTypes dedups aliases via pageType', async () => {
   const file = await fixture(GOOD);
   loadRegistry({ force: true, file });
   assert.deepEqual([...validTypes()].sort(), ['alpha', 'meta-only']);
@@ -73,9 +73,10 @@ const OLD_VALID = ['use-case', 'domain', 'glossary', 'flow', 'candidate', 'contr
   'architecture', 'api-surface', 'data-model', 'config', 'implementation', 'runtime-notes',
   'risk', 'index', 'log', 'coverage', 'extra'];
 
-const OLD_SCAFFOLDABLE = ['api-surface', 'architecture', 'candidate', 'candidate-flow', 'config',
-  'contract', 'coverage', 'data-model', 'data-models', 'domain', 'extra', 'flow', 'glossary',
-  'implementation', 'key-implementations', 'module', 'runtime-notes', 'system-architecture',
+// 清理后：删掉 data-models / key-implementations 两个死别名（无人 scaffold、落点重复）。
+const SCAFFOLDABLE = ['api-surface', 'architecture', 'candidate', 'candidate-flow', 'config',
+  'contract', 'coverage', 'data-model', 'domain', 'extra', 'flow', 'glossary',
+  'implementation', 'module', 'runtime-notes', 'system-architecture',
   'use-case'].sort();
 
 const TARGET_GOLDEN = {
@@ -91,11 +92,9 @@ const TARGET_GOLDEN = {
   glossary: ['repos/R/glossary.md', { repo: 'R' }],
   'api-surface': ['repos/R/api-surface.md', { repo: 'R' }],
   'data-model': ['repos/R/data-models.md', { repo: 'R' }],
-  'data-models': ['repos/R/data-models.md', { repo: 'R' }],
   config: ['repos/R/config-and-env.md', { repo: 'R' }],
   'runtime-notes': ['repos/R/runtime-notes.md', { repo: 'R' }],
   implementation: ['repos/R/key-implementations.md', { repo: 'R' }],
-  'key-implementations': ['repos/R/key-implementations.md', { repo: 'R' }],
   extra: ['global/extra/T.md', { title: 'T' }],
   flow: ['repos/R/flows/TOPIC/主干流程.md', { repo: 'R', topic: 'TOPIC', flowFile: '主干流程' }],
 };
@@ -109,9 +108,9 @@ test('GOLDEN: validTypes equals old VALID_TYPES', () => {
   assert.deepEqual([...validTypes()].sort(), [...OLD_VALID].sort());
 });
 
-test('GOLDEN: scaffoldableTypes equals old listTypes', () => {
+test('GOLDEN: scaffoldableTypes equals intended set (dead aliases dropped)', () => {
   loadRegistry({ force: true });
-  assert.deepEqual(scaffoldableTypes(), OLD_SCAFFOLDABLE);
+  assert.deepEqual(scaffoldableTypes(), SCAFFOLDABLE);
 });
 
 test('GOLDEN: targetPath matches old switch for every scaffold id', () => {

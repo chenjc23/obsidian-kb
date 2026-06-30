@@ -10,12 +10,12 @@ function typeDef(type) {
   return def;
 }
 
-export function loadTemplate(type, flowFile) {
-  if (type === 'flow') {
-    if (!flowFile) throw new Error('flow 需指定 flowFile');
-    return readFileSync(path.join(templatesDir(), 'flow', `${flowFile}.template.md`), 'utf8');
-  }
+export function loadTemplate(type, member) {
   const def = typeDef(type);
+  if (def.members) {
+    if (!member || !def.members[member]) throw new Error(`${type} 需指定有效成员: ${member}`);
+    return readFileSync(path.join(templatesDir(), `${def.members[member].template}.template.md`), 'utf8');
+  }
   if (!def.template) throw new Error(`页型无模板: ${type}`);
   return readFileSync(path.join(templatesDir(), `${def.template}.template.md`), 'utf8');
 }
@@ -29,8 +29,8 @@ export function fillMechanical(text, { title = '', repo = '', date }) {
     .replaceAll('{{updated}}', d);
 }
 
-export function requiredSections(type, flowFile) {
-  const text = loadTemplate(type, flowFile);
+export function requiredSections(type, member) {
+  const text = loadTemplate(type, member);
   const lines = text.split('\n');
   const out = [];
   for (let i = 0; i < lines.length; i += 1) {
@@ -44,17 +44,23 @@ export function requiredSections(type, flowFile) {
 
 export function targetPath(type, { repo, title, topic, flowFile } = {}) {
   const def = typeDef(type);
-  if (!def.target) throw new Error(`页型无落点: ${type}`);
-  return def.target
+  let pattern;
+  if (def.members) {
+    if (!flowFile || !def.members[flowFile]) throw new Error(`${type} 需指定有效成员: ${flowFile}`);
+    pattern = def.members[flowFile].target;
+  } else {
+    pattern = def.target;
+  }
+  if (!pattern) throw new Error(`页型无落点: ${type}`);
+  return pattern
     .replaceAll('{repo}', repo ?? '')
     .replaceAll('{title}', title ?? '')
-    .replaceAll('{topic}', topic ?? '')
-    .replaceAll('{member}', flowFile ?? '');
+    .replaceAll('{topic}', topic ?? '');
 }
 
 // 兼容旧具名导出：从注册表派生。
 const reg = loadRegistry();
-export const FLOW_FILES = reg.types.flow.members;
+export const FLOW_FILES = Object.keys(reg.types.flow.members);
 export const TYPE_FILE = Object.fromEntries(
   Object.entries(reg.types).filter(([, d]) => d.template).map(([k, d]) => [k, d.template]),
 );

@@ -86,24 +86,22 @@ export async function lintKnowledgeBase({ kbRoot }) {
       });
     }
 
-    // 数据化 linkage：遍历 registry 中该型的规则，任一匹配子命中即通过。
+    // 数据化 linkage：needField=该 frontmatter 字段非空；needLink=任一出链含任一子串。
+    // 一条规则任一谓词满足即通过。
     const def = loadRegistry().types[page.type];
     if (def && Array.isArray(def.linkage)) {
       for (const rule of def.linkage) {
         let pass = false;
-        if (rule.requireFrontmatter) {
-          pass = arrayValue(page[rule.requireFrontmatter]).length > 0;
+        if (rule.needField) {
+          pass = arrayValue(page[rule.needField]).length > 0;
         }
-        if (!pass && Array.isArray(rule.linkPrefixAny)) {
-          pass = page.outgoingLinks.some((l) => rule.linkPrefixAny.some((p) => l.startsWith(p)));
-        }
-        if (!pass && Array.isArray(rule.linkContainsAny)) {
-          pass = page.outgoingLinks.some((l) => rule.linkContainsAny.some((c) => l.includes(c)));
+        if (!pass && Array.isArray(rule.needLink)) {
+          pass = page.outgoingLinks.some((l) => rule.needLink.some((s) => l.includes(s)));
         }
         if (!pass) {
           issues.push({
             severity: 'warning',
-            type: rule.issueType || 'linkage',
+            type: 'linkage',
             page: page.relativePath,
             message: rule.message,
           });

@@ -30,8 +30,7 @@ types:
     view: contract
     summary: 跨边界契约，定义一次被多 flow 引用
     linkage:
-      - linkPrefixAny: [repos/]
-        issueType: contract-linkage
+      - needLink: [repos/]
         message: Contract page should link producer or consumer repo/module pages
   module:
     template: module
@@ -47,7 +46,7 @@ types:
     template: architecture
     target: global/architecture/system-architecture.md
     view: logical
-    enumType: architecture
+    pageType: architecture          # scaffold system-architecture 产出的页面 type: architecture
     summary: 工作区唯一人工叙事总览（复用 architecture 模板）
   api-surface:
     template: api-surface
@@ -59,12 +58,6 @@ types:
     target: repos/{repo}/data-models.md
     view: development
     summary: 仓内核心数据结构
-  data-models:
-    template: data-models
-    target: repos/{repo}/data-models.md
-    view: development
-    enumType: data-model
-    summary: data-model 的文件名别名
   config:
     template: config
     target: repos/{repo}/config-and-env.md
@@ -75,12 +68,6 @@ types:
     target: repos/{repo}/key-implementations.md
     view: development
     summary: 仓内关键实现点
-  key-implementations:
-    template: key-implementations
-    target: repos/{repo}/key-implementations.md
-    view: development
-    enumType: implementation
-    summary: implementation 的文件名别名
   runtime-notes:
     template: runtime-notes
     target: repos/{repo}/runtime-notes.md
@@ -95,8 +82,8 @@ types:
     template: candidate-flow
     target: repos/{repo}/candidate-flow.md
     view: runtime
-    enumType: candidate
-    summary: candidate 的文件名别名
+    pageType: candidate              # scaffold candidate-flow（ingest 在用）产出的页面 type: candidate
+    summary: candidate 的文件名别名（scaffold candidate-flow）
   coverage:
     template: coverage
     target: global/architecture/coverage.md
@@ -107,21 +94,33 @@ types:
     target: global/extra/{title}.md
     view: meta
     summary: 不属于标准页型的补充页
-  flow:
-    template: null
-    family: flow
-    target: repos/{repo}/flows/{topic}/{member}.md
+  flow:                              # 复合型：六件套，每个成员各有自己的 template+target
     view: runtime
     summary: deep-analysis 深流程产物，一文件夹六件
-    members: [调用树, 主干流程, 分支主题, 跨边界数据流, 数据结构, 自查报告]
     linkage:
-      - requireFrontmatter: domain
-        issueType: flow-linkage
+      - needField: domain
         message: Flow page is missing domain metadata
-      - linkPrefixAny: [global/contracts/]
-        linkContainsAny: ['/modules/']
-        issueType: flow-linkage
+      - needLink: [global/contracts/, /modules/]
         message: Flow page should link related contracts or modules
+    members:
+      调用树:
+        template: flow/调用树
+        target: repos/{repo}/flows/{topic}/调用树.md
+      主干流程:
+        template: flow/主干流程
+        target: repos/{repo}/flows/{topic}/主干流程.md
+      分支主题:
+        template: flow/分支主题
+        target: repos/{repo}/flows/{topic}/分支主题.md
+      跨边界数据流:
+        template: flow/跨边界数据流
+        target: repos/{repo}/flows/{topic}/跨边界数据流.md
+      数据结构:
+        template: flow/数据结构
+        target: repos/{repo}/flows/{topic}/数据结构.md
+      自查报告:
+        template: flow/自查报告
+        target: repos/{repo}/flows/{topic}/自查报告.md
   risk:
     template: null
     target: null
