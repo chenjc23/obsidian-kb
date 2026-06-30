@@ -6,6 +6,8 @@
 
 ## 页型索引
 
+> 下表 `<!-- GENERATED -->` 区段由 `registry.yaml`（用途/模板）+ 各模板正文 `## section`（必需边界）经 `generate-docs` 生成，**勿手改**。
+
 | 页型(type) | 用途一句话 | 模板 | 刚性边界（lint 校验必需 section） |
 |---|---|---|---|
 <!-- GENERATED:page-shapes:start -->

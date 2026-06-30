@@ -24,6 +24,7 @@ description: Use whenever creating, editing, or reviewing multi-repository Obsid
 
 | 文件 | 内容 | 何时查 |
 |---|---|---|
+| `registry.yaml` | **结构唯一来源**：每页型 落点/视图/lint 连接规则、通用 schema 与枚举。代码读它，参考文档由 `generate-docs` 从它生成 | 改落点/视图/lint/枚举（维护者职责）；改完跑 `generate-docs` |
 | [references/view-model.md](references/view-model.md) | 五视图定义、domain/use-case 名词动词之分、type→view 映射、查询路径 | 决定页面归属哪个视图、用例 vs 域分不清时 |
 | [references/directory-contract.md](references/directory-contract.md) | 锁定目录树、folder/file 判据、两种维护方式、增量约束 | 决定文件放哪、是否新建/合并页、增量该不该改某页 |
 | [references/frontmatter-schema.md](references/frontmatter-schema.md) | **唯一** frontmatter schema、三档字段、枚举、去重去冗余 | 每次写 frontmatter |

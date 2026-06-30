@@ -18,7 +18,8 @@
 |---|---|---|
 | **页面结构**（每页有哪些 section） | `obsidian-kb-authoring/templates/{type}.template.md` 真模板文件 | 新建页优先 `scaffold {type}` 生成页面骨架；lint 从模板反推必需 section；改结构改模板 |
 | **frontmatter 字段/枚举/默认值** | [frontmatter-schema.md](frontmatter-schema.md) | 每次写 frontmatter 查它 |
-| **目录路径/放哪/是否新建** | 本文件（directory-contract.md） | 决定文件落点查它 |
+| **目录路径/落点** | `registry.yaml` 的 `types.*.target`（本文件「落点速查」由其生成） | 决定文件落点查它；改落点改注册表 |
+| **放哪/是否新建/维护方式** | 本文件（directory-contract.md 叙事部分） | 取舍判断、增量约束查它 |
 | **双链关系/影响传播边** | [link-contract.md](link-contract.md) | 每次建关系、做影响分析查它 |
 
 > 其它 skill（ingest / deep-analysis / update / lint）**不得重新声明**结构、字段、路径或关系，只引用上述来源。

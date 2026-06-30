@@ -86,6 +86,8 @@ aliases:
 
 ## 枚举值
 
+> `type` 枚举的机器可读单一来源是 `registry.yaml` 的 `types` 键集；下方 `<!-- GENERATED -->` 区段由 `generate-docs` 生成，**勿手改**——新增/改页型改注册表后重新生成。`confidence`/`status` 取值同样以 `registry.yaml` 的 `schema` 段为准。
+
 **`type`：**
 <!-- GENERATED:type-enum:start -->
 `use-case` · `domain` · `glossary` · `contract` · `module` · `architecture` · `api-surface` · `data-model` · `config` · `implementation` · `runtime-notes` · `candidate` · `coverage` · `extra` · `flow` · `risk` · `index` · `log`

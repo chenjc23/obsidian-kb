@@ -41,6 +41,8 @@
 
 视图透镜由 `type` 派生，query/lint 按此表现算，不在页面存储。
 
+> 下表 `<!-- GENERATED -->` 区段由 `registry.yaml` 的 `types.*.view` 经 `generate-docs` 生成，**勿手改**。
+
 | `type` | 视图透镜 |
 |---|---|
 <!-- GENERATED:type-view:start -->
