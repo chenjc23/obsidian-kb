@@ -18,7 +18,7 @@
 |---|---|---|
 | **页面结构**（每页有哪些 section） | `obsidian-kb-authoring/templates/{type}.template.md` 真模板文件 | 新建页优先 `scaffold {type}` 生成页面骨架；lint 从模板反推必需 section；改结构改模板 |
 | **frontmatter 字段/枚举/默认值** | [frontmatter-schema.md](frontmatter-schema.md) | 每次写 frontmatter 查它 |
-| **目录路径/落点** | `registry.yaml` 的 `types.*.target`（本文件「落点速查」由其生成） | 决定文件落点查它；改落点改注册表 |
+| **目录路径/落点** | `registry.yaml` 的 `types.*.target`（本文件「目录树」由其生成） | 决定文件落点查它；改落点改注册表 |
 | **放哪/是否新建/维护方式** | 本文件（directory-contract.md 叙事部分） | 取舍判断、增量约束查它 |
 | **双链关系/影响传播边** | [link-contract.md](link-contract.md) | 每次建关系、做影响分析查它 |
 
@@ -26,48 +26,49 @@
 
 ## 目录树
 
+> 下面这棵树由 `registry.yaml` 的 `types.*.target` 经 `generate-docs` 生成（叶子注释取自页型 `summary`），**勿手改**。`{title}`/`{repo}`/`{topic}` 为占位。视图归属、增量"只新增不改旧"、三种维护方式等叙事见下方 `页面取舍` / `维护方式`。
+>
+> 树中**不出现**的两类文件：`repos/{repo}/testing-strategy.md`（视图正交的 dev-process facet，有内容才生成，非正式页型）；以及依赖图/技术栈/影响面（不物化成页，由 query 现算）。
+
+<!-- GENERATED:dir-tree:start -->
 ```text
 code-kb/
-  index.md                      # 入口:链向五视图各 catalog        (人工叙事)
-  log.md                        # 知识库操作流水                    (只追加)
-
-  # ── 工作区层:全部收进 global/(对应 frontmatter repo: global)──
+  index.md  # 入口，链向五视图各 catalog（人工叙事）
+  log.md  # 知识库操作流水（只追加）
   global/
-    use-cases/                  # 用例视图(+1):跨仓场景目录 = agent 主入口
-      {用例名}.md               #   (只新增,不改旧)
-    domains/                    # 逻辑视图:业务域
-      {业务域}.md               #   (只新增,不改旧)
-    contracts/                  # 契约视图:跨边界契约
-      {契约名}.md               #   (只新增,不改旧)
-    architecture/               # 逻辑视图·工作区架构
-      system-architecture.md    #   工作区唯一人工叙事总览(增量不碰;跨仓结构变化由 update 刷新)
-      coverage.md               #   覆盖记录:已挖到哪、哪条跨仓边还没接上(只追加)
-    # 运行视图活在 repos/{repo}/flows/ 深挖 + use-cases（type:flow 派生为运行视图）,无工作区目录。
-    # 影响分析纯查询派生:query 沿 depends-on + 反向双链现算影响范围,不落页。
-    extra/                      # 辅助页:五视图都承载不了的外部知识(可选,update 模式 B 专用)
-      {标题}.md                 #   type:extra, init 不预建
-
-  # ── 仓库层:每仓五视图细节,保持扁平(与 global/ 并列)──
-  repos/{repo-name}/
-    architecture.md             # 逻辑:本仓架构结构 + 仓库路由(链向 modules/flows/契约)
-    glossary.md                 # 逻辑:术语→链接索引(不存第二份定义)
-    api-surface.md              # 契约:本仓对外接口面
-    data-models.md              # 数据:结构
-    config-and-env.md           # 实现/运行:配置与环境
-    key-implementations.md      # 实现:复杂算法/核心逻辑
-    runtime-notes.md            # 运行:error-handling + gotchas 合并(薄时合并,有量才拆回)
-    testing-strategy.md         # 视图正交的 dev-process facet,有内容才生成
-    candidate-flow.md           # 运行:全量已识别流程清单(自动深挖进度)
-    modules/{模块名}.md         # 实现:多实例 → 文件夹
-    flows/                      # 运行/用例:每个深挖流程一个文件夹(无单文件浅流程页)
-      {分析主题}/               #   obsidian-kb-deep-analysis 产物
-        调用树.md
-        主干流程.md
-        {分支主题}.md
-        跨边界数据流.md
-        数据结构.md
-        自查报告.md
+    use-cases/
+      {title}.md  # 跨仓端到端业务场景，编排 + 链接为主
+    domains/
+      {title}.md  # 业务域概念字典
+    contracts/
+      {title}.md  # 跨边界契约，定义一次被多 flow 引用
+    architecture/
+      coverage.md  # 工作区覆盖记录（唯一、只追加）
+      system-architecture.md  # 工作区唯一人工叙事总览（复用 architecture 模板）
+    extra/
+      {title}.md  # 不属于标准页型的补充页
+  repos/
+    {repo}/
+      glossary.md  # 仓内术语→链接索引
+      modules/
+        {title}.md  # 单模块职责 + 依赖
+      architecture.md  # 仓库逻辑视图 + 路由 + 架构图
+      api-surface.md  # 仓内对外接口面
+      data-models.md  # 仓内核心数据结构
+      config-and-env.md  # 仓内配置与环境
+      key-implementations.md  # 仓内关键实现点
+      runtime-notes.md  # 仓内运行注记（错误/重试/陷阱）
+      candidate-flow.md  # 全量已识别流程清单（自动深挖进度）
+      flows/
+        {topic}/
+          调用树.md
+          主干流程.md
+          分支主题.md
+          跨边界数据流.md
+          数据结构.md
+          自查报告.md
 ```
+<!-- GENERATED:dir-tree:end -->
 
 ### 页面取舍
 
@@ -117,30 +118,3 @@ code-kb/
 - 持久知识住在可读页面里：`global/use-cases/`、`global/domains/`、`global/contracts/`、`repos/`、`global/architecture/system-architecture.md` 是知识的权威来源；`global/architecture/coverage.md` 是覆盖度与盲区的权威来源。
 - `coverage.md` **不**是派生地图：它记的是 query 算不出来的东西——"还没 ingest 的仓"和"只找到一端的边"。已 ingest 范围内的依赖/影响仍由 query 现算，不进 coverage。
 
-## 落点速查（生成）
-
-> 由 `registry.yaml` 的 `types.*.target` 经 `generate-docs` 生成，**勿手改**。`{repo}`/`{title}`/`{topic}`/`{member}` 为 scaffold 占位。
-
-| scaffold 标识 | 落点 |
-|---|---|
-<!-- GENERATED:target-leaves:start -->
-| `api-surface` | `repos/{repo}/api-surface.md` |
-| `architecture` | `repos/{repo}/architecture.md` |
-| `candidate` | `repos/{repo}/candidate-flow.md` |
-| `candidate-flow` | `repos/{repo}/candidate-flow.md` |
-| `config` | `repos/{repo}/config-and-env.md` |
-| `contract` | `global/contracts/{title}.md` |
-| `coverage` | `global/architecture/coverage.md` |
-| `data-model` | `repos/{repo}/data-models.md` |
-| `data-models` | `repos/{repo}/data-models.md` |
-| `domain` | `global/domains/{title}.md` |
-| `extra` | `global/extra/{title}.md` |
-| `flow` | `repos/{repo}/flows/{topic}/{member}.md` |
-| `glossary` | `repos/{repo}/glossary.md` |
-| `implementation` | `repos/{repo}/key-implementations.md` |
-| `key-implementations` | `repos/{repo}/key-implementations.md` |
-| `module` | `repos/{repo}/modules/{title}.md` |
-| `runtime-notes` | `repos/{repo}/runtime-notes.md` |
-| `system-architecture` | `global/architecture/system-architecture.md` |
-| `use-case` | `global/use-cases/{title}.md` |
-<!-- GENERATED:target-leaves:end -->

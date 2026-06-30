@@ -128,9 +128,11 @@ types:
     view: runtime
   index:
     template: null
-    target: null
+    target: index.md
     view: meta
+    summary: 入口，链向五视图各 catalog（人工叙事）
   log:
     template: null
-    target: null
+    target: log.md
     view: meta
+    summary: 知识库操作流水（只追加）
