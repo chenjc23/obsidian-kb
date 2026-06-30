@@ -34,6 +34,7 @@ export async function buildIndex({ kbRoot, writeIndexes = true }) {
     const relativePath = path.relative(kbRoot, fullPath).replace(/\\/g, '/');
     const parsed = parseFrontmatter(markdown);
     const page = {
+      ...parsed.data,
       relativePath,
       title: parsed.data.title || path.basename(relativePath, '.md'),
       type: parsed.data.type || '',
@@ -47,6 +48,7 @@ export async function buildIndex({ kbRoot, writeIndexes = true }) {
       confidence: parsed.data.confidence || '',
       status: parsed.data.status || '',
       outgoingLinks: extractWikiLinks(markdown),
+      data: parsed.data,
     };
     pages.push(page);
   }
