@@ -1,30 +1,23 @@
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { loadRegistry, templatesDir } from './registry.mjs';
 
-const HERE = path.dirname(fileURLToPath(import.meta.url));
-// templates 在 authoring skill 下；lib/ 在 using-obsidian/scripts/lib
-export function templatesDir() {
-  return path.resolve(HERE, '../../../obsidian-kb-authoring/templates');
+export { templatesDir };
+
+function typeDef(type) {
+  const def = loadRegistry().types[type];
+  if (!def) throw new Error(`未知页型: ${type}`);
+  return def;
 }
-
-const TYPE_FILE = { /* type → 模板文件名(无扩展) */
-  'use-case': 'use-case', domain: 'domain', contract: 'contract', coverage: 'coverage',
-  module: 'module', architecture: 'architecture', 'system-architecture': 'architecture',
-  candidate: 'candidate-flow', 'candidate-flow': 'candidate-flow', glossary: 'glossary',
-  'api-surface': 'api-surface', 'data-model': 'data-models', 'data-models': 'data-models',
-  config: 'config', 'runtime-notes': 'runtime-notes', implementation: 'key-implementations',
-  'key-implementations': 'key-implementations', extra: 'extra',
-};
 
 export function loadTemplate(type, flowFile) {
   if (type === 'flow') {
     if (!flowFile) throw new Error('flow 需指定 flowFile');
     return readFileSync(path.join(templatesDir(), 'flow', `${flowFile}.template.md`), 'utf8');
   }
-  const name = TYPE_FILE[type];
-  if (!name) throw new Error(`未知页型: ${type}`);
-  return readFileSync(path.join(templatesDir(), `${name}.template.md`), 'utf8');
+  const def = typeDef(type);
+  if (!def.template) throw new Error(`页型无模板: ${type}`);
+  return readFileSync(path.join(templatesDir(), `${def.template}.template.md`), 'utf8');
 }
 
 export function fillMechanical(text, { title = '', repo = '', date }) {
@@ -49,27 +42,19 @@ export function requiredSections(type, flowFile) {
   return out;
 }
 
-// 镜像 directory-contract.md 的落点路径——改目录契约必须同步这里。
-const FLOW_FILES = ['调用树', '主干流程', '分支主题', '跨边界数据流', '数据结构', '自查报告'];
 export function targetPath(type, { repo, title, topic, flowFile } = {}) {
-  switch (type) {
-    case 'module': return `repos/${repo}/modules/${title}.md`;
-    case 'contract': return `global/contracts/${title}.md`;
-    case 'coverage': return 'global/architecture/coverage.md';
-    case 'use-case': return `global/use-cases/${title}.md`;
-    case 'domain': return `global/domains/${title}.md`;
-    case 'system-architecture': return 'global/architecture/system-architecture.md';
-    case 'architecture': return `repos/${repo}/architecture.md`;
-    case 'candidate-flow': case 'candidate': return `repos/${repo}/candidate-flow.md`;
-    case 'glossary': return `repos/${repo}/glossary.md`;
-    case 'api-surface': return `repos/${repo}/api-surface.md`;
-    case 'data-models': case 'data-model': return `repos/${repo}/data-models.md`;
-    case 'config': return `repos/${repo}/config-and-env.md`;
-    case 'runtime-notes': return `repos/${repo}/runtime-notes.md`;
-    case 'key-implementations': case 'implementation': return `repos/${repo}/key-implementations.md`;
-    case 'extra': return `global/extra/${title}.md`;
-    case 'flow': return `repos/${repo}/flows/${topic}/${flowFile}.md`;
-    default: throw new Error(`未知页型: ${type}`);
-  }
+  const def = typeDef(type);
+  if (!def.target) throw new Error(`页型无落点: ${type}`);
+  return def.target
+    .replaceAll('{repo}', repo ?? '')
+    .replaceAll('{title}', title ?? '')
+    .replaceAll('{topic}', topic ?? '')
+    .replaceAll('{member}', flowFile ?? '');
 }
-export { FLOW_FILES, TYPE_FILE };
+
+// 兼容旧具名导出：从注册表派生。
+const reg = loadRegistry();
+export const FLOW_FILES = reg.types.flow.members;
+export const TYPE_FILE = Object.fromEntries(
+  Object.entries(reg.types).filter(([, d]) => d.template).map(([k, d]) => [k, d.template]),
+);
