@@ -1,11 +1,11 @@
 ---
 name: obsidian-kb-query
-description: Use to retrieve read-only business, architecture, flow, contract, module, dependency, risk, and source evidence context from a multi-repository Obsidian code knowledge base for agents at any development stage. Triggers on "这块业务怎么实现的", "在哪改", "改这个字段/接口会影响哪些流程", "trace impact", or any need for context before coding, design, debugging, review, or testing.
+description: Use to retrieve read-only business, architecture, flow, contract, submodule, dependency, risk, and source evidence context from a multi-repository Obsidian code knowledge base for agents at any development stage. Triggers on "这块业务怎么实现的", "在哪改", "改这个字段/接口会影响哪些流程", "trace impact", or any need for context before coding, design, debugging, review, or testing.
 ---
 
 # Obsidian KB Query：只读上下文检索
 
-给 agent 用的只读上下文检索协议。不只是回答人类提问——agent 在需求理解、方案设计、定位实现、影响面判断、调试、评审、测试前，凡是需要业务背景、代码流程、模块边界、契约、依赖、风险证据，都先走这里。
+给 agent 用的只读上下文检索协议。不只是回答人类提问——agent 在需求理解、方案设计、定位实现、影响面判断、调试、评审、测试前，凡是需要业务背景、代码流程、仓/子模块边界、契约、依赖、风险证据，都先走这里。
 
 知识库的结构、frontmatter、页面形状、链接契约全部以 `obsidian-kb-authoring` 的 `references/` 为准，本 skill 只负责**怎么检索**，不重复声明结构。
 
@@ -30,13 +30,13 @@ query 只读。默认不跑 ingest / update / deep-analysis，不写任何东西
 先判断问题落在哪个视图，再选合适入口：
 
 ```text
-业务/场景问题        → use-cases → flows / contracts / domains
-概念/边界问题        → domains / glossary → architecture / flows / modules
-实现定位问题         → architecture → modules / flows / sources
-接口/协议/消息问题    → contracts / api-surface → producer / consumer / flows
-调试/运行问题        → flows → runtime-notes / contracts / modules
-评审/测试问题         → modules / flows → testing-strategy / runtime-notes
-影响分析问题         → 被改实体 → contracts / data-models / modules → 反向双链扩散
+业务/场景问题        → global/use-cases / repos/{repo}/usecases → flows / contracts / domains
+概念/边界问题        → domains / glossary → architecture / overview / submodules / flows
+实现定位问题         → architecture / overview → submodules / flows / sources
+接口/协议/消息问题    → contracts / api-surface / api-depend → producer / consumer / flows
+调试/运行问题        → flows → constraints / resource-analysis / contracts / submodules
+评审/测试问题         → submodules / flows → constraints / resource-analysis / human-interfaces
+影响分析问题         → 被改实体 → contracts / data-models / submodules / overview → 反向双链扩散
 ```
 
 进入锚点页后，再沿 `type`（及其派生视图透镜）、frontmatter 关系字段和正文双链收敛到足够回答问题的页。视图透镜由 `type` 派生（映射见 authoring `references/view-model.md`），共五个常驻视图：用例 / 逻辑 / 实现 / 运行 / 契约。。
@@ -59,7 +59,7 @@ query 只读。默认不跑 ingest / update / deep-analysis，不写任何东西
 
 **第二阶段·遍历（沿关系边扩散）。** 从锚点页开始，靠 `type`/页面所在 catalog 判方向、靠 frontmatter 关系字段和正文双链逐跳走：
 
-- 关系边（authoring `references/frontmatter-schema.md` Tier 3）：契约页的 `producer`/`consumer`、模块页的 `depends-on`、流程页的 `entry-point`/`related-contracts`/`related-flows`/`related-modules`。
+- 关系边（authoring `references/frontmatter-schema.md` Tier 3）：契约页的 `producer`/`consumer`、overview/submodule 页的 `depends-on`、流程页的 `entry-point`/`related-contracts`/`related-flows`/`related-submodules`。
 - 正文双链的**反向链**：谁链向了这页。影响面全押在它身上，缺一条反向链就静默漏报。
 
 定位用 `rg`，遍历用人工扫 frontmatter + 双链。
@@ -69,12 +69,12 @@ query 只读。默认不跑 ingest / update / deep-analysis，不写任何东西
 这类问题是一次**图遍历**，不是读一两页。
 
 1. 定位被改的类型/字段/消息：在 `data-models.md`、`api-surface.md`、`global/contracts/{X}` 和 frontmatter 里搜类型名、字段名、源文件、别名。
-2. 沿影响边逐跳扩散：契约页的 `producer`/`consumer`、模块页的 `depends-on`、流程页的 `related-contracts`/`entry-point`，**加上正文双链的反向链**，一路扩到 flows → use-cases。
+2. 沿影响边逐跳扩散：契约页的 `producer`/`consumer`、overview/submodule 页的 `depends-on`、流程页的 `related-contracts`/`entry-point`，**加上正文双链的反向链**，一路扩到 flows → use-cases。
 3. **现算影响范围**：沿 frontmatter `depends-on` + 正文反向双链做图遍历（无现成图，影响分析就是这次遍历本身）。
-4. 跨消息边界时，读 `global/contracts/{X}` + 该流程的 `跨边界数据流.md` + 收发两端模块；字段穿协议、MQ、RPC、event、socket、TLV 边界时尤其要追到接收方。
+4. 跨消息边界时，读 `global/contracts/{X}` + 该流程的 `跨边界数据流.md` + 收发两端 overview/submodule；字段穿协议、MQ、RPC、event、socket、TLV 边界时尤其要追到接收方。
    - 命中 `status: partial` 契约 = **已知的未接边**（对端仓还没 ingest）：这不是"无下游",而是影响面在此截断且对端未知。把它如实报进 `knowledge_gaps`（"X 契约对端待 ingest,影响可能延伸到未入库的仓"），别假装影响到此为止。
-5. 收尾读相关 `runtime-notes.md`（已知运行风险/陷阱）。
-6. 给出：受影响的 flows、契约、模块、数据结构、跨边界消息、测试、风险、知识缺口（含 coverage 里相关的待接合边/盲区）。
+5. 收尾读相关 `constraints.md` / `resource-analysis.md`（已知约束、运行风险、资源风险）。
+6. 给出：受影响的 flows、契约、overview/submodule、数据结构、跨边界消息、测试、风险、知识缺口（含 coverage 里相关的待接合边/盲区）。
 
 ## 答案充分性检查（强制：先补全再回答）
 

@@ -49,7 +49,7 @@ description: Use whenever creating, editing, or reviewing multi-repository Obsid
 - 知识 prose 默认中文。
 - 代码标识符、文件路径、API 名、协议名、库名、技术术语保持原文拼写。
 - 结论先行：前三行让 agent 明白这页为何重要。
-- 一页一主题。过大的 flow/module 页要拆，不要堆成不可读的巨页（folder/file 判据见目录契约）。
+- 一页一主题。过大的 flow/submodule 页要拆，不要堆成不可读的巨页（folder/file 判据见目录契约）。
 - 尊重人工内容：合并或追加，不覆盖。
 
 ## 写入前最终检查

@@ -26,13 +26,13 @@ flowchart TD
 <!-- 填:每层职责一句话 -->
 
 ## 核心模块（仓库路由）
-<!-- 填:[[repos/{repo}/modules/X]] · [[repos/{repo}/modules/Y]] -->
+<!-- 填:[[repos/{repo}/overview]] · [[repos/{repo}/submodules/{topic}/子模块设计]] -->
 
 ## 流程入口
 <!-- 填:业务最重要或调用链最长的流程入口;已深挖链 [[repos/{repo}/flows/{主题}]];全量识别流程见 [[repos/{repo}/candidate-flow]] -->
 
 ## 对外契约 / 数据
-<!-- 填:[[repos/{repo}/api-surface]] · [[repos/{repo}/data-models]] -->
+<!-- 填:[[repos/{repo}/api-surface]] · [[repos/{repo}/api-depend]] · [[repos/{repo}/data-models]] -->
 
 ## 设计模式
 <!-- 填:从代码识别的真实模式 -->

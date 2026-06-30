@@ -34,18 +34,19 @@ node using-obsidian/scripts/obsidian-kb.mjs describe tree
 
 `{title}`/`{repo}`/`{topic}` 为占位。视图归属、增量"只新增不改旧"、三种维护方式等叙事见下方 `页面取舍` / `维护方式`。
 
-树中**不出现**的两类文件：`repos/{repo}/testing-strategy.md`（视图正交的 dev-process facet，有内容才生成，非正式页型）；以及依赖图/技术栈/影响面（不物化成页，由 query 现算）。
+树中**不出现**的文件或目录：依赖图、技术栈、影响面（不物化成页，由 query 现算）。旧 `modules/`、`config-and-env.md`、`key-implementations.md`、`runtime-notes.md` 不再是目录契约的一部分，内容分别迁入 `overview/submodules`、`specifications`、`submodules/flows`、`constraints/resource-analysis`。
 
 ### 页面取舍
 
 - 工作区层全部住在 `global/` 下（`global/use-cases/`、`global/domains/`、`global/contracts/`、`global/architecture/`、`global/extra/`），对应 frontmatter `repo: global`；`index.md`/`log.md`/`repos/` 与 `global/` 并列。
-- 跨仓关注点不单独成页：接口归 `global/contracts/`、风险归仓内 `runtime-notes`、依赖与影响范围由 query 从 `depends-on` + 反向双链现算（不落页）。
+- 跨仓关注点不单独成页：接口归 `global/contracts/`，仓内对外接口归 `api-surface.md`，本仓依赖外部接口归 `api-depend.md`，风险与资源约束归 `constraints.md` / `resource-analysis.md`，依赖与影响范围由 query 从 `depends-on` + 反向双链现算（不落页）。
 - `global/architecture/coverage.md` 是工作区唯一的**覆盖记录**：记录每仓挖到什么深度、哪些跨仓边只找到一端还没接上、有哪些已知盲区。它让"增量永远不完整"变成可读的待补地图——agent 建立全局认识时必读，知道哪里能下结论、哪里是盲区。只追加，不做综合改写。
 - 跨仓边只先找到一端时建**单边契约**（`global/contracts/{X}` 标 `status: partial`），并在 `coverage.md` 待接合边表记录；等另一端的仓 ingest 进来再接合，不编造假对端。
 - `glossary` 是术语→链接索引，不存第二份定义。
-- `runtime-notes` 在 error-handling 与 gotchas 内容都较薄时合一；任一方内容量大时各自独立成页。它同时兼任跨边界/已知运行风险的人工笔记落点。
-- `global/extra/` 是**最后手段**：仅当一条外部知识与现有库毫无关联、且补齐 `global/domains/`、`global/contracts/`、`global/use-cases/` 视图层页后仍无页能承载时，才建 `global/extra/{标题}.md`。能进五视图的知识不许塞 `extra/`；`init` 不预建该目录。
-- 仓内不复刻视图文件夹；只有 `modules/`、`flows/` 这类多实例单元才成文件夹。
+- `overview.md` 是仓内模块定义、职责边界、上下文入口；具体模块细节进入 `submodules/{topic}/子模块设计.md` 与 `子模块约束.md`。
+- `specifications.md` 合并规格、配置和 feature flag；错误处理、设计约束、隐式约定进入 `constraints.md`，资源消耗、容量和退化策略进入 `resource-analysis.md`。
+- `global/extra/` 是**最后手段**：仅当一条外部知识与现有库毫无关联、且补齐 `global/domains/`、`global/contracts/`、`global/use-cases/` 视图层页后仍无页能承载时，才建 `global/extra/{标题}.md`。能进五视图的知识不许塞 `extra/`。
+- 仓内不复刻视图文件夹；只有 `usecases/`、`submodules/`、`flows/` 这类多实例单元才成文件夹。
 
 ## 工作区页面的维护方式（决定增量刷新行为）
 
@@ -83,4 +84,3 @@ node using-obsidian/scripts/obsidian-kb.mjs describe tree
 - 视图索引、依赖图、影响范围**靠 frontmatter 查询 + 双链遍历即时得出**，不物化。
 - 持久知识住在可读页面里：`global/use-cases/`、`global/domains/`、`global/contracts/`、`repos/`、`global/architecture/system-architecture.md` 是知识的权威来源；`global/architecture/coverage.md` 是覆盖度与盲区的权威来源。
 - `coverage.md` **不**是派生地图：它记的是 query 算不出来的东西——"还没 ingest 的仓"和"只找到一端的边"。已 ingest 范围内的依赖/影响仍由 query 现算，不进 coverage。
-

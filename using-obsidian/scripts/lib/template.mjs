@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
-import { loadRegistry, templatesDir } from './registry.mjs';
+import { loadRegistry, memberNames, templatesDir } from './registry.mjs';
 
 export { templatesDir };
 
@@ -42,12 +42,13 @@ export function requiredSections(type, member) {
   return out;
 }
 
-export function targetPath(type, { repo, title, topic, flowFile } = {}) {
+export function targetPath(type, { repo, title, topic, flowFile, member } = {}) {
   const def = typeDef(type);
   let pattern;
   if (def.members) {
-    if (!flowFile || !def.members[flowFile]) throw new Error(`${type} 需指定有效成员: ${flowFile}`);
-    pattern = def.members[flowFile].target;
+    const memberName = member ?? flowFile;
+    if (!memberName || !def.members[memberName]) throw new Error(`${type} 需指定有效成员: ${memberName}`);
+    pattern = def.members[memberName].target;
   } else {
     pattern = def.target;
   }
@@ -61,6 +62,9 @@ export function targetPath(type, { repo, title, topic, flowFile } = {}) {
 // 兼容旧具名导出：从注册表派生。
 const reg = loadRegistry();
 export const FLOW_FILES = Object.keys(reg.types.flow.members);
+export const MEMBER_FILES = Object.fromEntries(
+  Object.keys(reg.types).filter((type) => memberNames(type).length > 0).map((type) => [type, memberNames(type)]),
+);
 export const TYPE_FILE = Object.fromEntries(
   Object.entries(reg.types).filter(([, d]) => d.template).map(([k, d]) => [k, d.template]),
 );

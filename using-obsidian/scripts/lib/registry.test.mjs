@@ -69,32 +69,36 @@ test('throws when a template file is missing', async () => {
 
 // ── 迁移黄金对照：把今天的硬编码值钉成字面快照，证明搬运零偏差 ──
 
-const OLD_VALID = ['use-case', 'domain', 'glossary', 'flow', 'candidate', 'contract', 'module',
-  'architecture', 'api-surface', 'data-model', 'config', 'implementation', 'runtime-notes',
+const CURRENT_VALID = ['use-case', 'domain', 'glossary', 'flow', 'candidate', 'contract',
+  'overview', 'constraints', 'architecture', 'api-surface', 'api-depend', 'data-model',
+  'specifications', 'resource-analysis', 'human-interfaces', 'repo-usecase', 'submodule',
   'risk', 'index', 'log', 'coverage', 'extra'];
 
-// 清理后：删掉 data-models / key-implementations 两个死别名（无人 scaffold、落点重复）。
-const SCAFFOLDABLE = ['api-surface', 'architecture', 'candidate', 'candidate-flow', 'config',
-  'contract', 'coverage', 'data-model', 'domain', 'extra', 'flow', 'glossary',
-  'implementation', 'module', 'runtime-notes', 'system-architecture',
-  'use-case'].sort();
+const SCAFFOLDABLE = ['api-depend', 'api-surface', 'architecture', 'candidate', 'candidate-flow',
+  'constraints', 'contract', 'coverage', 'data-model', 'domain', 'extra', 'flow', 'glossary',
+  'human-interfaces', 'overview', 'repo-usecase', 'resource-analysis', 'specifications',
+  'submodule', 'system-architecture', 'use-case'].sort();
 
 const TARGET_GOLDEN = {
   'use-case': ['global/use-cases/T.md', { title: 'T' }],
   domain: ['global/domains/T.md', { title: 'T' }],
   contract: ['global/contracts/T.md', { title: 'T' }],
   coverage: ['global/architecture/coverage.md', {}],
-  module: ['repos/R/modules/T.md', { repo: 'R', title: 'T' }],
+  overview: ['repos/R/overview.md', { repo: 'R' }],
+  constraints: ['repos/R/constraints.md', { repo: 'R' }],
   architecture: ['repos/R/architecture.md', { repo: 'R' }],
   'system-architecture': ['global/architecture/system-architecture.md', {}],
   candidate: ['repos/R/candidate-flow.md', { repo: 'R' }],
   'candidate-flow': ['repos/R/candidate-flow.md', { repo: 'R' }],
   glossary: ['repos/R/glossary.md', { repo: 'R' }],
   'api-surface': ['repos/R/api-surface.md', { repo: 'R' }],
+  'api-depend': ['repos/R/api-depend.md', { repo: 'R' }],
   'data-model': ['repos/R/data-models.md', { repo: 'R' }],
-  config: ['repos/R/config-and-env.md', { repo: 'R' }],
-  'runtime-notes': ['repos/R/runtime-notes.md', { repo: 'R' }],
-  implementation: ['repos/R/key-implementations.md', { repo: 'R' }],
+  specifications: ['repos/R/specifications.md', { repo: 'R' }],
+  'resource-analysis': ['repos/R/resource-analysis.md', { repo: 'R' }],
+  'human-interfaces': ['repos/R/human-interfaces.md', { repo: 'R' }],
+  'repo-usecase': ['repos/R/usecases/T.md', { repo: 'R', title: 'T' }],
+  submodule: ['repos/R/submodules/TOPIC/子模块设计.md', { repo: 'R', topic: 'TOPIC', flowFile: '子模块设计' }],
   extra: ['global/extra/T.md', { title: 'T' }],
   flow: ['repos/R/flows/TOPIC/主干流程.md', { repo: 'R', topic: 'TOPIC', flowFile: '主干流程' }],
 };
@@ -103,9 +107,9 @@ test('GOLDEN: real registry loads and validates', () => {
   loadRegistry({ force: true });
 });
 
-test('GOLDEN: validTypes equals old VALID_TYPES', () => {
+test('GOLDEN: validTypes equals current directory contract', () => {
   loadRegistry({ force: true });
-  assert.deepEqual([...validTypes()].sort(), [...OLD_VALID].sort());
+  assert.deepEqual([...validTypes()].sort(), [...CURRENT_VALID].sort());
 });
 
 test('GOLDEN: scaffoldableTypes equals intended set (dead aliases dropped)', () => {

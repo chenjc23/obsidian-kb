@@ -47,7 +47,7 @@ related-flows:
   - repos/resource-service/flows/资源分配
 related-contracts:
   - CreateServiceOrder
-related-modules:
+related-submodules:
   - order-service/订单编排
 
 # contract 页(契约视图核心,producer/consumer 是影响传播边,强制 + 可校验)
@@ -58,10 +58,10 @@ consumer:
   - order-service                # status:partial 时,未知的一端留空,在 coverage.md 记录
 version: v1
 
-# module 页
+# overview / submodule 页
 public-entry:
   - src/modules/order/index.ts
-depends-on:                      # 模块依赖,影响分析遍历的边,强制 + 可校验
+depends-on:                      # 仓/子模块依赖,影响分析遍历的边,强制 + 可校验
   - resource-service/资源分配
 
 # use-case 页

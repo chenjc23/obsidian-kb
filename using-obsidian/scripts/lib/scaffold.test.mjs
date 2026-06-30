@@ -5,12 +5,12 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { scaffoldPage, scaffoldPartialContract } from './scaffold.mjs';
 
-test('scaffoldPage writes a module page with filled mechanical fields', async () => {
+test('scaffoldPage writes an overview page with filled mechanical fields', async () => {
   const root = await mkdtemp(path.join(tmpdir(), 'kb-'));
-  const res = await scaffoldPage({ kbRoot: root, type: 'module', repo: 'order-service', title: '订单编排' });
-  assert.deepEqual(res.created, ['repos/order-service/modules/订单编排.md']);
+  const res = await scaffoldPage({ kbRoot: root, type: 'overview', repo: 'order-service', title: '订单服务' });
+  assert.deepEqual(res.created, ['repos/order-service/overview.md']);
   const txt = await readFile(path.join(root, res.created[0]), 'utf8');
-  assert.match(txt, /title: 订单编排/);
+  assert.match(txt, /title: 订单服务/);
   assert.match(txt, /repo: order-service/);
   assert.doesNotMatch(txt, /\{\{/); // 无残留机械标记
 });
@@ -19,6 +19,15 @@ test('scaffoldPage flow generates six files', async () => {
   const root = await mkdtemp(path.join(tmpdir(), 'kb-'));
   const res = await scaffoldPage({ kbRoot: root, type: 'flow', repo: 'r', topic: 'T' });
   assert.equal(res.created.length, 6);
+});
+
+test('scaffoldPage submodule generates design and constraint files', async () => {
+  const root = await mkdtemp(path.join(tmpdir(), 'kb-'));
+  const res = await scaffoldPage({ kbRoot: root, type: 'submodule', repo: 'r', topic: 'T' });
+  assert.deepEqual(res.created.sort(), [
+    'repos/r/submodules/T/子模块约束.md',
+    'repos/r/submodules/T/子模块设计.md',
+  ]);
 });
 
 test('scaffoldPartialContract creates page and appends coverage row atomically', async () => {
@@ -37,8 +46,8 @@ test('scaffoldPartialContract creates page and appends coverage row atomically',
 
 test('scaffoldPage refuses existing file without force', async () => {
   const root = await mkdtemp(path.join(tmpdir(), 'kb-'));
-  await scaffoldPage({ kbRoot: root, type: 'module', repo: 'r', title: 'M' });
-  const res = await scaffoldPage({ kbRoot: root, type: 'module', repo: 'r', title: 'M' });
+  await scaffoldPage({ kbRoot: root, type: 'repo-usecase', repo: 'r', title: 'M' });
+  const res = await scaffoldPage({ kbRoot: root, type: 'repo-usecase', repo: 'r', title: 'M' });
   assert.equal(res.skipped.length, 1);
   assert.equal(res.created.length, 0);
 });

@@ -34,4 +34,4 @@ actors:
 <!-- 填:决定成败的分叉与验收标准 -->
 
 ## 风险链
-<!-- 填:[[repos/{repo}/runtime-notes#某警示]] -->
+<!-- 填:[[repos/{repo}/constraints#某约束]] · [[repos/{repo}/resource-analysis#某风险]] -->

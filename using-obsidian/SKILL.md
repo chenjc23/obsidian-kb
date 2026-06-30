@@ -7,7 +7,7 @@ description: Use when working with a multi-repository Obsidian code knowledge ba
 
 Use this as the entry point for the Obsidian/code-kb skill suite.
 
-The suite builds and operates a multi-repository knowledge base. The primary consumer is an agent that needs business, architecture, flow, contract, module, dependency, and risk context while doing software work.
+The suite builds and operates a multi-repository knowledge base. The primary consumer is an agent that needs business, architecture, flow, contract, repo/submodule, dependency, and risk context while doing software work.
 
 ## Default Paths
 
@@ -57,7 +57,10 @@ If the helper only resolves the default path and that path does not exist, perfo
 node {using-obsidian-skill-root}/scripts/obsidian-kb.mjs types
 
 # 按页型生成单页骨架（机械字段已填好，无 {{ }} 残留）
-node {…}/scripts/obsidian-kb.mjs scaffold module --repo {repo} --title {模块名} --kb-root {kb-root}
+node {…}/scripts/obsidian-kb.mjs scaffold overview --repo {repo} --title {仓库名} --kb-root {kb-root}
+
+# 子模块一次生成 2 件套（子模块设计/子模块约束）
+node {…}/scripts/obsidian-kb.mjs scaffold submodule --repo {repo} --topic {子模块主题} --kb-root {kb-root}
 
 # 深流程一次生成 6 件套（调用树/主干流程/分支主题/跨边界数据流/数据结构/自查报告）
 node {…}/scripts/obsidian-kb.mjs scaffold flow --repo {repo} --topic {分析主题} --kb-root {kb-root}
@@ -117,14 +120,14 @@ Call `obsidian-kb-query` when the agent needs business or code context:
 2. Before solution design.
 3. Before code modification.
 4. Before impact analysis.
-5. Before debugging business or cross-module flows.
+5. Before debugging business or cross-submodule flows.
 6. Before code review.
 7. Before test design.
 8. Before documentation or knowledge base maintenance.
 
 ## Deep Analysis Candidate Orchestration
 
-When `obsidian-kb-ingest` reaches deep-analysis execution, it must already have completed its earlier phases: repository terrain, modules, flow discovery/ranking, supporting pages, view-layer domain/contract extraction, bidirectional links, coverage, and log.
+When `obsidian-kb-ingest` reaches deep-analysis execution, it must already have completed its earlier phases: repository terrain, overview/submodules, flow discovery/ranking, supporting pages, view-layer domain/contract extraction, bidirectional links, coverage, and log.
 
 During ingest, Phase 3 discovers, deduplicates, and orders flows for analysis; Phase 8 is the single execution gate for deep analysis. Every identified flow runs automatically in that order. `candidate-flow.md` is the traceable ledger for all identified flows, analysis order, risk, and status.
 
@@ -136,7 +139,7 @@ If multiple flows need deep analysis and sub-agents are available, the main agen
 4. Review the result for obvious missing files, low-confidence gaps, or failed writes.
 5. Only then create the next sub-agent for the next queued flow.
 
-Do not create multiple deep-analysis sub-agents in parallel. Do not batch-create sub-agents. Do not create the next sub-agent until the previous sub-agent has fully completed and returned its result. Cross-flow parallelism is forbidden because deep analyses update shared pages such as `data-models.md`, `architecture.md`, `global/domains/`, `global/use-cases/`, `global/contracts/`, `runtime-notes.md`, and `log.md`.
+Do not create multiple deep-analysis sub-agents in parallel. Do not batch-create sub-agents. Do not create the next sub-agent until the previous sub-agent has fully completed and returned its result. Cross-flow parallelism is forbidden because deep analyses update shared pages such as `data-models.md`, `architecture.md`, `overview.md`, `constraints.md`, `resource-analysis.md`, `global/domains/`, `global/use-cases/`, `global/contracts/`, and `log.md`.
 
 If sub-agents are unavailable, the main agent must run the queued flows one by one in the same serial order.
 
@@ -157,7 +160,7 @@ Preserve these invariants:
 - Keep code identifiers, file paths, library names, API names, protocol names, and technical terms in original spelling.
 - Every generated page has Obsidian properties with `title`, `type`, `repo`, `created`, `updated`, `sources`, `confidence`, and `status`.
 - Do not invent code details. If evidence is incomplete, mark `confidence: low` and explain what is missing.
-- Maintain bidirectional wikilinks for meaningful domain, flow, contract, module, risk, and source relationships.
+- Maintain bidirectional wikilinks for meaningful domain, flow, contract, overview/submodule, risk, and source relationships.
 - Avoid orphan pages.
 - Record meaningful ingest, update, deep-analysis, and repair operations in `log.md`.
 - For communication-domain flows, continue through message, protocol, event, RPC, MQ, socket, and TLV boundaries when evidence exists in the workspace.

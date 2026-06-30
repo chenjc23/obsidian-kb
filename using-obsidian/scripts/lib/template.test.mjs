@@ -8,21 +8,22 @@ test('fillMechanical replaces all mechanical tokens', () => {
 });
 
 test('requiredSections lists ## headings minus optional', () => {
-  // module template has 职责/公共接口/依赖（出）/被依赖（入·反向链接）/相关流程
-  const secs = requiredSections('module');
-  assert.ok(secs.includes('职责'));
-  assert.ok(secs.includes('依赖（出）'));
+  const secs = requiredSections('overview');
+  assert.ok(secs.includes('仓库定位'));
+  assert.ok(secs.includes('职责边界'));
 });
 
 test('targetPath maps type to kb-relative path', () => {
-  assert.equal(targetPath('module', { repo: 'order-service', title: '订单编排' }), 'repos/order-service/modules/订单编排.md');
+  assert.equal(targetPath('overview', { repo: 'order-service' }), 'repos/order-service/overview.md');
   assert.equal(targetPath('contract', { title: 'OrderPaid' }), 'global/contracts/OrderPaid.md');
   assert.equal(targetPath('coverage', {}), 'global/architecture/coverage.md');
   assert.equal(targetPath('use-case', { title: '服务开通' }), 'global/use-cases/服务开通.md');
+  assert.equal(targetPath('repo-usecase', { repo: 'order-service', title: '服务开通' }), 'repos/order-service/usecases/服务开通.md');
+  assert.equal(targetPath('submodule', { repo: 'order-service', topic: '订单编排', member: '子模块设计' }), 'repos/order-service/submodules/订单编排/子模块设计.md');
   assert.equal(targetPath('flow', { repo: 'order-service', topic: '服务开通', flowFile: '主干流程' }), 'repos/order-service/flows/服务开通/主干流程.md');
 });
 
 test('loadTemplate returns text for known type and throws for unknown', () => {
-  assert.match(loadTemplate('module'), /type: module/);
+  assert.match(loadTemplate('overview'), /type: overview/);
   assert.throws(() => loadTemplate('nope'));
 });

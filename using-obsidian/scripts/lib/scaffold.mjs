@@ -6,7 +6,7 @@ import {
   loadTemplate,
   fillMechanical,
   targetPath,
-  FLOW_FILES,
+  MEMBER_FILES,
   TYPE_FILE,
 } from './template.mjs';
 
@@ -24,10 +24,11 @@ export async function scaffoldPage({ kbRoot, type, repo, title, topic, force = f
   const created = [];
   const skipped = [];
 
-  const targets = type === 'flow'
-    ? FLOW_FILES.map((flowFile) => ({
-      relativePath: targetPath('flow', { repo, topic, flowFile }),
-      content: fillMechanical(loadTemplate('flow', flowFile), { title: title || topic, repo }),
+  const members = MEMBER_FILES[type] || [];
+  const targets = members.length > 0
+    ? members.map((member) => ({
+      relativePath: targetPath(type, { repo, topic, member }),
+      content: fillMechanical(loadTemplate(type, member), { title: title || topic, repo }),
     }))
     : [{
       relativePath: targetPath(type, { repo, title, topic }),

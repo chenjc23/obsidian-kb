@@ -5,8 +5,8 @@ schema:
   confidence: [high, medium, low]
   status: [active, partial, draft, deprecated]
   # init 预建目录的显式单一来源（从 init.mjs 搬来）。
-  # global/extra 与仓内子目录有意不在其中（延续 init 不预建 extra 的约定）。
-  initDirs: [global/use-cases, global/domains, global/contracts, global/architecture, repos]
+  # 仓内目录需要 repo 名，init 只预建工作区层与 repos 根。
+  initDirs: [global/use-cases, global/domains, global/contracts, global/architecture, global/extra, repos]
 
 types:
   use-case:
@@ -19,11 +19,6 @@ types:
     target: global/domains/{title}.md
     view: logical
     summary: 业务域概念字典
-  glossary:
-    template: glossary
-    target: repos/{repo}/glossary.md
-    view: logical
-    summary: 仓内术语→链接索引
   contract:
     template: contract
     target: global/contracts/{title}.md
@@ -31,17 +26,27 @@ types:
     summary: 跨边界契约，定义一次被多 flow 引用
     linkage:
       - needLink: [repos/]
-        message: Contract page should link producer or consumer repo/module pages
-  module:
-    template: module
-    target: repos/{repo}/modules/{title}.md
+        message: Contract page should link producer or consumer repo pages, submodule pages, or flow pages
+  overview:
+    template: overview
+    target: repos/{repo}/overview.md
     view: development
-    summary: 单模块职责 + 依赖
+    summary: 模块定义、职责边界、上下文
+  constraints:
+    template: constraints
+    target: repos/{repo}/constraints.md
+    view: development
+    summary: 设计约束与原则
   architecture:
     template: architecture
     target: repos/{repo}/architecture.md
     view: logical
     summary: 仓库逻辑视图 + 路由 + 架构图
+  glossary:
+    template: glossary
+    target: repos/{repo}/glossary.md
+    view: logical
+    summary: 仓内术语→链接索引
   system-architecture:
     template: architecture
     target: global/architecture/system-architecture.md
@@ -53,26 +58,31 @@ types:
     target: repos/{repo}/api-surface.md
     view: contract
     summary: 仓内对外接口面
+  api-depend:
+    template: api-depend
+    target: repos/{repo}/api-depend.md
+    view: contract
+    summary: 本仓依赖外部接口
   data-model:
     template: data-models
     target: repos/{repo}/data-models.md
     view: development
     summary: 仓内核心数据结构
-  config:
-    template: config
-    target: repos/{repo}/config-and-env.md
+  specifications:
+    template: specifications
+    target: repos/{repo}/specifications.md
     view: development
-    summary: 仓内配置与环境
-  implementation:
-    template: key-implementations
-    target: repos/{repo}/key-implementations.md
+    summary: 规格/可配置项/特性开关
+  resource-analysis:
+    template: resource-analysis
+    target: repos/{repo}/resource-analysis.md
     view: development
-    summary: 仓内关键实现点
-  runtime-notes:
-    template: runtime-notes
-    target: repos/{repo}/runtime-notes.md
+    summary: 资源占用分析
+  human-interfaces:
+    template: human-interfaces
+    target: repos/{repo}/human-interfaces.md
     view: runtime
-    summary: 仓内运行注记（错误/重试/陷阱）
+    summary: 人机接口（CLI/MIB/SNMP）
   candidate:
     template: candidate-flow
     target: repos/{repo}/candidate-flow.md
@@ -94,14 +104,29 @@ types:
     target: global/extra/{title}.md
     view: meta
     summary: 不属于标准页型的补充页
+  repo-usecase:
+    template: repo-usecase
+    target: repos/{repo}/usecases/{title}.md
+    view: usecase
+    summary: 每个行为场景一个文件
+  submodule:
+    view: development
+    summary: 仓内子模块设计与约束，一主题一文件夹
+    members:
+      子模块设计:
+        template: submodule/子模块设计
+        target: repos/{repo}/submodules/{topic}/子模块设计.md
+      子模块约束:
+        template: submodule/子模块约束
+        target: repos/{repo}/submodules/{topic}/子模块约束.md
   flow:                              # 复合型：六件套，每个成员各有自己的 template+target
     view: runtime
     summary: deep-analysis 深流程产物，一文件夹六件
     linkage:
       - needField: domain
         message: Flow page is missing domain metadata
-      - needLink: [global/contracts/, /modules/]
-        message: Flow page should link related contracts or modules
+      - needLink: [global/contracts/, /submodules/, /overview]
+        message: Flow page should link related contracts, submodules, or repo overview
     members:
       调用树:
         template: flow/调用树

@@ -88,7 +88,7 @@ See [[domains/Domain A]] and [[contracts/Contract A|contract]].
 });
 
 test('extractWikiLinks ignores links inside HTML comments', () => {
-  const note = '# X\nReal [[domains/Real]].\n<!-- 填:示例 [[repos/{repo}/modules/X]] 不算链接 -->';
+  const note = '# X\nReal [[domains/Real]].\n<!-- 填:示例 [[repos/{repo}/submodules/X/子模块设计]] 不算链接 -->';
   assert.deepEqual(extractWikiLinks(note), ['domains/Real']);
 });
 
@@ -221,10 +221,10 @@ test('lintKnowledgeBase reports missing template-required sections', async () =>
   const kbRoot = path.join(workspace, 'code-kb');
   try {
     await initKnowledgeBase({ kbRoot });
-    // module 页缺 `## 依赖（出）` 等模板必需 section。
-    await writeNote(kbRoot, 'repos/svc/modules/M.md', `---
+    // overview 页缺 `## 职责边界` 等模板必需 section。
+    await writeNote(kbRoot, 'repos/svc/overview.md', `---
 title: M
-type: module
+type: overview
 repo: svc
 created: 2026-06-25
 updated: 2026-06-25
@@ -236,12 +236,12 @@ sources:
 # 模块：M
 See [[contracts/X]].
 
-## 职责
+## 仓库定位
 负责编排。
 `);
     const result = await lintKnowledgeBase({ kbRoot });
     assert.equal(
-      result.issues.some((issue) => issue.type === 'template' && /依赖（出）/.test(issue.message)),
+      result.issues.some((issue) => issue.type === 'template' && /职责边界/.test(issue.message)),
       true,
     );
   } finally {

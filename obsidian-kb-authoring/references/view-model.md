@@ -13,9 +13,9 @@
 |---|---|---|---|---|---|
 | 用例视图（+1） | `usecase` | 用户/外部系统**想完成什么** | 动态·行为 | `global/use-cases/` | 工作区为主 |
 | 逻辑视图 | `logical` | 系统里**有哪些业务概念与架构结构** | 静态·结构 | `global/domains/`、`global/architecture/`、仓内 `architecture`/`glossary` | 工作区为主 + 仓内架构 |
-| 实现视图 | `development` | 代码**怎么落地、复用和配置** | 静态·代码 | 仓内 `modules`/`data-models`/`key-implementations`/`config-and-env`/`testing-strategy` | 仓内为主 |
-| 运行视图 | `runtime` | 运行时**发生了什么** | 动态·流程 | 仓内 `flows/`、深流程 | 仓内为主 |
-| 契约视图 | `contract` | 跨边界**怎么对话** | 静态·接口 | `global/contracts/`、仓内 `api-surface` | 工作区为主 |
+| 实现视图 | `development` | 代码**怎么落地、复用和配置** | 静态·代码 | 仓内 `overview`/`constraints`/`submodules`/`data-models`/`specifications`/`resource-analysis` | 仓内为主 |
+| 运行视图 | `runtime` | 运行时**发生了什么** | 动态·流程 | 仓内 `flows/`、`candidate-flow`、`human-interfaces` | 仓内为主 |
+| 契约视图 | `contract` | 跨边界**怎么对话** | 静态·接口 | `global/contracts/`、仓内 `api-surface`/`api-depend` | 工作区为主 |
 
 ## 用例视图 vs 逻辑视图（容易混淆，必须分清）
 
@@ -35,7 +35,7 @@
 
 - use-case 页**只为"多 flow / 跨仓"端到端场景而建**，内容以**编排 + 链接**为主，不复述 flow 内部细节。
 - 单个 flow 就能讲完的场景，**不开 use-case 页**——它作为运行视图的 `flow` 存在；够格当 agent 入口时才升一个轻量编排型 `use-case` 页。
-- use-case 是 agent 的**入口编排层**：`index.md → global/use-cases/ → (flows / global/contracts / global/domains / modules)`。
+- use-case 是 agent 的**入口编排层**：`index.md → global/use-cases/ → (flows / global/contracts / global/domains / repos/{repo}/overview / submodules)`。
 
 ## type → 视图透镜映射（派生用，不落字段）
 
@@ -52,12 +52,12 @@ node using-obsidian/scripts/obsidian-kb.mjs describe views
 agent 做需求分析 / 方案设计 / 影响面判断时，先按问题选择入口，再沿关系边收敛。任何页面若既不能作为入口，也不被这些关系边连接，要质疑它是否该存在。
 
 ```text
-业务/场景问题        → use-cases → flows / contracts / domains
-概念/边界问题        → domains / glossary → flows / modules
-实现定位问题         → architecture → modules / flows / sources
-接口/协议/消息问题    → contracts / api-surface → producer / consumer / flows
-调试/运行问题        → flows → runtime-notes / contracts / modules
-影响分析问题         → 被改实体 → contracts / data-models / modules → 反向双链扩散
+业务/场景问题        → global/use-cases / repos/{repo}/usecases → flows / contracts / domains
+概念/边界问题        → domains / glossary → overview / submodules / flows
+实现定位问题         → architecture / overview → submodules / flows / sources
+接口/协议/消息问题    → contracts / api-surface / api-depend → producer / consumer / flows
+调试/运行问题        → flows → constraints / resource-analysis / contracts / submodules
+影响分析问题         → 被改实体 → contracts / data-models / submodules / overview → 反向双链扩散
 ```
 
 目录用于缩小候选范围；真正的消费效率来自 [frontmatter-schema.md](frontmatter-schema.md)（可查询性）和 [link-contract.md](link-contract.md)（双链强制双向）。

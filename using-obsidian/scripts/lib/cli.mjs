@@ -28,7 +28,7 @@ function printResult(result, json) {
 
 const USAGE = 'node using-obsidian/scripts/obsidian-kb.mjs <resolve|init|lint|links|search|report|scaffold|types|describe> [--kb-root <path>] [--limit <n>] [--json]\n'
   + '  describe [types|views|shapes|tree] [--json]   # 打印 registry 派生的结构视图\n'
-  + '  scaffold <type> --repo <r> --title <t> [--topic <flow-topic>] [--force]\n'
+  + '  scaffold <type> --repo <r> --title <t> [--topic <topic>] [--force]\n'
   + '  scaffold contract --partial --side <producer|consumer> --title <t> --known <repo> --evidence <e> [--missing-guess <repo>]';
 
 export async function runCli() {

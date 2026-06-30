@@ -6,8 +6,8 @@ test('describeData exposes types, views, shapes, tree from registry', () => {
   const d = describeData();
   assert.ok(d.types.includes('contract'));
   assert.equal(d.views.find((v) => v.type === 'flow').view, 'runtime');
-  const moduleShape = d.shapes.find((s) => s.type === 'module');
-  assert.ok(moduleShape.sections.includes('职责'));
+  const overviewShape = d.shapes.find((s) => s.type === 'overview');
+  assert.ok(overviewShape.sections.includes('职责边界'));
   assert.match(d.tree, /code-kb\//);
 });
 

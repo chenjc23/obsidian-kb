@@ -15,7 +15,7 @@ description: "Use to inspect an Obsidian code knowledge base for health issues: 
 
 ### 1. 结构完整性
 
-每个仓至少要有 `architecture.md`（逻辑视图 + 仓库路由）。其余仓内页**有该关注点才需要**，缺失多数是 `warning` 而非致命：`glossary.md`、`api-surface.md`、`data-models.md`、`config-and-env.md`、`key-implementations.md`、`runtime-notes.md`、`testing-strategy.md`、`candidate-flow.md`、`modules/`（多模块时）、`flows/{分析主题}/`（有业务流程时）。该仓确实没这个关注点，就不算缺。
+每个仓至少要有 `overview.md`（模块定义、职责边界、上下文）和 `architecture.md`（逻辑视图 + 仓库路由）。其余仓内页**有该关注点才需要**，缺失多数是 `warning` 而非致命：`glossary.md`、`api-surface.md`、`api-depend.md`、`data-models.md`、`specifications.md`、`constraints.md`、`resource-analysis.md`、`human-interfaces.md`、`candidate-flow.md`、`usecases/`、`submodules/`（多子模块时）、`flows/{分析主题}/`（有业务流程时）。该仓确实没这个关注点，就不算缺。
 
 工作区层至少要有 `index.md`、`log.md`。聚合页 `global/architecture/system-architecture.md`（跨仓真有内容才建）与 `global/architecture/coverage.md`（有多仓或有待接合边时才有意义）都不强制在，单仓初库可缺。依赖图/数据流/技术栈/影响面不物化成页，不要因其缺失而报缺。
 
@@ -49,9 +49,9 @@ description: "Use to inspect an Obsidian code knowledge base for health issues: 
 
 找矛盾：
 
-- 两个模块声称同一独占职责。
-- flow 页点名某模块，却没有对应 module 页。
-- 模块页 `depends-on` 与正文双链各自漂移、互相矛盾。
+- 两个子模块声称同一独占职责。
+- flow 页点名某子模块，却没有对应 `submodules/{topic}/子模块设计.md`。
+- overview/submodule 页 `depends-on` 与正文双链各自漂移、互相矛盾。
 - API 页与实际路由/proto 定义冲突。
 
 ### 6. 影响边完整性（影响分析的关键）
@@ -59,7 +59,7 @@ description: "Use to inspect an Obsidian code knowledge base for health issues: 
 这几条是影响面计算的图的边，缺一条就静默漏报（见 authoring `references/link-contract.md`）：
 
 - 契约页缺 `producer` 或 `consumer` → 影响传播断裂。**例外**：`status: partial` 契约允许单边（见下条校验）。
-- 模块页缺 `depends-on` → 依赖链断裂。
+- overview/submodule 页缺 `depends-on` → 依赖链断裂。
 - flow 页缺 `entry-point` 或 `related-contracts` → 变更点回溯不到流程。
 - 单向链：A 链了 B，B 没有反向链回 A（glossary 索引等明确单向场景除外）。
 

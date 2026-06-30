@@ -1,6 +1,6 @@
 ---
 name: obsidian-kb-ingest
-description: Use to create or refresh the first-pass Obsidian code knowledge base for one or more source repositories. Triggers on requests like "ingest this repo", "analyze this codebase into wiki notes", "build code-kb", "generate overview/architecture/modules/flows", or "把仓库生成知识库".
+description: Use to create or refresh the first-pass Obsidian code knowledge base for one or more source repositories. Triggers on requests like "ingest this repo", "analyze this codebase into wiki notes", "build code-kb", "generate overview/architecture/submodules/flows", or "把仓库生成知识库".
 ---
 
 # Obsidian KB Ingest
@@ -21,20 +21,21 @@ description: Use to create or refresh the first-pass Obsidian code knowledge bas
 
 见 authoring `references/kb-root-resolution.md`（写入类：全找不到则在 `{当前工作目录}/code-kb` 新建）。仅当源仓库根或摄入范围无法推断时才询问，**永不**问 `{kb-root}` 放哪。
 
-## Phase 1：仓库地形扫描 → `repos/{repo}/architecture.md`
+## Phase 1：仓库地形扫描 → `repos/{repo}/overview.md` + `repos/{repo}/architecture.md`
 
 1. 信号驱动的快速地形扫描：先读顶层目录 + manifest/构建文件 + 入口文件，再**沿 manifest/build 指向的源码根继续深入**（可能在更深层级），**跳过** `vendor`/`node_modules`/`build`/`dist`/`third_party`/`.git` 等目录。`generated/` 目录默认不深读实现，但 C/C++/通信仓要读取其中的协议标识、service 接口、message/enum 定义和自动生成的 dispatch 元数据。目标是建立仓库形状、技术栈、分层、入口区域的认知——不遍历整棵树，也不固定深度。
 2. 读元数据/构建文件（如有，C/C++ 优先）：`CMakeLists.txt`、`Makefile`、`conanfile.txt`/`conanfile.py`、`vcpkg.json`、Bazel `BUILD`、`README`、`package.json`、`go.mod`、`Cargo.toml`、`pyproject.toml`、`pom.xml`、`build.gradle`、`Dockerfile`、部署清单。
 3. 识别并读入口文件：`main.c`、`main.cpp`、`src/main.c`、`src/main.cpp`、`app/main.cpp`、`main.go`、`index.ts`、`app.py`、`cmd/*`、`src/main.*`、框架引导模块。
 4. 分析源码目录分层（C/C++ 常见 `include/` 与 `src/` 分离、`lib/`、`modules/`），读依赖注入/初始化/装配代码：`main()`、`wire.go`、`container.ts`、`AppModule`、服务注册、路由装配、工厂/单例初始化。
-5. 生成 `repos/{repo}/architecture.md`：它同时承担**本仓架构结构（逻辑视图）+ 仓库路由**（链向 modules / flows / 关键 contracts / data-models），并**包含一张 mermaid 架构图**（`graph`/`flowchart TD`，呈现分层与核心模块依赖）。
+5. 生成 `repos/{repo}/overview.md`：记录本仓定位、模块定义、职责边界、上下文和依赖边界。
+6. 生成 `repos/{repo}/architecture.md`：它承担**本仓架构结构（逻辑视图）+ 仓库路由**（链向 overview / submodules / flows / 关键 contracts / data-models），并**包含一张 mermaid 架构图**（`graph`/`flowchart TD`，呈现分层与核心模块依赖）。
 
-## Phase 2：模块拆解 → `repos/{repo}/modules/{模块名}.md`
+## Phase 2：子模块拆解 → `repos/{repo}/submodules/{topic}/`
 
 1. 扫核心模块目录，读 index/barrel/export 与公共接口。
-2. 分析模块间 import 依赖。
-3. 每个真实职责边界一页（实现视图，多实例 → 文件夹）。不要给每个小文件夹都建页。`{模块名}` 文件名默认用中文，只保留必要英文。
-4. 在 frontmatter `depends-on` + 正文双链记录模块依赖（影响分析的边）。
+2. 分析子模块间 import/include/注册依赖。
+3. 每个真实职责边界一个 `submodules/{topic}/` 文件夹，包含 `子模块设计.md` 与 `子模块约束.md`。不要给每个小文件夹都建页。`{topic}` 默认用中文，只保留必要英文。
+4. 在 frontmatter `depends-on` + 正文双链记录子模块依赖（影响分析的边）。
 
 ## Phase 3：流程发现与分析顺序排序（全量清单）
 
@@ -54,29 +55,30 @@ description: Use to create or refresh the first-pass Obsidian code knowledge bas
 
 - `glossary.md`：**每个术语必须是代码标识符/注释/README/文档里真实出现的词或缩写，带出处；不得编造，缩写无确证不得臆测扩写。**
 - `api-surface.md`：路由、proto、OpenAPI、controller、消息契约（契约视图·本仓接口面）。
+- `api-depend.md`：本仓依赖的外部接口、协议、消息、超时/重试/失败影响。
 - `data-models.md`：ORM 模型、schema、proto/types、状态结构。
-- `config-and-env.md`：配置加载、env、feature flag。
-- `runtime-notes.md`：**error-handling + gotchas 合并**——异常/错误码/重试/降级/告警 + 非显式约束/隐藏约定/已知陷阱。**并兼任跨边界/已知运行风险的人工笔记落点**。任一方内容量大时拆回独立页。
-- `key-implementations.md`：复杂算法或重要核心逻辑。
-- `testing-strategy.md`：测试目录、脚本、CI、fixture（视图正交，可选）。
+- `specifications.md`：规格、配置加载、env、feature flag、编译宏。
+- `constraints.md`：设计原则、硬约束、错误处理、重试/降级、隐式约定和已知陷阱。
+- `resource-analysis.md`：CPU/内存/IO/连接/线程/队列等资源占用、容量与退化策略。
+- `human-interfaces.md`：CLI、MIB、SNMP 等人机接口。
 
 ## Phase 5：业务域与契约提取（修复孤儿视图，只新增页）
 
-1. **逻辑视图** → `{kb-root}/global/domains/{业务域}.md`：从 glossary、模块职责、README 领域语言聚类出业务域，定义概念、不变量、状态、相邻域，链向实现该域的流程。
+1. **逻辑视图** → `{kb-root}/global/domains/{业务域}.md`：从 glossary、overview/submodule 职责、README 领域语言聚类出业务域，定义概念、不变量、状态、相邻域，链向实现该域的流程。
 2. **契约视图** → `{kb-root}/global/contracts/{契约名}.md`：把首扫发现的跨边界契约（HTTP/RPC API、MQ topic、event、协议消息、TLV/frame）提升为独立契约页，记录消息标识、payload schema、producer/consumer、接收方发现证据。
    - 建页优先用 `obsidian-kb.mjs scaffold contract --repo {repo} --title {契约名}` 拿骨架再填（using-obsidian 有命令清单）。
    - **只找到一端时**（producer 或 consumer 在尚未 ingest 的仓，或对端没搜到）：用 `scaffold contract --partial --side {producer|consumer} --title {契约名} --known {repo} --evidence {证据}`，它一次建好 partial 页**并自动在 `coverage.md` 待接合边表记录**，未知端留空、**别编造假对端**。
 3. 这两类是**只新增页**：发现新的加一页，不回改已有页。深度的端到端字段映射留给 deep-analysis。
 4. **append `global/architecture/coverage.md`**（partial 契约已由 scaffold 自动记录；其余手动追加）：
-- 本仓覆盖度行（深度 = `只地形扫描`/`模块已解析`/`流程已深挖`）
+- 本仓覆盖度行（深度 = `只地形扫描`/`子模块已解析`/`流程已深挖`）
 - 本次发现的待接合边（指向未 ingest 仓的调用、单边 partial 契约）
 - 已知盲区。这是**只追加**，不回改旧行；接上某端时才把对应行翻"已接合"。
 
 ## Phase 6：双向链接（见 authoring `references/link-contract.md`）
 
-1. 模块↔模块依赖：A 依赖 B 则 A 链 `[[modules/B]]`，B 在"被依赖（入）"反向链。
-2. 流程↔模块、流程↔契约、流程↔数据、域↔流程：全部双向。
-3. `architecture.md`（仓库路由）列出核心流程与模块链接。
+1. 子模块↔子模块依赖：A 依赖 B 则 A 链 `[[repos/{repo}/submodules/B/子模块设计]]`，B 在"被依赖（入）"反向链。
+2. 流程↔子模块、流程↔契约、流程↔数据、域↔流程：全部双向。
+3. `architecture.md`（仓库路由）列出核心流程与 overview/submodule 链接。
 4. 检查每个新页至少一条入链。
 
 ## Phase 7：工作区更新（按维护方式区分处理）
@@ -89,9 +91,9 @@ description: Use to create or refresh the first-pass Obsidian code knowledge bas
 - `global/contracts/{X}`、`global/domains/{X}`、`global/use-cases/{X}`：**只新增**，发现新边界/新域/新场景才加页，不回改已有页。
 - `log.md`：append 本次操作。
 
-跨仓关注点不单独成页：接口归 `global/contracts/`；风险归仓内 `runtime-notes`；依赖与影响范围由 query 从 `depends-on` + 反向双链**现算，不落页**。**不生成** `indexes/`、`_map` 或任何依赖图/数据流/技术栈聚合页。
+跨仓关注点不单独成页：接口归 `global/contracts/`；本仓对外接口归 `api-surface.md`，外部接口依赖归 `api-depend.md`；风险/约束归仓内 `constraints.md` 或 `resource-analysis.md`；依赖与影响范围由 query 从 `depends-on` + 反向双链**现算，不落页**。**不生成** `indexes/`、`_map` 或任何依赖图/数据流/技术栈聚合页。
 
-**Phase 7 不是 ingest 的终点。** 只要 `repos/{repo}/candidate-flow.md` 里存在状态不是 `已深挖` 的流程，必须立刻进入 Phase 8；不得把已经写完 architecture/modules/coverage/log 当作完成。
+**Phase 7 不是 ingest 的终点。** 只要 `repos/{repo}/candidate-flow.md` 里存在状态不是 `已深挖` 的流程，必须立刻进入 Phase 8；不得把已经写完 architecture/overview/submodules/coverage/log 当作完成。
 
 ## Phase 8：深度分析执行 + 视图层回写
 

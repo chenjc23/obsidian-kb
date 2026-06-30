@@ -72,6 +72,10 @@ export function scaffoldableTypes() {
   const t = types();
   return Object.keys(t).filter((k) => t[k].template != null || t[k].members != null).sort();
 }
+export function memberNames(type) {
+  const def = types()[type];
+  return def?.members ? Object.keys(def.members) : [];
+}
 export function requiredFrontmatter() { return loadRegistry().schema.requiredFrontmatter; }
 export function validConfidence() { return loadRegistry().schema.confidence; }
 export function validStatus() { return loadRegistry().schema.status; }
