@@ -24,7 +24,7 @@ export async function collectMarkdownFiles(root) {
   return files.sort();
 }
 
-export async function buildIndex({ kbRoot, writeIndexes = true }) {
+export async function buildIndex({ kbRoot }) {
   const files = await collectMarkdownFiles(kbRoot);
   const pages = [];
   const incomingLinks = new Map();
@@ -63,8 +63,5 @@ export async function buildIndex({ kbRoot, writeIndexes = true }) {
   }
 
   const index = { kbRoot, pages, incomingLinks };
-  // `writeIndexes` is retained for backward-compatible callers. The helper now
-  // keeps indexes transient so this never creates Markdown index pages.
-  void writeIndexes;
   return index;
 }

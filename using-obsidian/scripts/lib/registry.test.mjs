@@ -67,7 +67,7 @@ test('throws when a template file is missing', async () => {
   assert.throws(() => loadRegistry({ force: true, file }), /template not found/);
 });
 
-// ── 迁移黄金对照：把今天的硬编码值钉成字面快照，证明搬运零偏差 ──
+// ── 黄金对照：把页型集合与落点钉成字面快照；注册表若改动到这些值，必须同步更新此处 ──
 
 const CURRENT_VALID = ['use-case', 'domain', 'glossary', 'flow', 'candidate', 'contract',
   'overview', 'constraints', 'architecture', 'api-surface', 'api-depend', 'data-model',

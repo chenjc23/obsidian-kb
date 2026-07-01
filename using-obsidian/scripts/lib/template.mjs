@@ -59,11 +59,8 @@ export function targetPath(type, { repo, title, topic, flowFile, member } = {}) 
     .replaceAll('{topic}', topic ?? '');
 }
 
-// 兼容旧具名导出：从注册表派生。
+// 从注册表派生的具名导出（scaffold 用）。
 const reg = loadRegistry();
 export const MEMBER_FILES = Object.fromEntries(
   Object.keys(reg.types).filter((type) => memberNames(type).length > 0).map((type) => [type, memberNames(type)]),
-);
-export const TYPE_FILE = Object.fromEntries(
-  Object.entries(reg.types).filter(([, d]) => d.template).map(([k, d]) => [k, d.template]),
 );

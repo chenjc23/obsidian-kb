@@ -22,7 +22,7 @@ provider:
 ---
 # P
 `, 'utf8');
-  const index = await buildIndex({ kbRoot: root, writeIndexes: false });
+  const index = await buildIndex({ kbRoot: root });
   const page = index.pages.find((p) => p.relativePath === 'global/p.md');
   assert.deepEqual(page.data.provider, ['resource-service']);
 });

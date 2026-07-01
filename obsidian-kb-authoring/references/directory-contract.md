@@ -34,7 +34,7 @@ node using-obsidian/scripts/obsidian-kb.mjs describe tree
 
 `{title}`/`{repo}`/`{topic}` 为占位。视图归属、增量"只新增不改旧"、三种维护方式等叙事见下方 `页面取舍` / `维护方式`。
 
-树中**不出现**的文件或目录：依赖图、技术栈、影响面（不物化成页，由 query 现算）。旧 `modules/`、`config-and-env.md`、`key-implementations.md`、`runtime-notes.md` 不再是目录契约的一部分，内容分别迁入 `overview/submodules`、`specifications`、`submodules/flows`、`constraints/resource-analysis`。
+树中**不出现**的文件或目录：依赖图、技术栈、影响面（不物化成页，由 query 现算）。
 
 ### 页面取舍
 

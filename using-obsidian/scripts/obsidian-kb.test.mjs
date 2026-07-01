@@ -143,7 +143,7 @@ sources:
 # Flow A
 Related to [[domains/Domain A]] and [[contracts/Contract A]].
 `);
-    const index = await buildIndex({ kbRoot, writeIndexes: false });
+    const index = await buildIndex({ kbRoot });
     assert.equal(index.pages.length >= 2, true);
     const flow = index.pages.find((page) => page.relativePath === 'repos/repo-a/flows/Flow A.md');
     assert.deepEqual(flow.outgoingLinks.sort(), ['contracts/Contract A', 'domains/Domain A']);

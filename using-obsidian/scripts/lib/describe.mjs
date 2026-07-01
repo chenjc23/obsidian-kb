@@ -1,8 +1,8 @@
 import { loadRegistry, canonicalTypes, allTypes } from './registry.mjs';
 import { requiredSections } from './template.mjs';
 
-// 把 registry.yaml（+ 模板派生的必需 section）打印成可读视图，供 agent 按需取，
-// 不再把生成副本写进参考文档。结构事实的唯一来源仍是 registry.yaml。
+// 把 registry.yaml（+ 模板派生的必需 section）打印成可读视图，供 agent 按需取。
+// 结构事实的唯一来源是 registry.yaml；describe 只按需打印，不落生成副本。
 
 function typeEnum() {
   return canonicalTypes();

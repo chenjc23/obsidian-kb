@@ -4,7 +4,7 @@ schema:
   requiredFrontmatter: [title, type, repo, created, updated, confidence, status, sources]
   confidence: [high, medium, low]
   status: [active, partial, draft, deprecated]
-  # init 预建目录的显式单一来源（从 init.mjs 搬来）。
+  # init 预建目录的显式单一来源。
   # 仓内目录需要 repo 名，init 只预建工作区层与 repos 根。
   initDirs: [global/use-cases, global/domains, global/contracts, global/architecture, global/extra, repos]
 

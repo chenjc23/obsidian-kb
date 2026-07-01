@@ -19,7 +19,7 @@ function isIntentionalEntryPage(relativePath) {
 }
 
 export async function lintKnowledgeBase({ kbRoot }) {
-  const index = await buildIndex({ kbRoot, writeIndexes: false });
+  const index = await buildIndex({ kbRoot });
   const issues = [];
   const existingPages = new Set(index.pages.map((page) => page.relativePath));
 

@@ -6,7 +6,7 @@ import { collectMarkdownFiles, buildIndex } from './index-build.mjs';
 import { lintKnowledgeBase } from './lint.mjs';
 
 export async function getLinks({ kbRoot, target }) {
-  const index = await buildIndex({ kbRoot, writeIndexes: false });
+  const index = await buildIndex({ kbRoot });
   const normalizedTarget = normalizeTarget(target);
   const page = index.pages.find((candidate) => candidate.relativePath === normalizedTarget);
   return {
@@ -101,7 +101,7 @@ function makeExcerpt(body, terms) {
 }
 
 export async function buildReport({ kbRoot }) {
-  const index = await buildIndex({ kbRoot, writeIndexes: false });
+  const index = await buildIndex({ kbRoot });
   const lint = await lintKnowledgeBase({ kbRoot });
   const byType = countBy(index.pages, 'type');
   const byConfidence = countBy(index.pages, 'confidence');
