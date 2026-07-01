@@ -175,3 +175,99 @@ types:
     target: log.md
     view: meta
     summary: 知识库操作流水（只追加）
+
+# ── 流程编排:阶段声明式注册,执行器(pipeline status/next)按 requires DAG 驱动 ──
+# 每 stage:id / produces(产物落点,占位 {repo}{topic}) / requires(依赖) /
+#   instruction(pipelines/*.md 指导文件) / tracks(追踪表) / done(完成判定)。
+# instruction 正文只写这步动作;结构/字段/约束引用 authoring/references。
+pipelines:
+  ingest:
+    description: 首次仓库分析,先建广度再补深度
+    stages:
+      - id: terrain
+        produces: [repos/{repo}/overview.md, repos/{repo}/architecture.md]
+        instruction: pipelines/ingest/terrain.md
+        requires: []
+        done:
+          exists: produces
+          noPlaceholder: true
+      - id: submodules
+        produces: [repos/{repo}/submodules/]
+        instruction: pipelines/ingest/submodules.md
+        requires: [terrain]
+        done:
+          exists: produces
+      - id: candidate-flows
+        produces: [repos/{repo}/candidate-flow.md]
+        instruction: pipelines/ingest/candidate-flows.md
+        requires: [submodules]
+        done:
+          exists: produces
+      - id: supplements
+        instruction: pipelines/ingest/supplements.md
+        requires: [terrain]
+        done:
+          instructionSelfReport: true
+      - id: domains-contracts
+        instruction: pipelines/ingest/domains-contracts.md
+        requires: [submodules, supplements]
+        done:
+          instructionSelfReport: true
+      - id: backlinks
+        instruction: pipelines/ingest/backlinks.md
+        requires: [domains-contracts, candidate-flows]
+        done:
+          instructionSelfReport: true
+      - id: coverage
+        produces: [global/architecture/coverage.md]
+        instruction: pipelines/ingest/coverage.md
+        requires: [domains-contracts]
+        done:
+          exists: produces
+      - id: deep-dive
+        instruction: pipelines/ingest/deep-dive.md
+        requires: [candidate-flows, coverage, backlinks]
+        foreach: candidate-flow
+        runs: deep-analysis
+        tracks: repos/{repo}/candidate-flow.md
+        done:
+          tracksAllComplete: 已深挖
+  deep-analysis:
+    description: 单个函数或流程的详尽追踪
+    stages:
+      - id: call-tree
+        produces: [repos/{repo}/flows/{topic}/调用树.md]
+        instruction: pipelines/deep-analysis/call-tree.md
+        requires: []
+        done:
+          exists: produces
+          noPlaceholder: true
+      - id: main-flow
+        produces: [repos/{repo}/flows/{topic}/主干流程.md]
+        instruction: pipelines/deep-analysis/main-flow.md
+        requires: [call-tree]
+        done:
+          exists: produces
+          noPlaceholder: true
+      - id: branches
+        instruction: pipelines/deep-analysis/branches.md
+        requires: [main-flow]
+        done:
+          instructionSelfReport: true
+      - id: cross-boundary
+        instruction: pipelines/deep-analysis/cross-boundary.md
+        requires: [main-flow]
+        done:
+          instructionSelfReport: true
+      - id: data-structures
+        instruction: pipelines/deep-analysis/data-structures.md
+        requires: [main-flow]
+        done:
+          instructionSelfReport: true
+      - id: self-check
+        produces: [repos/{repo}/flows/{topic}/自查报告.md]
+        instruction: pipelines/deep-analysis/self-check.md
+        requires: [branches, cross-boundary, data-structures]
+        done:
+          exists: produces
+          noPlaceholder: true

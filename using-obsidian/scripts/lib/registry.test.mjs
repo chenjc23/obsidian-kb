@@ -123,3 +123,16 @@ test('GOLDEN: targetPath matches old switch for every scaffold id', () => {
     assert.equal(targetPath(type, args), expected, `targetPath(${type})`);
   }
 });
+
+test('GOLDEN: registry defines ingest and deep-analysis pipelines', () => {
+  const reg = loadRegistry({ force: true });
+  assert.ok(reg.pipelines.ingest, 'ingest pipeline present');
+  assert.ok(reg.pipelines['deep-analysis'], 'deep-analysis pipeline present');
+  const ids = reg.pipelines.ingest.stages.map((s) => s.id);
+  assert.deepEqual(ids, ['terrain', 'submodules', 'candidate-flows', 'supplements',
+    'domains-contracts', 'backlinks', 'coverage', 'deep-dive']);
+});
+
+test('GOLDEN: every pipeline stage instruction file exists', () => {
+  loadRegistry({ force: true }); // validate 不抛即通过
+});

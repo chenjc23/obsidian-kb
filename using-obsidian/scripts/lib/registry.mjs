@@ -54,6 +54,25 @@ function validate(reg, file) {
       }
     }
   }
+  const { pipelines } = reg;
+  if (pipelines != null) {
+    if (typeof pipelines !== 'object') throw new Error('registry: pipelines must be a mapping');
+    const adir = file ? path.dirname(file) : AUTHORING;
+    for (const [pname, pdef] of Object.entries(pipelines)) {
+      if (!Array.isArray(pdef.stages)) throw new Error(`registry: pipeline ${pname} needs stages list`);
+      const seen = new Set();
+      for (const stage of pdef.stages) {
+        if (!stage.id) throw new Error(`registry: pipeline ${pname} has stage without id`);
+        for (const req of stage.requires || []) {
+          if (!seen.has(req)) throw new Error(`registry: pipeline ${pname} stage ${stage.id} requires unknown/late stage: ${req}`);
+        }
+        if (stage.instruction && !existsSync(path.join(adir, stage.instruction))) {
+          throw new Error(`registry: pipeline ${pname} stage ${stage.id} instruction not found: ${stage.instruction}`);
+        }
+        seen.add(stage.id);
+      }
+    }
+  }
 }
 
 function types() { return loadRegistry().types; }
