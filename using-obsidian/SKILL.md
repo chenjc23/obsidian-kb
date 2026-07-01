@@ -69,6 +69,12 @@ node {…}/scripts/obsidian-kb.mjs scaffold flow --repo {repo} --topic {分析�
 node {…}/scripts/obsidian-kb.mjs scaffold contract --partial --side producer \
   --title {契约名} --known {repo} --evidence "{path:func()}" --kb-root {kb-root}
 
+# 流程编排(ingest / deep-analysis 阶段驱动)
+node {…}/scripts/obsidian-kb.mjs pipeline status --repo {repo} --kb-root {kb-root}
+node {…}/scripts/obsidian-kb.mjs pipeline next --repo {repo} --kb-root {kb-root}
+node {…}/scripts/obsidian-kb.mjs pipeline done {stage} --repo {repo} --kb-root {kb-root}
+node {…}/scripts/obsidian-kb.mjs pipeline next --repo {repo} --pipeline deep-analysis --topic {主题} --kb-root {kb-root}
+
 # 其余：init / lint / links / search / report（页面结构单一来源 = obsidian-kb-authoring/templates/）
 ```
 
