@@ -97,3 +97,16 @@ test('stageDone instructionSelfReport reads state', async () => {
   assert.equal(await stageDone(stage, { kbRoot: kb, repo: 'R', pipelineName: 'ingest', state: {} }), false);
   assert.equal(await stageDone(stage, { kbRoot: kb, repo: 'R', pipelineName: 'ingest', state: { ingest: { backlinks: true } } }), true);
 });
+
+test('stageDone exists: empty directory produces → false', async () => {
+  const kb = await mkdtemp(path.join(tmpdir(), 'kb-'));
+  await mkdirF(path.join(kb, 'repos/R/submodules'), { recursive: true });
+  const stage = { id: 'submodules', produces: ['repos/{repo}/submodules/'], done: { exists: 'produces' } };
+  assert.equal(await stageDone(stage, { kbRoot: kb, repo: 'R', pipelineName: 'ingest', state: {} }), false);
+});
+
+test('stageDone: produces present but no done field, file missing → false', async () => {
+  const kb = await mkdtemp(path.join(tmpdir(), 'kb-'));
+  const stage = { id: 'x', produces: ['repos/{repo}/x.md'] };
+  assert.equal(await stageDone(stage, { kbRoot: kb, repo: 'R', pipelineName: 'ingest', state: {} }), false);
+});
