@@ -3,6 +3,12 @@ import assert from 'node:assert/strict';
 import { mkdtemp, readFile, rm, writeFile, mkdir } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
+import { execFile } from 'node:child_process';
+import { promisify } from 'node:util';
+import { fileURLToPath } from 'node:url';
+const execFileP = promisify(execFile);
+const CLI = fileURLToPath(new URL('./obsidian-kb.mjs', import.meta.url));
+async function run(args) { return execFileP('node', [CLI, ...args]); }
 
 import {
   resolveContext,
@@ -325,5 +331,25 @@ test('buildReport summarizes pages, confidence, and issue count', async () => {
     assert.equal(typeof report.issueCount, 'number');
   } finally {
     await rm(workspace, { recursive: true, force: true });
+  }
+});
+
+test('pipeline status runs against a temp kb', async () => {
+  const kb = await mkdtemp(path.join(tmpdir(), 'kb-'));
+  try {
+    const { stdout } = await run(['pipeline', 'status', '--repo', 'R', '--kb-root', kb]);
+    assert.match(stdout, /terrain/);
+  } finally {
+    await rm(kb, { recursive: true, force: true });
+  }
+});
+
+test('pipeline next returns terrain instruction first', async () => {
+  const kb = await mkdtemp(path.join(tmpdir(), 'kb-'));
+  try {
+    const { stdout } = await run(['pipeline', 'next', '--repo', 'R', '--kb-root', kb]);
+    assert.match(stdout, /terrain/);
+  } finally {
+    await rm(kb, { recursive: true, force: true });
   }
 });

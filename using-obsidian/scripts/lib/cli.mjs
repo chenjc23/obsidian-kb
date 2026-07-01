@@ -4,6 +4,7 @@ import { lintKnowledgeBase } from './lint.mjs';
 import { getLinks, searchKnowledgeBase, buildReport } from './query.mjs';
 import { scaffoldPage, scaffoldPartialContract, listTypes } from './scaffold.mjs';
 import { describe, describeData } from './describe.mjs';
+import { getPipeline, pipelineStatus, pipelineNext, markStageDone } from './pipeline.mjs';
 
 function printResult(result, json) {
   if (json) {
@@ -26,10 +27,11 @@ function printResult(result, json) {
   }
 }
 
-const USAGE = 'node using-obsidian/scripts/obsidian-kb.mjs <resolve|init|lint|links|search|report|scaffold|types|describe> [--kb-root <path>] [--limit <n>] [--json]\n'
+const USAGE = 'node using-obsidian/scripts/obsidian-kb.mjs <resolve|init|lint|links|search|report|scaffold|types|describe|pipeline> [--kb-root <path>] [--limit <n>] [--json]\n'
   + '  describe [types|views|shapes|tree] [--json]   # 打印 registry 派生的结构视图\n'
   + '  scaffold <type> --repo <r> --title <t> [--topic <topic>] [--force]\n'
-  + '  scaffold contract --partial --side <producer|consumer> --title <t> --known <repo> --evidence <e> [--missing-guess <repo>]';
+  + '  scaffold contract --partial --side <producer|consumer> --title <t> --known <repo> --evidence <e> [--missing-guess <repo>]\n'
+  + '  pipeline <status|next|done <stage>> --repo <r> [--pipeline ingest|deep-analysis] [--topic <t>]';
 
 export async function runCli() {
   const [command = 'help', ...rest] = process.argv.slice(2);
@@ -112,6 +114,34 @@ export async function runCli() {
     });
     printResult(result, context.json);
     return;
+  }
+
+  if (command === 'pipeline') {
+    const sub = context.positional[0];
+    const name = context.flags.pipeline || 'ingest';
+    const pipeline = getPipeline(name);
+    const ctx = {
+      kbRoot: context.kbRoot,
+      repo: context.flags.repo,
+      topic: context.flags.topic,
+      pipelineName: name,
+    };
+    if (sub === 'status') {
+      printResult(await pipelineStatus(pipeline, ctx), context.json);
+      return;
+    }
+    if (sub === 'next') {
+      printResult(await pipelineNext(pipeline, ctx), context.json);
+      return;
+    }
+    if (sub === 'done') {
+      const stageId = context.positional[1];
+      if (!stageId) throw new Error('pipeline done requires a stage id');
+      await markStageDone(context.kbRoot, name, stageId);
+      printResult({ marked: stageId, pipeline: name }, context.json);
+      return;
+    }
+    throw new Error('pipeline requires a subcommand: status | next | done <stage>');
   }
 
   printResult({ usage: USAGE }, context.json);
