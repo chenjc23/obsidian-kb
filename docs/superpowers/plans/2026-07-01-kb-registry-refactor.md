@@ -1,5 +1,8 @@
 # 知识工程重构（中央注册表 + 聚焦模板）Implementation Plan
 
+> ⚠️ **历史实现计划，已执行完毕并被后续迭代超越 —— 勿据此理解当前代码。**
+> 本计划提到的 `generate-docs.mjs` / GENERATED 标记 / `--check` 已被 `describe.mjs`（按需打印）取代；`enumType`、`family`、flow 成员数组等也已变。当前权威见 `registry.yaml` + `templates/` + `references/` + `obsidian-kb.mjs describe`。本文仅留作执行记录。
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use subagent-driven-development (recommended) or executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** 把"一个页型的结构事实"从散写在约 10 处（代码 + prose）收敛为两层单一来源——维护者持 `registry.yaml`，团队各持 `templates/*.template.md`——代码全数据驱动、参考文档从注册表生成。

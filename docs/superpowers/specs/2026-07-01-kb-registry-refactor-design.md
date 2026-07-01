@@ -1,5 +1,9 @@
 # 知识工程重构：中央注册表 + 聚焦模板（方案 A′）
 
+> ⚠️ **历史设计快照，已被实现超越 —— 勿据此理解当前系统。**
+> 评审与后续迭代已改变多处细节：`generate-docs`（写文档）→ `describe`（按需打印）；`enumType`→`pageType`；flow 由 `family`+成员数组 → `members` 嵌套 map；linkage 简化为 `needField`/`needLink`；页型集也经"架构模板更新"大改（module/config/... → overview/constraints/submodule/...）。
+> **当前唯一权威**：`obsidian-kb-authoring/registry.yaml`（结构）+ `templates/*.template.md`（页面结构）+ `references/*.md`（叙事）+ `obsidian-kb.mjs describe`（可读派生视图）。本文仅留作决策记录。
+
 > 目标读者：本仓维护者与即将加入的多人协作团队。
 > 状态：设计已确认，待评审后转实现计划。
 
