@@ -10,6 +10,8 @@ function parseScalar(raw) {
   const v = raw.trim();
   if (v === '') return '';
   if (v === 'null' || v === '~') return null;
+  if (v === 'true') return true;
+  if (v === 'false') return false;
   if (v.startsWith('[') && v.endsWith(']')) {
     return v.slice(1, -1).split(',').map((s) => stripQuotes(s.trim())).filter((s) => s.length > 0);
   }

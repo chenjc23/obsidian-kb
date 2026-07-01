@@ -52,3 +52,35 @@ test('parses deep nesting (types -> type -> linkage)', () => {
 test('throws on a mapping line without colon', () => {
   assert.throws(() => parseYaml('a:\n  bogusline\n'));
 });
+
+test('parseYaml handles pipeline nesting: seq items with inline lists and nested maps', () => {
+  const text = `pipelines:
+  ingest:
+    description: first pass
+    stages:
+      - id: terrain
+        produces: [repos/{repo}/overview.md, repos/{repo}/architecture.md]
+        requires: []
+        instruction: pipelines/ingest/terrain.md
+        done:
+          exists: produces
+          noPlaceholder: true
+      - id: deep-dive
+        requires: [terrain]
+        tracks: repos/{repo}/candidate-flow.md
+        done:
+          tracksAllComplete: 已深挖
+`;
+  const reg = parseYaml(text);
+  const stages = reg.pipelines.ingest.stages;
+  assert.equal(reg.pipelines.ingest.description, 'first pass');
+  assert.equal(stages.length, 2);
+  assert.equal(stages[0].id, 'terrain');
+  assert.deepEqual(stages[0].produces, ['repos/{repo}/overview.md', 'repos/{repo}/architecture.md']);
+  assert.deepEqual(stages[0].requires, []);
+  assert.equal(stages[0].instruction, 'pipelines/ingest/terrain.md');
+  assert.equal(stages[0].done.exists, 'produces');
+  assert.equal(stages[0].done.noPlaceholder, true);
+  assert.equal(stages[1].done.tracksAllComplete, '已深挖');
+  assert.deepEqual(stages[1].requires, ['terrain']);
+});
