@@ -34,7 +34,7 @@ description: Use to create or refresh the first-pass Obsidian code knowledge bas
 
 1. 扫核心模块目录，读 index/barrel/export 与公共接口。
 2. 分析子模块间 import/include/注册依赖。
-3. 每个真实职责边界一个 `submodules/{topic}/` 文件夹，包含 `子模块设计.md` 与 `子模块约束.md`。不要给每个小文件夹都建页。`{topic}` 默认用中文，只保留必要英文。
+3. 每个真实职责边界一个 `submodules/{topic}/` 文件夹，含 `上下文/功能/数据结构/特性耦合/状态迁移规则/接口/规格约束` 七件套（主锚 `上下文`；`状态迁移规则` 无对象状态机则删整文件）。不要给每个小文件夹都建页。`{topic}` 默认用中文，只保留必要英文。
 4. 在 frontmatter `depends-on` + 正文双链记录子模块依赖（影响分析的边）。
 
 ## Phase 3：流程发现与分析顺序排序（全量清单）
@@ -76,7 +76,7 @@ description: Use to create or refresh the first-pass Obsidian code knowledge bas
 
 ## Phase 6：双向链接（见 authoring `references/link-contract.md`）
 
-1. 子模块↔子模块依赖：A 依赖 B 则 A 链 `[[repos/{repo}/submodules/B/子模块设计]]`，B 在"被依赖（入）"反向链。
+1. 子模块↔子模块依赖：A 依赖 B 则 A 链 `[[repos/{repo}/submodules/B/上下文]]`，B 在"被依赖（入）"反向链。
 2. 流程↔子模块、流程↔契约、流程↔数据、域↔流程：全部双向。
 3. `architecture.md`（仓库路由）列出核心流程与 overview/submodule 链接。
 4. 检查每个新页至少一条入链。

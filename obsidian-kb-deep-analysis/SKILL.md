@@ -130,7 +130,7 @@ Phase 4 把深挖中浮现的可复用知识提升到正确的知识库视图。
 
 append `log.md`：分析主题、入口、生成文件、覆盖的跨边界消息/接口、提升到视图层的业务域/用例/契约、提升到定义页的结构、新增链接数、剩余低置信区域。
 
-双链目标参考 authoring `references/link-contract.md`：`[[repos/{repo}/overview]]`、`[[repos/{repo}/submodules/{topic}/子模块设计]]`、`[[repos/{repo}/submodules/{topic}/子模块约束]]`、`[[repos/{repo}/data-models#结构名]]`、`[[repos/{repo}/specifications#配置名]]`、`[[repos/{repo}/constraints#约束名]]`、`[[repos/{repo}/resource-analysis#资源风险名]]`、`[[global/contracts/{协议或消息名}]]`。
+双链目标参考 authoring `references/link-contract.md`：`[[repos/{repo}/overview]]`、`[[repos/{repo}/submodules/{topic}/上下文]]`、`[[repos/{repo}/submodules/{topic}/规格约束]]`、`[[repos/{repo}/data-models#结构名]]`、`[[repos/{repo}/specifications#配置名]]`、`[[repos/{repo}/constraints#约束名]]`、`[[repos/{repo}/resource-analysis#资源风险名]]`、`[[global/contracts/{协议或消息名}]]`。
 
 ## Frontmatter 与页面形状
 

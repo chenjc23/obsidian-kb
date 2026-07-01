@@ -111,14 +111,29 @@ types:
     summary: 每个行为场景一个文件
   submodule:
     view: development
-    summary: 仓内子模块设计与约束，一主题一文件夹
+    summary: 仓内子模块细节，一主题一文件夹七件套（主锚 上下文）
     members:
-      子模块设计:
-        template: submodule/子模块设计
-        target: repos/{repo}/submodules/{topic}/子模块设计.md
-      子模块约束:
-        template: submodule/子模块约束
-        target: repos/{repo}/submodules/{topic}/子模块约束.md
+      上下文:
+        template: submodule/上下文
+        target: repos/{repo}/submodules/{topic}/上下文.md
+      功能:
+        template: submodule/功能
+        target: repos/{repo}/submodules/{topic}/功能.md
+      数据结构:
+        template: submodule/数据结构
+        target: repos/{repo}/submodules/{topic}/数据结构.md
+      特性耦合:
+        template: submodule/特性耦合
+        target: repos/{repo}/submodules/{topic}/特性耦合.md
+      状态迁移规则:
+        template: submodule/状态迁移规则
+        target: repos/{repo}/submodules/{topic}/状态迁移规则.md
+      接口:
+        template: submodule/接口
+        target: repos/{repo}/submodules/{topic}/接口.md
+      规格约束:
+        template: submodule/规格约束
+        target: repos/{repo}/submodules/{topic}/规格约束.md
   flow:                              # 复合型：六件套，每个成员各有自己的 template+target
     view: runtime
     summary: deep-analysis 深流程产物，一文件夹六件

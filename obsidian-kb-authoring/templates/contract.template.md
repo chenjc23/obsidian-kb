@@ -28,10 +28,10 @@ version: <!-- 填:v1 -->
 <!-- 填:逐字段一行 -->
 
 ## Producer
-<!-- 填:[[repos/{repo}/submodules/{topic}/子模块设计]] 或 [[repos/{repo}/flows/{主题}/跨边界数据流]] — 发送场景;partial 时未知留「对端待 ingest」 -->
+<!-- 填:[[repos/{repo}/submodules/{topic}/上下文]] 或 [[repos/{repo}/flows/{主题}/跨边界数据流]] — 发送场景;partial 时未知留「对端待 ingest」 -->
 
 ## Consumer
-<!-- 填:[[repos/{repo}/submodules/{topic}/子模块设计]] 或 [[repos/{repo}/flows/{主题}/跨边界数据流]] — 消费场景;partial 时未知留「对端待 ingest」 -->
+<!-- 填:[[repos/{repo}/submodules/{topic}/上下文]] 或 [[repos/{repo}/flows/{主题}/跨边界数据流]] — 消费场景;partial 时未知留「对端待 ingest」 -->
 
 ## 接收方发现证据
 <!-- 填:注册表 / 路由表 / topic 订阅 / message-code switch / decoder / handler 绑定 / 命名约定 -->

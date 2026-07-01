@@ -50,7 +50,7 @@ description: "Use to inspect an Obsidian code knowledge base for health issues: 
 找矛盾：
 
 - 两个子模块声称同一独占职责。
-- flow 页点名某子模块，却没有对应 `submodules/{topic}/子模块设计.md`。
+- flow 页点名某子模块，却没有对应 `submodules/{topic}/上下文.md`。
 - overview/submodule 页 `depends-on` 与正文双链各自漂移、互相矛盾。
 - API 页与实际路由/proto 定义冲突。
 

@@ -21,13 +21,19 @@ test('scaffoldPage flow generates six files', async () => {
   assert.equal(res.created.length, 6);
 });
 
-test('scaffoldPage submodule generates design and constraint files', async () => {
+test('scaffoldPage submodule generates the seven member files', async () => {
   const root = await mkdtemp(path.join(tmpdir(), 'kb-'));
   const res = await scaffoldPage({ kbRoot: root, type: 'submodule', repo: 'r', topic: 'T' });
-  assert.deepEqual(res.created.sort(), [
-    'repos/r/submodules/T/子模块约束.md',
-    'repos/r/submodules/T/子模块设计.md',
-  ]);
+  const expected = [
+    'repos/r/submodules/T/上下文.md',
+    'repos/r/submodules/T/功能.md',
+    'repos/r/submodules/T/数据结构.md',
+    'repos/r/submodules/T/特性耦合.md',
+    'repos/r/submodules/T/状态迁移规则.md',
+    'repos/r/submodules/T/接口.md',
+    'repos/r/submodules/T/规格约束.md',
+  ].sort();
+  assert.deepEqual(res.created.sort(), expected);
 });
 
 test('scaffoldPartialContract creates page and appends coverage row atomically', async () => {

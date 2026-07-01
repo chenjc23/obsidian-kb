@@ -59,7 +59,7 @@ node {using-obsidian-skill-root}/scripts/obsidian-kb.mjs types
 # 按页型生成单页骨架（机械字段已填好，无 {{ }} 残留）
 node {…}/scripts/obsidian-kb.mjs scaffold overview --repo {repo} --title {仓库名} --kb-root {kb-root}
 
-# 子模块一次生成 2 件套（子模块设计/子模块约束）
+# 子模块一次生成七件套（上下文/功能/数据结构/特性耦合/状态迁移规则/接口/规格约束）
 node {…}/scripts/obsidian-kb.mjs scaffold submodule --repo {repo} --topic {子模块主题} --kb-root {kb-root}
 
 # 深流程一次生成 6 件套（调用树/主干流程/分支主题/跨边界数据流/数据结构/自查报告）

@@ -19,7 +19,7 @@ test('targetPath maps type to kb-relative path', () => {
   assert.equal(targetPath('coverage', {}), 'global/architecture/coverage.md');
   assert.equal(targetPath('use-case', { title: '服务开通' }), 'global/use-cases/服务开通.md');
   assert.equal(targetPath('repo-usecase', { repo: 'order-service', title: '服务开通' }), 'repos/order-service/usecases/服务开通.md');
-  assert.equal(targetPath('submodule', { repo: 'order-service', topic: '订单编排', member: '子模块设计' }), 'repos/order-service/submodules/订单编排/子模块设计.md');
+  assert.equal(targetPath('submodule', { repo: 'order-service', topic: '订单编排', member: '上下文' }), 'repos/order-service/submodules/订单编排/上下文.md');
   assert.equal(targetPath('flow', { repo: 'order-service', topic: '服务开通', flowFile: '主干流程' }), 'repos/order-service/flows/服务开通/主干流程.md');
 });
 
