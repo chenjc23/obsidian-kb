@@ -19,12 +19,19 @@ function pageShapes() {
   for (const k of canonicalTypes()) {
     const def = t[k];
     if (!def.template && !def.members) continue; // 无模板的 meta 型(risk/index/log)跳过
+    let template;
+    if (def.members) {
+      const memberTemplates = Object.values(def.members).map((m) => m.template);
+      const dir = memberTemplates[0].includes('/')
+        ? `${memberTemplates[0].slice(0, memberTemplates[0].lastIndexOf('/'))}/` : '';
+      template = `templates/${dir}{${memberTemplates.map((p) => p.split('/').pop()).join(',')}}.template.md`;
+    } else {
+      template = `templates/${def.template}.template.md`;
+    }
     out.push({
       type: k,
       summary: def.summary || '',
-      template: def.members
-        ? `templates/flow/{${Object.keys(def.members).join(',')}}.template.md`
-        : `templates/${def.template}.template.md`,
+      template,
       sections: def.members ? ['各文件见模板内 ## section'] : requiredSections(k),
     });
   }

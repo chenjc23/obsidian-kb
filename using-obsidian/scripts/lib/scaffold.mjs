@@ -7,8 +7,8 @@ import {
   fillMechanical,
   targetPath,
   MEMBER_FILES,
-  TYPE_FILE,
 } from './template.mjs';
+import { scaffoldableTypes } from './registry.mjs';
 
 async function writeIfAbsent({ kbRoot, relativePath, content, force }) {
   const fullPath = path.join(kbRoot, relativePath);
@@ -111,7 +111,5 @@ function appendHangingRow(markdown, row) {
 }
 
 export function listTypes() {
-  const types = new Set(Object.keys(TYPE_FILE));
-  types.add('flow');
-  return [...types].sort();
+  return scaffoldableTypes();
 }

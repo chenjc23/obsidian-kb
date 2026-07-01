@@ -110,12 +110,15 @@ export async function lintKnowledgeBase({ kbRoot }) {
     }
 
     // 模板符合度：页正文缺模板必需 `## section` 报 warning。
-    // 未知 type（无模板）跳过，flow 这里不判（flowFile 维度由 scaffold 保证）。
-    let required;
-    try {
-      required = page.type && page.type !== 'flow' ? requiredSections(page.type) : [];
-    } catch {
-      required = [];
+    // 只判"有独立模板"的页型；复合型（flow/submodule 等，成员维度由 scaffold 保证）、
+    // meta/未知型无 template，一律跳过。
+    let required = [];
+    if (def && def.template) {
+      try {
+        required = requiredSections(page.type);
+      } catch {
+        required = [];
+      }
     }
     if (required.length > 0) {
       const body = parseFrontmatter(await readFile(path.join(kbRoot, page.relativePath), 'utf8')).body;

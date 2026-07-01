@@ -61,7 +61,6 @@ export function targetPath(type, { repo, title, topic, flowFile, member } = {}) 
 
 // 兼容旧具名导出：从注册表派生。
 const reg = loadRegistry();
-export const FLOW_FILES = Object.keys(reg.types.flow.members);
 export const MEMBER_FILES = Object.fromEntries(
   Object.keys(reg.types).filter((type) => memberNames(type).length > 0).map((type) => [type, memberNames(type)]),
 );
