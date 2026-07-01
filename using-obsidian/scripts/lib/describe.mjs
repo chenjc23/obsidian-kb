@@ -75,13 +75,22 @@ function dirTree() {
   return lines.join('\n');
 }
 
+function pipelinesView() {
+  const pipelines = loadRegistry().pipelines || {};
+  return Object.entries(pipelines).map(([name, def]) => ({
+    name,
+    description: def.description || '',
+    stages: def.stages.map((s) => ({ id: s.id, requires: s.requires || [], produces: s.produces || [] })),
+  }));
+}
+
 export function describeData() {
   return {
-    types: typeEnum(), views: typeViews(), shapes: pageShapes(), tree: dirTree(),
+    types: typeEnum(), views: typeViews(), shapes: pageShapes(), tree: dirTree(), pipelines: pipelinesView(),
   };
 }
 
-const SECTIONS = ['types', 'views', 'shapes', 'tree'];
+const SECTIONS = ['types', 'views', 'shapes', 'tree', 'pipeline'];
 
 function humanSection(name) {
   if (name === 'types') {
@@ -97,6 +106,13 @@ function humanSection(name) {
   }
   if (name === 'tree') {
     return `# 目录树（落点来自 types.*.target）\n${dirTree()}`;
+  }
+  if (name === 'pipeline') {
+    const blocks = pipelinesView().map((p) => {
+      const rows = p.stages.map((s) => `| \`${s.id}\` | ${(s.requires).join(', ') || '—'} | ${(s.produces).join(', ') || '—'} |`).join('\n');
+      return `## ${p.name} — ${p.description}\n| stage | requires | produces |\n|---|---|---|\n${rows}`;
+    }).join('\n\n');
+    return `# 流程编排(来自 pipelines.*)\n${blocks}`;
   }
   throw new Error(`未知视图: ${name}（可选 ${SECTIONS.join('|')}）`);
 }

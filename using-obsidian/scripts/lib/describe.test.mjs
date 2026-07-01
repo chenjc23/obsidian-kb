@@ -28,3 +28,16 @@ test('describe with no section prints all four', () => {
 test('describe throws on unknown section', () => {
   assert.throws(() => describe({ section: 'nope' }), /未知视图/);
 });
+
+test('describeData exposes pipelines with stage ids', () => {
+  const d = describeData();
+  const ingest = d.pipelines.find((p) => p.name === 'ingest');
+  assert.ok(ingest);
+  assert.ok(ingest.stages.some((s) => s.id === 'terrain'));
+});
+
+test('describe prints pipeline section', () => {
+  const out = describe({ section: 'pipeline' });
+  assert.match(out, /ingest/);
+  assert.match(out, /terrain/);
+});
