@@ -3,7 +3,8 @@ import assert from 'node:assert/strict';
 import { mkdtemp, readFile as readF, writeFile as writeF, mkdir as mkdirF } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
-import { tracksAllComplete, fillPlaceholders, readState, markStageDone, stageDone, pipelineStatus, pipelineNext } from './pipeline.mjs';
+import { tracksAllComplete, fillPlaceholders, readState, markStageDone, stageDone, pipelineStatus, pipelineNext, getPipeline } from './pipeline.mjs';
+import { loadRegistry } from './registry.mjs';
 
 const LEDGER_HEAD = `# R 已识别流程清单
 ## Deep Analysis 流程清单
@@ -150,4 +151,9 @@ test('pipelineNext returns done when all stages complete', async () => {
   await seedFile(kb, 'repos/R/b.md', '# b\n');
   const nx = await pipelineNext(twoStagePipeline(), { kbRoot: kb, repo: 'R', pipelineName: 'ingest' });
   assert.deepEqual(nx, { done: true });
+});
+
+test('getPipeline throws on unknown name', () => {
+  loadRegistry({ force: true }); // 真实 registry;P3 后含 ingest/deep-analysis
+  assert.throws(() => getPipeline('nope'), /未知 pipeline/);
 });

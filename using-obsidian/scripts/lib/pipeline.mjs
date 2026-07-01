@@ -1,7 +1,7 @@
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import path from 'node:path';
-import { authoringDir } from './registry.mjs';
+import { authoringDir, loadRegistry } from './registry.mjs';
 
 // 解析 candidate-flow markdown 表:取每个数据行的末列(状态列)。
 // 数据行 = 以 | 开头、非分隔行(|---)、非表头(含"分析顺序")。
@@ -132,4 +132,11 @@ export async function pipelineNext(pipeline, ctx) {
     instruction = existsSync(p) ? readFileSync(p, 'utf8') : `(instruction 文件缺失: ${stage.instruction})`;
   }
   return { id: stage.id, instruction, produces: stage.produces || [] };
+}
+
+export function getPipeline(name) {
+  const reg = loadRegistry();
+  const pipelines = reg.pipelines || {};
+  if (!pipelines[name]) throw new Error(`未知 pipeline: ${name}(可选 ${Object.keys(pipelines).join('|') || '无'})`);
+  return pipelines[name];
 }
