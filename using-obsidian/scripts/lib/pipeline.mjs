@@ -99,3 +99,37 @@ export async function stageDone(stage, ctx) {
   if (done.noPlaceholder && !noPlaceholderInProduces(stage, ctx)) return false;
   return true;
 }
+
+export async function pipelineStatus(pipeline, ctx) {
+  const state = await readState(ctx.kbRoot);
+  const full = { ...ctx, state };
+  const doneMap = new Map();
+  const out = [];
+  for (const stage of pipeline.stages) {
+    // eslint-disable-next-line no-await-in-loop
+    const isDone = await stageDone(stage, full);
+    doneMap.set(stage.id, isDone);
+    let state2;
+    if (isDone) state2 = 'done';
+    else if ((stage.requires || []).every((r) => doneMap.get(r))) state2 = 'ready';
+    else state2 = 'blocked';
+    out.push({ id: stage.id, state: state2 });
+  }
+  return out;
+}
+
+export async function pipelineNext(pipeline, ctx) {
+  const status = await pipelineStatus(pipeline, ctx);
+  const ready = status.find((s) => s.state === 'ready');
+  if (!ready) {
+    const anyBlocked = status.some((s) => s.state === 'blocked');
+    return anyBlocked ? { blocked: true, status } : { done: true };
+  }
+  const stage = pipeline.stages.find((s) => s.id === ready.id);
+  let instruction = '';
+  if (stage.instruction) {
+    const p = path.join(authoringDir(), stage.instruction);
+    instruction = existsSync(p) ? readFileSync(p, 'utf8') : `(instruction 文件缺失: ${stage.instruction})`;
+  }
+  return { id: stage.id, instruction, produces: stage.produces || [] };
+}

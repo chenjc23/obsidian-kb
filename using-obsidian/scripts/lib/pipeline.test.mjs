@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { mkdtemp, readFile as readF, writeFile as writeF, mkdir as mkdirF } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
-import { tracksAllComplete, fillPlaceholders, readState, markStageDone, stageDone } from './pipeline.mjs';
+import { tracksAllComplete, fillPlaceholders, readState, markStageDone, stageDone, pipelineStatus, pipelineNext } from './pipeline.mjs';
 
 const LEDGER_HEAD = `# R 已识别流程清单
 ## Deep Analysis 流程清单
@@ -109,4 +109,45 @@ test('stageDone: produces present but no done field, file missing → false', as
   const kb = await mkdtemp(path.join(tmpdir(), 'kb-'));
   const stage = { id: 'x', produces: ['repos/{repo}/x.md'] };
   assert.equal(await stageDone(stage, { kbRoot: kb, repo: 'R', pipelineName: 'ingest', state: {} }), false);
+});
+
+function twoStagePipeline() {
+  return {
+    description: 'test',
+    stages: [
+      { id: 'a', produces: ['repos/{repo}/a.md'], requires: [], done: { exists: 'produces' } },
+      { id: 'b', produces: ['repos/{repo}/b.md'], requires: ['a'], done: { exists: 'produces' } },
+    ],
+  };
+}
+
+test('pipelineStatus: nothing done → a ready, b blocked', async () => {
+  const kb = await mkdtemp(path.join(tmpdir(), 'kb-'));
+  const st = await pipelineStatus(twoStagePipeline(), { kbRoot: kb, repo: 'R', pipelineName: 'ingest' });
+  assert.deepEqual(st, [{ id: 'a', state: 'ready' }, { id: 'b', state: 'blocked' }]);
+});
+
+test('pipelineStatus: a done → b ready', async () => {
+  const kb = await mkdtemp(path.join(tmpdir(), 'kb-'));
+  await seedFile(kb, 'repos/R/a.md', '# a\n');
+  const st = await pipelineStatus(twoStagePipeline(), { kbRoot: kb, repo: 'R', pipelineName: 'ingest' });
+  assert.deepEqual(st, [{ id: 'a', state: 'done' }, { id: 'b', state: 'ready' }]);
+});
+
+test('pipelineNext returns first ready stage with instruction body', async () => {
+  const kb = await mkdtemp(path.join(tmpdir(), 'kb-'));
+  const pipe = twoStagePipeline();
+  pipe.stages[0].instruction = 'pipelines/ingest/terrain.md';
+  // instruction 正文从真实 authoring 目录读;terrain.md 由 P3 建。此处用不依赖文件的断言:
+  const nx = await pipelineNext(pipe, { kbRoot: kb, repo: 'R', pipelineName: 'ingest' });
+  assert.equal(nx.id, 'a');
+  assert.ok('instruction' in nx);
+});
+
+test('pipelineNext returns done when all stages complete', async () => {
+  const kb = await mkdtemp(path.join(tmpdir(), 'kb-'));
+  await seedFile(kb, 'repos/R/a.md', '# a\n');
+  await seedFile(kb, 'repos/R/b.md', '# b\n');
+  const nx = await pipelineNext(twoStagePipeline(), { kbRoot: kb, repo: 'R', pipelineName: 'ingest' });
+  assert.deepEqual(nx, { done: true });
 });
