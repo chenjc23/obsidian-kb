@@ -22,3 +22,30 @@ export function tracksAllComplete(ledgerText, doneValue) {
   }
   return true;
 }
+
+export function fillPlaceholders(str, { repo = '', topic = '' } = {}) {
+  return str.replaceAll('{repo}', repo).replaceAll('{topic}', topic);
+}
+
+function statePath(kbRoot) {
+  return path.join(kbRoot, '.obsidian-kb', 'pipeline-state.json');
+}
+
+export async function readState(kbRoot) {
+  const p = statePath(kbRoot);
+  if (!existsSync(p)) return {};
+  try {
+    return JSON.parse(await readFile(p, 'utf8'));
+  } catch {
+    return {};
+  }
+}
+
+export async function markStageDone(kbRoot, pipelineName, stageId) {
+  const state = await readState(kbRoot);
+  if (!state[pipelineName]) state[pipelineName] = {};
+  state[pipelineName][stageId] = true;
+  const p = statePath(kbRoot);
+  await mkdir(path.dirname(p), { recursive: true });
+  await writeFile(p, `${JSON.stringify(state, null, 2)}\n`, 'utf8');
+}
