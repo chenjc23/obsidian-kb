@@ -363,3 +363,39 @@ test('pipeline next forwards --pipeline deep-analysis', async () => {
     await rm(kb, { recursive: true, force: true });
   }
 });
+
+async function stripPlaceholders(file) {
+  const t = await readFile(file, 'utf8');
+  await writeFile(file, t.replace(/<!--\s*填[\s\S]*?-->/g, '已填'), 'utf8');
+}
+
+test('smoke: init → scaffold terrain pages → pipeline status advances', async () => {
+  const kb = await mkdtemp(path.join(tmpdir(), 'kb-'));
+  try {
+    await run(['init', '--kb-root', kb]);
+
+    // terrain 未做:status 里 terrain=ready,submodules=blocked
+    const before = await run(['pipeline', 'status', '--repo', 'R', '--kb-root', kb, '--json']);
+    const st1 = JSON.parse(before.stdout);
+    assert.equal(st1.find((s) => s.id === 'terrain').state, 'ready');
+    assert.equal(st1.find((s) => s.id === 'submodules').state, 'blocked');
+
+    // 生成 terrain 两页(scaffold + 去掉占位:写入无 <!-- 填 --> 的正文)
+    await run(['scaffold', 'overview', '--repo', 'R', '--title', 'R', '--kb-root', kb, '--force']);
+    await run(['scaffold', 'architecture', '--repo', 'R', '--title', 'R', '--kb-root', kb, '--force']);
+    await stripPlaceholders(path.join(kb, 'repos/R/overview.md'));
+    await stripPlaceholders(path.join(kb, 'repos/R/architecture.md'));
+
+    const after = await run(['pipeline', 'status', '--repo', 'R', '--kb-root', kb, '--json']);
+    const st2 = JSON.parse(after.stdout);
+    assert.equal(st2.find((s) => s.id === 'terrain').state, 'done');
+    assert.equal(st2.find((s) => s.id === 'submodules').state, 'ready');
+
+    // self-report stage 标记
+    await run(['pipeline', 'done', 'supplements', '--repo', 'R', '--kb-root', kb]);
+    const st3 = JSON.parse((await run(['pipeline', 'status', '--repo', 'R', '--kb-root', kb, '--json'])).stdout);
+    assert.equal(st3.find((s) => s.id === 'supplements').state, 'done');
+  } finally {
+    await rm(kb, { recursive: true, force: true });
+  }
+});
