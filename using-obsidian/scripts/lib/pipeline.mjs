@@ -1,4 +1,4 @@
-import { existsSync, readFileSync } from 'node:fs';
+import { readFileSync } from 'node:fs';
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import path from 'node:path';
 import { authoringDir } from './registry.mjs';
@@ -32,10 +32,8 @@ function statePath(kbRoot) {
 }
 
 export async function readState(kbRoot) {
-  const p = statePath(kbRoot);
-  if (!existsSync(p)) return {};
   try {
-    return JSON.parse(await readFile(p, 'utf8'));
+    return JSON.parse(await readFile(statePath(kbRoot), 'utf8'));
   } catch {
     return {};
   }
