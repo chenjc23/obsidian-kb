@@ -137,7 +137,7 @@ export async function runCli() {
     if (sub === 'done') {
       const stageId = context.positional[1];
       if (!stageId) throw new Error('pipeline done requires a stage id');
-      await markStageDone(context.kbRoot, name, stageId);
+      await markStageDone(ctx.kbRoot, name, stageId);
       printResult({ marked: stageId, pipeline: name }, context.json);
       return;
     }

@@ -8,7 +8,7 @@ import { promisify } from 'node:util';
 import { fileURLToPath } from 'node:url';
 const execFileP = promisify(execFile);
 const CLI = fileURLToPath(new URL('./obsidian-kb.mjs', import.meta.url));
-async function run(args) { return execFileP('node', [CLI, ...args]); }
+async function run(args) { return execFileP('node', [CLI, ...args], { timeout: 15000 }); }
 
 import {
   resolveContext,
@@ -349,6 +349,16 @@ test('pipeline next returns terrain instruction first', async () => {
   try {
     const { stdout } = await run(['pipeline', 'next', '--repo', 'R', '--kb-root', kb]);
     assert.match(stdout, /terrain/);
+  } finally {
+    await rm(kb, { recursive: true, force: true });
+  }
+});
+
+test('pipeline next forwards --pipeline deep-analysis', async () => {
+  const kb = await mkdtemp(path.join(tmpdir(), 'obsidian-kb-'));
+  try {
+    const { stdout } = await run(['pipeline', 'next', '--repo', 'R', '--pipeline', 'deep-analysis', '--topic', 'T', '--kb-root', kb]);
+    assert.match(stdout, /call-tree/);
   } finally {
     await rm(kb, { recursive: true, force: true });
   }
