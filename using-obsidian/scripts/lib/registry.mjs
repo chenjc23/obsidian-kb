@@ -9,6 +9,7 @@ const VALID_VIEWS = new Set(['usecase', 'logical', 'development', 'runtime', 'co
 
 export function registryPath() { return path.join(AUTHORING, 'registry.yaml'); }
 export function templatesDir() { return path.join(AUTHORING, 'templates'); }
+export function authoringDir() { return AUTHORING; }
 
 let cached = null;
 
