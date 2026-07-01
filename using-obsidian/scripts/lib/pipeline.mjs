@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import path from 'node:path';
 import { authoringDir } from './registry.mjs';
@@ -46,4 +46,56 @@ export async function markStageDone(kbRoot, pipelineName, stageId) {
   const p = statePath(kbRoot);
   await mkdir(path.dirname(p), { recursive: true });
   await writeFile(p, `${JSON.stringify(state, null, 2)}\n`, 'utf8');
+}
+
+// produces 项以 / 结尾 = 目录(存在且非空);否则文件存在。
+function producesExist(stage, ctx) {
+  const items = stage.produces || [];
+  for (const raw of items) {
+    const rel = fillPlaceholders(raw, ctx);
+    const full = path.join(ctx.kbRoot, rel);
+    if (rel.endsWith('/')) {
+      if (!existsSync(full)) return false;
+      const kids = readdirSafe(full);
+      if (kids.length === 0) return false;
+    } else if (!existsSync(full)) {
+      return false;
+    }
+  }
+  return true;
+}
+
+function readdirSafe(dir) {
+  try { return readdirSync(dir); } catch { return []; }
+}
+
+function noPlaceholderInProduces(stage, ctx) {
+  for (const raw of stage.produces || []) {
+    const rel = fillPlaceholders(raw, ctx);
+    if (rel.endsWith('/')) continue; // 目录不逐文件扫,交给内部页各自 stage
+    const full = path.join(ctx.kbRoot, rel);
+    if (!existsSync(full)) return false;
+    if (/<!--\s*填/.test(readFileSync(full, 'utf8'))) return false;
+  }
+  return true;
+}
+
+export async function stageDone(stage, ctx) {
+  const done = stage.done || {};
+  if (done.instructionSelfReport) {
+    return ctx.state?.[ctx.pipelineName]?.[stage.id] === true;
+  }
+  if (done.tracksAllComplete) {
+    const rel = fillPlaceholders(stage.tracks, ctx);
+    const full = path.join(ctx.kbRoot, rel);
+    if (!existsSync(full)) return false;
+    return tracksAllComplete(await readFile(full, 'utf8'), done.tracksAllComplete);
+  }
+  // 默认档:exists(+ 可选 noPlaceholder)。无 produces 声明时回退 self-report。
+  if (!stage.produces || stage.produces.length === 0) {
+    return ctx.state?.[ctx.pipelineName]?.[stage.id] === true;
+  }
+  if (!producesExist(stage, ctx)) return false;
+  if (done.noPlaceholder && !noPlaceholderInProduces(stage, ctx)) return false;
+  return true;
 }

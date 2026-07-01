@@ -1,9 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtemp, readFile as readF } from 'node:fs/promises';
+import { mkdtemp, readFile as readF, writeFile as writeF, mkdir as mkdirF } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
-import { tracksAllComplete, fillPlaceholders, readState, markStageDone } from './pipeline.mjs';
+import { tracksAllComplete, fillPlaceholders, readState, markStageDone, stageDone } from './pipeline.mjs';
 
 const LEDGER_HEAD = `# R 已识别流程清单
 ## Deep Analysis 流程清单
@@ -48,4 +48,52 @@ test('markStageDone then readState round-trips', async () => {
   assert.equal(state.ingest.supplements, true);
   const raw = await readF(path.join(kb, '.obsidian-kb', 'pipeline-state.json'), 'utf8');
   assert.match(raw, /supplements/);
+});
+
+async function seedFile(kb, rel, content) {
+  const full = path.join(kb, rel);
+  await mkdirF(path.dirname(full), { recursive: true });
+  await writeF(full, content, 'utf8');
+}
+
+test('stageDone exists+noPlaceholder: true when files exist and no 填 marker', async () => {
+  const kb = await mkdtemp(path.join(tmpdir(), 'kb-'));
+  await seedFile(kb, 'repos/R/overview.md', '# ok\n内容\n');
+  const stage = { id: 'terrain', produces: ['repos/{repo}/overview.md'], done: { exists: 'produces', noPlaceholder: true } };
+  assert.equal(await stageDone(stage, { kbRoot: kb, repo: 'R', pipelineName: 'ingest', state: {} }), true);
+});
+
+test('stageDone noPlaceholder: false when 填 marker remains', async () => {
+  const kb = await mkdtemp(path.join(tmpdir(), 'kb-'));
+  await seedFile(kb, 'repos/R/overview.md', '# ok\n<!-- 填:定位 -->\n');
+  const stage = { id: 'terrain', produces: ['repos/{repo}/overview.md'], done: { exists: 'produces', noPlaceholder: true } };
+  assert.equal(await stageDone(stage, { kbRoot: kb, repo: 'R', pipelineName: 'ingest', state: {} }), false);
+});
+
+test('stageDone exists: false when produces file missing', async () => {
+  const kb = await mkdtemp(path.join(tmpdir(), 'kb-'));
+  const stage = { id: 'terrain', produces: ['repos/{repo}/overview.md'], done: { exists: 'produces' } };
+  assert.equal(await stageDone(stage, { kbRoot: kb, repo: 'R', pipelineName: 'ingest', state: {} }), false);
+});
+
+test('stageDone exists: directory produces (trailing slash) checks dir', async () => {
+  const kb = await mkdtemp(path.join(tmpdir(), 'kb-'));
+  await seedFile(kb, 'repos/R/submodules/x/上下文.md', '# x\n');
+  const stage = { id: 'submodules', produces: ['repos/{repo}/submodules/'], done: { exists: 'produces' } };
+  assert.equal(await stageDone(stage, { kbRoot: kb, repo: 'R', pipelineName: 'ingest', state: {} }), true);
+});
+
+test('stageDone tracksAllComplete reads tracks file', async () => {
+  const kb = await mkdtemp(path.join(tmpdir(), 'kb-'));
+  await seedFile(kb, 'repos/R/candidate-flow.md',
+    '| 分析顺序 | 状态 |\n|---|---|\n| 1 | 已深挖 |\n');
+  const stage = { id: 'deep-dive', tracks: 'repos/{repo}/candidate-flow.md', done: { tracksAllComplete: '已深挖' } };
+  assert.equal(await stageDone(stage, { kbRoot: kb, repo: 'R', pipelineName: 'ingest', state: {} }), true);
+});
+
+test('stageDone instructionSelfReport reads state', async () => {
+  const kb = await mkdtemp(path.join(tmpdir(), 'kb-'));
+  const stage = { id: 'backlinks', done: { instructionSelfReport: true } };
+  assert.equal(await stageDone(stage, { kbRoot: kb, repo: 'R', pipelineName: 'ingest', state: {} }), false);
+  assert.equal(await stageDone(stage, { kbRoot: kb, repo: 'R', pipelineName: 'ingest', state: { ingest: { backlinks: true } } }), true);
 });
