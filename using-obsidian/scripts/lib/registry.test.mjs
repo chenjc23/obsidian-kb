@@ -1,10 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { existsSync } from 'node:fs';
 import { mkdtemp, writeFile, mkdir } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import {
-  loadRegistry, validTypes, scaffoldableTypes,
+  loadRegistry, validTypes, scaffoldableTypes, authoringDir,
 } from './registry.mjs';
 import { targetPath } from './template.mjs';
 
@@ -134,5 +135,13 @@ test('GOLDEN: registry defines ingest and deep-analysis pipelines', () => {
 });
 
 test('GOLDEN: every pipeline stage instruction file exists', () => {
-  loadRegistry({ force: true }); // validate 不抛即通过
+  const reg = loadRegistry({ force: true });
+  for (const pdef of Object.values(reg.pipelines)) {
+    for (const stage of pdef.stages) {
+      if (stage.instruction) {
+        assert.ok(existsSync(path.join(authoringDir(), stage.instruction)),
+          `instruction missing: ${stage.instruction}`);
+      }
+    }
+  }
 });
