@@ -21,9 +21,9 @@ Use a user-provided path only when the user explicitly specifies one.
 
 The user does not need to provide the knowledge base path for normal knowledge-base work.
 
-Apply automatic discovery for any request that asks to read, query, analyze, inspect, explain, design from, debug with, review with, update, lint, or assess impact through the knowledge base.
+Resolve `{kb-root}` for any request that asks to read, query, analyze, inspect, explain, design from, debug with, review with, update, lint, or assess impact through the knowledge base.
 
-When no path is provided, discover `{kb-root}` using the single-source resolution in `obsidian-kb-authoring/references/kb-root-resolution.md` (deterministic order + read/write fallback + the "looks-like-a-knowledge-base" test). Do not ask where the KB is or should be created unless the user explicitly asks to choose between candidates.
+When no path is provided, locate `{kb-root}` by running the `resolve` helper (see Helper Commands below) — do not search manually. Do not ask where the KB is or should be created unless `resolve` reports ambiguous candidates.
 
 Do not hardcode local paths in examples or generated instructions. Prefer:
 
@@ -40,13 +40,19 @@ scripts/obsidian-kb.mjs
 
 When the whole `skills/` folder is copied to another agent, this helper moves with `using-obsidian`.
 
-When path behavior is uncertain, use the bundled helper:
+Locate `{kb-root}` by running the helper — do not search manually:
 
 ```bash
-node {using-obsidian-skill-root}/scripts/obsidian-kb.mjs resolve --json
+node {using-obsidian-skill-root}/scripts/obsidian-kb.mjs resolve [--kb-root <path>] --json
 ```
 
-If the helper only resolves the default path and that path does not exist, perform the automatic discovery steps above manually before asking the user.
+It deterministically locates the kb-root (explicit → cwd itself → `cwd/code-kb` → nearest ancestor `code-kb/` → best of workspace-child candidates) and returns `{ kbRoot, found, source, candidates }`. Act on it:
+
+- `found: true` → use `kbRoot`.
+- `found: false`, `source: default` (no existing KB) → write tasks (ingest / update / deep-analysis writes, and building) use the returned `kbRoot` (`cwd/code-kb`), which `init` creates; read tasks (query / lint) do not fabricate — report "KB not yet built" as a gap and only ask the user when truly blocked.
+- `source: ambiguous` → have the user pick one of `candidates`, then pass it via `--kb-root`; never guess.
+
+Never ask where `{kb-root}` should live. The resolution algorithm's single source is `scripts/lib/kb-root.mjs`.
 
 ### Helper Commands
 

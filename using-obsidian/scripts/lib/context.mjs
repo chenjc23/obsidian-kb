@@ -35,6 +35,7 @@ export function resolveContext({ cwd = process.cwd(), args = [] } = {}) {
   return {
     workspaceRoot: cwd,
     kbRoot,
+    kbRootFlag: parsed.kbRoot,
     json: parsed.json,
     positional: parsed.positional,
     flags: parsed.flags,

@@ -9,7 +9,7 @@ description: Use when existing Obsidian code knowledge-base notes need to be upd
 
 **两种输入模式**：A·源码变更（git diff 驱动）；B·外部知识/文档输入（用户给一段知识或文档，理解后关联到相关页）。先做「输入识别」判定本次走哪条，二者可在同一次调用并存。
 
-**始终配合 `obsidian-kb-authoring` 写笔记。** 目录、frontmatter、页面形状、链接契约全部以 authoring 的 `references/` 为准，本 skill 不重复声明，只负责更新流程。找 `{kb-root}` 见 authoring `references/kb-root-resolution.md`。
+**始终配合 `obsidian-kb-authoring` 写笔记。** 目录、frontmatter、页面形状、链接契约全部以 authoring 的 `references/` 为准，本 skill 不重复声明，只负责更新流程。找 `{kb-root}` 跑 `obsidian-kb.mjs resolve`(用法见 `using-obsidian`)。
 
 ## update 在套件里的特殊位置
 

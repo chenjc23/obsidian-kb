@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { mkdtemp, readFile, rm, writeFile, mkdir } from 'node:fs/promises';
-import { existsSync } from 'node:fs';
+import { existsSync, realpathSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { execFile } from 'node:child_process';
@@ -10,6 +10,7 @@ import { fileURLToPath } from 'node:url';
 const execFileP = promisify(execFile);
 const CLI = fileURLToPath(new URL('./obsidian-kb.mjs', import.meta.url));
 async function run(args) { return execFileP('node', [CLI, ...args], { timeout: 15000 }); }
+async function runIn(cwd, args) { return execFileP('node', [CLI, ...args], { cwd, timeout: 15000 }); }
 
 import {
   resolveContext,
@@ -41,6 +42,23 @@ test('resolveContext defaults kbRoot to cwd/code-kb', async () => {
     assert.equal(context.kbRoot, path.join(workspace, 'code-kb'));
   } finally {
     await rm(workspace, { recursive: true, force: true });
+  }
+});
+
+test('resolve command locates kb-root deterministically', async () => {
+  const kb = realpathSync(await mkdtemp(path.join(tmpdir(), 'kb-')));
+  try {
+    // 空目录、未指定 → default + found:false
+    const def = JSON.parse((await runIn(kb, ['resolve', '--json'])).stdout);
+    assert.equal(def.source, 'default');
+    assert.equal(def.found, false);
+    assert.equal(def.kbRoot, path.join(kb, 'code-kb'));
+    // 显式路径 → source:explicit
+    const explicit = JSON.parse((await runIn(kb, ['resolve', '--kb-root', 'foo', '--json'])).stdout);
+    assert.equal(explicit.source, 'explicit');
+    assert.equal(explicit.kbRoot, path.join(kb, 'foo'));
+  } finally {
+    await rm(kb, { recursive: true, force: true });
   }
 });
 

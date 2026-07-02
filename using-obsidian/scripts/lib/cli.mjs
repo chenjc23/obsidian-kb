@@ -5,6 +5,7 @@ import { buildReport } from './query.mjs';
 import { scaffoldPage, scaffoldPartialContract, listTypes } from './scaffold.mjs';
 import { describe, describeData } from './describe.mjs';
 import { getPipeline, pipelineStatus, pipelineNext, markStageDone } from './pipeline.mjs';
+import { resolveKbRoot } from './kb-root.mjs';
 
 function printResult(result, json) {
   if (json) {
@@ -38,7 +39,7 @@ export async function runCli() {
   const context = resolveContext({ args: rest });
 
   if (command === 'resolve') {
-    printResult(context, context.json);
+    printResult(resolveKbRoot({ cwd: context.workspaceRoot, explicit: context.kbRootFlag }), context.json);
     return;
   }
 

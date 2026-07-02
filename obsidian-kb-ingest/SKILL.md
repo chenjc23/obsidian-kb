@@ -25,7 +25,7 @@ description: Use to create or refresh the first-pass Obsidian code knowledge bas
 
 ## `{kb-root}` 解析
 
-见 authoring `references/kb-root-resolution.md`。仅当源仓库根或摄入范围无法推断时才询问,永不问 `{kb-root}` 放哪。
+跑 `obsidian-kb.mjs resolve` 定位(用法与返回值解读见 `using-obsidian`)。仅当源仓库根或摄入范围无法推断时才询问,永不问 `{kb-root}` 放哪。
 
 ## 质量底线
 
