@@ -202,6 +202,11 @@ pipelines:
         requires: [submodules]
         done:
           exists: produces
+      - id: repo-usecases
+        instructions: [pipelines/ingest/repo-usecases.md]
+        requires: [candidate-flows]
+        done:
+          instructionSelfReport: true
       - id: supplements
         produces:
           - repos/{repo}/glossary.md
@@ -223,7 +228,7 @@ pipelines:
           instructionSelfReport: true
       - id: backlinks
         instructions: [pipelines/ingest/backlinks.md]
-        requires: [domains-contracts, candidate-flows]
+        requires: [domains-contracts, repo-usecases]
         done:
           instructionSelfReport: true
       - id: coverage

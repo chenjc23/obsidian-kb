@@ -168,7 +168,7 @@ test('GOLDEN: registry defines ingest and deep-analysis pipelines', () => {
   assert.ok(reg.pipelines.ingest, 'ingest pipeline present');
   assert.ok(reg.pipelines['deep-analysis'], 'deep-analysis pipeline present');
   const ids = reg.pipelines.ingest.stages.map((s) => s.id);
-  assert.deepEqual(ids, ['terrain', 'submodules', 'candidate-flows', 'supplements',
+  assert.deepEqual(ids, ['terrain', 'submodules', 'candidate-flows', 'repo-usecases', 'supplements',
     'domains-contracts', 'backlinks', 'coverage', 'deep-dive']);
 });
 
