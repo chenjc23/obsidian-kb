@@ -43,7 +43,7 @@ node {using-obsidian-skill-root}/scripts/obsidian-kb.mjs describe tree
 - `global/architecture/coverage.md` 是工作区唯一的**覆盖记录**：记录每仓挖到什么深度、哪些跨仓边只找到一端还没接上、有哪些已知盲区。它让"增量永远不完整"变成可读的待补地图——agent 建立全局认识时必读，知道哪里能下结论、哪里是盲区。只追加，不做综合改写。
 - 跨仓边只先找到一端时建**单边契约**（`global/contracts/{X}` 标 `status: partial`），并在 `coverage.md` 待接合边表记录；等另一端的仓 ingest 进来再接合，不编造假对端。
 - `glossary` 是术语→链接索引，不存第二份定义。
-- `overview.md` 是仓内模块定义、职责边界、上下文入口；具体模块细节进入 `submodules/{topic}/` 七件套（主锚 `上下文.md`，承载 `depends-on`；`状态迁移规则.md` 可选，无对象状态机则删整文件）。
+- `overview.md` 是仓内模块定义、职责边界、上下文入口；具体模块细节进入 `submodules/{topic}/` 六件套（主锚 `overview.md`，承载 `depends-on`；`state-transition.md` 可选，无对象状态机则删整文件）。
 - `specifications.md` 合并规格、配置和 feature flag；错误处理、设计约束、隐式约定进入 `constraints.md`，资源消耗、容量和退化策略进入 `resource-analysis.md`。
 - `global/extra/` 是**最后手段**：仅当一条外部知识与现有库毫无关联、且补齐 `global/domains/`、`global/contracts/`、`global/use-cases/` 视图层页后仍无页能承载时，才建 `global/extra/{标题}.md`。能进五视图的知识不许塞 `extra/`。
 - 仓内不复刻视图文件夹；只有 `usecases/`、`submodules/`、`flows/` 这类多实例单元才成文件夹。

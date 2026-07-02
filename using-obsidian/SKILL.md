@@ -66,8 +66,8 @@ node {using-obsidian-skill-root}/scripts/obsidian-kb.mjs types
 node {using-obsidian-skill-root}/scripts/obsidian-kb.mjs scaffold overview --repo {repo} --title {仓库名} --kb-root {kb-root}
 
 # 复合型（submodule/flow）逐件吐：写哪件传 --member 吐哪件，不一次吐全套
-# submodule 成员：上下文/功能/数据结构/特性耦合/状态迁移规则/接口/规格约束
-node {using-obsidian-skill-root}/scripts/obsidian-kb.mjs scaffold submodule --repo {repo} --topic {子模块主题} --member 上下文 --kb-root {kb-root}
+# submodule 成员：overview/api-both/feature-coupling/state-transition/constrains/data-models
+node {using-obsidian-skill-root}/scripts/obsidian-kb.mjs scaffold submodule --repo {repo} --topic {子模块主题} --member overview --kb-root {kb-root}
 
 # flow 成员：调用树/主干流程/分支主题/跨边界数据流/数据结构/自查报告（6 件跨 6 个 stage 写）
 node {using-obsidian-skill-root}/scripts/obsidian-kb.mjs scaffold flow --repo {repo} --topic {分析主题} --member 调用树 --kb-root {kb-root}

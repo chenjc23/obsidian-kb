@@ -12,7 +12,7 @@ import { scaffoldableTypes } from './registry.mjs';
 
 // 吐骨架文本,不落盘:agent 填好正文后自己 Write 到 target。
 // 文件只在被填好时才出现在磁盘,`exists` 闸门因此可信。
-// 复合型(七件套/六件套)逐件吐:写哪件传 --member 吐哪件,不一次吐全套。
+// 复合型逐件吐:写哪件传 --member 吐哪件,不一次吐全套。
 export async function scaffoldPage({ type, repo, title, topic, member }) {
   const members = MEMBER_FILES[type] || [];
   if (members.length > 0) {

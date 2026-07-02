@@ -420,7 +420,7 @@ node using-obsidian/scripts/obsidian-kb.mjs resolve --json
 node using-obsidian/scripts/obsidian-kb.mjs init
 node using-obsidian/scripts/obsidian-kb.mjs types
 node using-obsidian/scripts/obsidian-kb.mjs scaffold overview --repo {repo} --title {仓库名}
-node using-obsidian/scripts/obsidian-kb.mjs scaffold submodule --repo {repo} --topic {子模块主题} --member 上下文
+node using-obsidian/scripts/obsidian-kb.mjs scaffold submodule --repo {repo} --topic {子模块主题} --member overview
 node using-obsidian/scripts/obsidian-kb.mjs scaffold flow --repo {repo} --topic {分析主题} --member 调用树
 node using-obsidian/scripts/obsidian-kb.mjs scaffold contract --partial --side producer \
   --title {契约名} --known {repo} --evidence "{path:func()}"

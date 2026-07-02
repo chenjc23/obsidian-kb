@@ -137,7 +137,7 @@ const TARGET_GOLDEN = {
   'resource-analysis': ['repos/R/resource-analysis.md', { repo: 'R' }],
   'human-interfaces': ['repos/R/human-interfaces.md', { repo: 'R' }],
   'repo-usecase': ['repos/R/usecases/T.md', { repo: 'R', title: 'T' }],
-  submodule: ['repos/R/submodules/TOPIC/上下文.md', { repo: 'R', topic: 'TOPIC', flowFile: '上下文' }],
+  submodule: ['repos/R/submodules/TOPIC/overview.md', { repo: 'R', topic: 'TOPIC', flowFile: 'overview' }],
   extra: ['global/extra/T.md', { title: 'T' }],
   flow: ['repos/R/flows/TOPIC/主干流程.md', { repo: 'R', topic: 'TOPIC', flowFile: '主干流程' }],
 };

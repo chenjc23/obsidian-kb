@@ -30,9 +30,9 @@ test('scaffoldPage flow --member emits only that member skeleton', async () => {
 });
 
 test('scaffoldPage submodule --member emits only that member skeleton', async () => {
-  const res = await scaffoldPage({ type: 'submodule', repo: 'r', topic: 'T', member: '上下文' });
+  const res = await scaffoldPage({ type: 'submodule', repo: 'r', topic: 'T', member: 'overview' });
   assert.equal(res.skeletons.length, 1);
-  assert.equal(res.skeletons[0].target, 'repos/r/submodules/T/上下文.md');
+  assert.equal(res.skeletons[0].target, 'repos/r/submodules/T/overview.md');
 });
 
 test('scaffoldPage composite type without member throws', async () => {

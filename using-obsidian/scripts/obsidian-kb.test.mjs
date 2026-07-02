@@ -124,7 +124,7 @@ See [[domains/Domain A]] and [[contracts/Contract A|contract]].
 });
 
 test('extractWikiLinks ignores links inside HTML comments', () => {
-  const note = '# X\nReal [[domains/Real]].\n<!-- 填:示例 [[repos/{repo}/submodules/X/上下文]] 不算链接 -->';
+  const note = '# X\nReal [[domains/Real]].\n<!-- 填:示例 [[repos/{repo}/submodules/X/overview]] 不算链接 -->';
   assert.deepEqual(extractWikiLinks(note), ['domains/Real']);
 });
 

@@ -80,7 +80,7 @@ test('stageDone exists: false when produces file missing', async () => {
 
 test('stageDone exists: directory produces (trailing slash) checks dir', async () => {
   const kb = await mkdtemp(path.join(tmpdir(), 'kb-'));
-  await seedFile(kb, 'repos/R/submodules/x/上下文.md', '# x\n');
+  await seedFile(kb, 'repos/R/submodules/x/overview.md', '# x\n');
   const stage = { id: 'submodules', produces: ['repos/{repo}/submodules/'], done: { exists: 'produces' } };
   assert.equal(await stageDone(stage, { kbRoot: kb, repo: 'R', pipelineName: 'ingest', state: {} }), true);
 });

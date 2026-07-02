@@ -17,6 +17,6 @@ node {using-obsidian-skill-root}/scripts/obsidian-kb.mjs describe shapes
 - **契约「定义一次」**：契约页持有可复用定义（schema、标识、producer/consumer）；flow 的跨边界页只持有「本场景如何用」并链回契约，不重抄 schema。
 - **单边契约（`status: partial`）**：增量时只找到一端就照常建页，已知一端填上、未知一端留空写「对端待 ingest」，`status: partial`，同时在 `coverage.md` 待接合边表记录。对端仓 ingest 后补全 + 双链，`status` 翻回 `active`、记录行翻「已接合」。用 `scaffold contract --partial` 可一条命令原子完成建页 + 记录。
 - **coverage 只追加不改写**：接合一条待接合边 = 把该行状态改 `已接合` + 补全关联 partial 契约的对端与双链，是状态翻转，不是重写整页。
-- **仓内结构两层写**：`overview.md` 记录仓级模块定义、职责边界和上下文；`submodules/{topic}/` 记录具体子模块细节（七件套,主锚 `上下文`）。子模块细节不落 `overview.md`。
+- **仓内结构两层写**：`overview.md` 记录仓级模块定义、职责边界和上下文；`submodules/{topic}/` 记录具体子模块细节（六件套,主锚 `overview`）。子模块细节不落仓级 `overview.md`。
 - **深流程「定义一次、引用多次」**：`跨边界数据流` 收发两节都必须填；可复用 schema/标识提升到 `global/contracts/`，完整字段定义提升到 `repos/{repo}/data-models`，子模块细节提升到 `repos/{repo}/submodules/{topic}/`，深流程页只留场景特定内容 + 时序/生命周期。
 - **system-architecture 是工作区唯一人工叙事总览**（复用 architecture 模板，含跨仓 mermaid 图）；增量早期常常还不存在，缺席是正常的。依赖图/技术栈/数据流/影响面**不物化成页**——由 query 现算。
