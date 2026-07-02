@@ -11,7 +11,7 @@ description: Use to create or refresh the first-pass Obsidian code knowledge bas
 
 ## 执行循环
 
-用 helper 驱动(命令清单见 `using-obsidian`):
+用 helper 驱动——脚本在**与本 skill 同级**的 `using-obsidian` skill 下:`using-obsidian/scripts/obsidian-kb.mjs`(不在本 skill 目录),命令清单与用法见 `using-obsidian`:
 
 1. `pipeline status --repo {repo}` 看进度(每个 stage:done / ready / blocked)。
 2. `pipeline next --repo {repo}` 拿下一个 ready stage + 它的 instruction 正文。

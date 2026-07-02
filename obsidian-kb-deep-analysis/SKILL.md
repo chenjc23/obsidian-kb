@@ -21,7 +21,7 @@ repos/{repo}/flows/{分析主题}/
 └── 自查报告.md
 ```
 
-每个 stage 写自己那件时才 `scaffold flow --repo {repo} --topic {主题} --member {成员}` 拿本件骨架文本,填好后 `Write` 到打印的目标路径(写前自查、不覆盖人工页)。不一次吐全套——6 件跨 6 个 stage 写,写哪件吐哪件。
+helper 脚本在**与本 skill 同级**的 `using-obsidian/scripts/obsidian-kb.mjs`(不在本 skill 目录),命令用法见 `using-obsidian`。每个 stage 写自己那件时才 `scaffold flow --repo {repo} --topic {主题} --member {成员}` 拿本件骨架文本,填好后 `Write` 到打印的目标路径(写前自查、不覆盖人工页)。不一次吐全套——6 件跨 6 个 stage 写,写哪件吐哪件。
 
 ## 执行循环
 
