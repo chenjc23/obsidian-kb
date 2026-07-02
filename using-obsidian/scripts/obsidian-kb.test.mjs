@@ -367,8 +367,11 @@ test('smoke: init → scaffold terrain pages → pipeline status advances', asyn
     assert.equal(st2.find((s) => s.id === 'terrain').state, 'done');
     assert.equal(st2.find((s) => s.id === 'submodules').state, 'ready');
 
-    // self-report stage 标记
-    await run(['pipeline', 'done', 'supplements', '--repo', 'R', '--kb-root', kb]);
+    // supplements:8 页全生成才 done(exists 闸门,不适用页也须生成)
+    assert.equal(st2.find((s) => s.id === 'supplements').state, 'ready');
+    for (const t of ['glossary', 'api-surface', 'api-depend', 'data-model', 'specifications', 'constraints', 'resource-analysis', 'human-interfaces']) {
+      await writeFilledFromScaffold(kb, [t, '--repo', 'R', '--title', 'R']);
+    }
     const st3 = JSON.parse((await run(['pipeline', 'status', '--repo', 'R', '--kb-root', kb, '--json'])).stdout);
     assert.equal(st3.find((s) => s.id === 'supplements').state, 'done');
   } finally {

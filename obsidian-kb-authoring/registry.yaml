@@ -204,10 +204,20 @@ pipelines:
         done:
           exists: produces
       - id: supplements
+        produces:
+          - repos/{repo}/glossary.md
+          - repos/{repo}/api-surface.md
+          - repos/{repo}/api-depend.md
+          - repos/{repo}/data-models.md
+          - repos/{repo}/specifications.md
+          - repos/{repo}/constraints.md
+          - repos/{repo}/resource-analysis.md
+          - repos/{repo}/human-interfaces.md
         instruction: pipelines/ingest/supplements.md
         requires: [terrain]
         done:
-          instructionSelfReport: true
+          exists: produces
+          noPlaceholder: true
       - id: domains-contracts
         instruction: pipelines/ingest/domains-contracts.md
         requires: [submodules, supplements]

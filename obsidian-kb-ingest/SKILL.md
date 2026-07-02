@@ -16,7 +16,7 @@ description: Use to create or refresh the first-pass Obsidian code knowledge bas
 1. `pipeline status --repo {repo}` 看进度(每个 stage:done / ready / blocked)。
 2. `pipeline next --repo {repo}` 拿下一个 ready stage + 它的 instruction 正文。
 3. 按 instruction 用 authoring/references 写页——先 `scaffold {type}` 拿骨架文本,填好后 `Write` 到打印的目标路径(写前自查、不覆盖人工页)。
-4. 无产物的自查型 stage(supplements / domains-contracts / backlinks)处理完后 `pipeline done {stage} --repo {repo}` 标记完成。
+4. 无产物的自查型 stage(domains-contracts / backlinks)处理完后 `pipeline done {stage} --repo {repo}` 标记完成。
 5. 回到第 1 步,直到 `status` 全部 done。
 
 默认连续跑完所有 stage,phase 间不暂停(除非用户显式要求逐步评审)。`coverage`/`backlinks` 完成后自动进入 `deep-dive`,不在此边界停下等确认。
