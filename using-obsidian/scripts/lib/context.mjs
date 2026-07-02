@@ -1,4 +1,5 @@
 import path from 'node:path';
+import { resolveKbRoot } from './kb-root.mjs';
 
 export function today() {
   return new Date().toISOString().slice(0, 10);
@@ -31,10 +32,10 @@ export function parseArgs(args = []) {
 
 export function resolveContext({ cwd = process.cwd(), args = [] } = {}) {
   const parsed = parseArgs(args);
-  const kbRoot = parsed.kbRoot ? path.resolve(cwd, parsed.kbRoot) : path.join(cwd, 'code-kb');
+  const resolved = resolveKbRoot({ cwd, explicit: parsed.kbRoot });
   return {
     workspaceRoot: cwd,
-    kbRoot,
+    kbRoot: resolved.kbRoot,
     kbRootFlag: parsed.kbRoot,
     json: parsed.json,
     positional: parsed.positional,

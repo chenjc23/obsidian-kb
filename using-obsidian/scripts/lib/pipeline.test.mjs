@@ -44,10 +44,11 @@ test('readState returns {} when no state file', async () => {
 
 test('markStageDone then readState round-trips', async () => {
   const kb = await mkdtemp(path.join(tmpdir(), 'kb-'));
-  await markStageDone(kb, 'ingest', 'supplements');
-  const state = await readState(kb);
+  const pipeline = twoStagePipeline();
+  await markStageDone(kb, 'ingest', 'supplements', { repo: 'R', pipeline });
+  const state = await readState(kb, { pipelineName: 'ingest', repo: 'R', pipeline });
   assert.equal(state.ingest.supplements, true);
-  const raw = await readF(path.join(kb, '.obsidian-kb', 'pipeline-state.json'), 'utf8');
+  const raw = await readF(path.join(kb, '.obsidian', 'pipeline-state.json'), 'utf8');
   assert.match(raw, /supplements/);
 });
 
@@ -133,6 +134,45 @@ test('pipelineStatus: a done → b ready', async () => {
   await seedFile(kb, 'repos/R/a.md', '# a\n');
   const st = await pipelineStatus(twoStagePipeline(), { kbRoot: kb, repo: 'R', pipelineName: 'ingest' });
   assert.deepEqual(st, [{ id: 'a', state: 'done' }, { id: 'b', state: 'ready' }]);
+});
+
+function selfReportPipeline() {
+  return {
+    description: 'test',
+    stages: [
+      { id: 'review', requires: [], done: { instructionSelfReport: true } },
+    ],
+  };
+}
+
+test('pipelineStatus reuses self-report state for the same repo', async () => {
+  const kb = await mkdtemp(path.join(tmpdir(), 'kb-'));
+  const pipeline = selfReportPipeline();
+  await markStageDone(kb, 'ingest', 'review', { repo: 'R', pipeline });
+  const st = await pipelineStatus(pipeline, { kbRoot: kb, repo: 'R', pipelineName: 'ingest' });
+  assert.deepEqual(st, [{ id: 'review', state: 'done' }]);
+});
+
+test('pipelineStatus ignores self-report state from a different repo', async () => {
+  const kb = await mkdtemp(path.join(tmpdir(), 'kb-'));
+  const pipeline = selfReportPipeline();
+  await markStageDone(kb, 'ingest', 'review', { repo: 'R1', pipeline });
+  const st = await pipelineStatus(pipeline, { kbRoot: kb, repo: 'R2', pipelineName: 'ingest' });
+  assert.deepEqual(st, [{ id: 'review', state: 'ready' }]);
+});
+
+test('pipelineStatus ignores self-report state when pipeline shape changes', async () => {
+  const kb = await mkdtemp(path.join(tmpdir(), 'kb-'));
+  const pipeline = selfReportPipeline();
+  await markStageDone(kb, 'ingest', 'review', { repo: 'R', pipeline });
+  const changedPipeline = {
+    description: 'test',
+    stages: [
+      { id: 'review', requires: ['new-prerequisite'], done: { instructionSelfReport: true } },
+    ],
+  };
+  const st = await pipelineStatus(changedPipeline, { kbRoot: kb, repo: 'R', pipelineName: 'ingest' });
+  assert.deepEqual(st, [{ id: 'review', state: 'blocked' }]);
 });
 
 test('pipelineNext returns first ready stage with instruction body', async () => {

@@ -45,6 +45,19 @@ test('resolveContext defaults kbRoot to cwd/code-kb', async () => {
   }
 });
 
+test('resolveContext uses cwd itself when cwd is code-kb', async () => {
+  const workspace = await makeTempWorkspace();
+  const kbRoot = path.join(workspace, 'code-kb');
+  try {
+    await mkdir(kbRoot, { recursive: true });
+    const context = resolveContext({ cwd: kbRoot, args: [] });
+    assert.equal(context.workspaceRoot, kbRoot);
+    assert.equal(context.kbRoot, kbRoot);
+  } finally {
+    await rm(workspace, { recursive: true, force: true });
+  }
+});
+
 test('resolve command locates kb-root deterministically', async () => {
   const kb = realpathSync(await mkdtemp(path.join(tmpdir(), 'kb-')));
   try {

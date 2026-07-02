@@ -1,5 +1,6 @@
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
+import { createHash } from 'node:crypto';
 import path from 'node:path';
 import { authoringDir, loadRegistry } from './registry.mjs';
 
@@ -28,10 +29,31 @@ export function fillPlaceholders(str, { repo = '', topic = '' } = {}) {
 }
 
 function statePath(kbRoot) {
-  return path.join(kbRoot, '.obsidian-kb', 'pipeline-state.json');
+  return path.join(kbRoot, '.obsidian', 'pipeline-state.json');
 }
 
-export async function readState(kbRoot) {
+function stateScope({ pipelineName = '', repo = '', topic = '', pipeline } = {}) {
+  const pipelineShape = (pipeline?.stages || []).map((stage) => ({
+    id: stage.id,
+    requires: stage.requires || [],
+    produces: stage.produces || [],
+    tracks: stage.tracks || '',
+    done: stage.done || {},
+  }));
+  const fingerprint = createHash('sha256')
+    .update(JSON.stringify(pipelineShape))
+    .digest('hex')
+    .slice(0, 16);
+  return {
+    key: [pipelineName, repo, topic || '', fingerprint].join('\u001f'),
+    pipelineName,
+    repo,
+    topic: topic || '',
+    fingerprint,
+  };
+}
+
+async function readRawState(kbRoot) {
   try {
     return JSON.parse(await readFile(statePath(kbRoot), 'utf8'));
   } catch {
@@ -39,13 +61,41 @@ export async function readState(kbRoot) {
   }
 }
 
-export async function markStageDone(kbRoot, pipelineName, stageId) {
-  const state = await readState(kbRoot);
-  if (!state[pipelineName]) state[pipelineName] = {};
-  state[pipelineName][stageId] = true;
+export async function readState(kbRoot, scopeInput) {
+  const state = await readRawState(kbRoot);
+  if (!scopeInput) return state;
+  const scope = stateScope(scopeInput);
+  const entry = state.version === 1 ? state.scopes?.[scope.key] : undefined;
+  if (!entry) return { [scope.pipelineName]: {} };
+  if (
+    entry.pipelineName !== scope.pipelineName
+    || entry.repo !== scope.repo
+    || entry.topic !== scope.topic
+    || entry.fingerprint !== scope.fingerprint
+  ) {
+    return { [scope.pipelineName]: {} };
+  }
+  return { [scope.pipelineName]: entry.stages || {} };
+}
+
+export async function markStageDone(kbRoot, pipelineName, stageId, scopeInput = {}) {
+  const state = await readRawState(kbRoot);
+  const next = state.version === 1 ? state : { version: 1, scopes: {} };
+  if (!next.scopes) next.scopes = {};
+  const scope = stateScope({ ...scopeInput, pipelineName });
+  if (!next.scopes[scope.key]) {
+    next.scopes[scope.key] = {
+      pipelineName,
+      repo: scope.repo,
+      topic: scope.topic,
+      fingerprint: scope.fingerprint,
+      stages: {},
+    };
+  }
+  next.scopes[scope.key].stages[stageId] = true;
   const p = statePath(kbRoot);
   await mkdir(path.dirname(p), { recursive: true });
-  await writeFile(p, `${JSON.stringify(state, null, 2)}\n`, 'utf8');
+  await writeFile(p, `${JSON.stringify(next, null, 2)}\n`, 'utf8');
 }
 
 // produces 项以 / 结尾 = 目录(存在且非空);否则文件存在。
@@ -89,7 +139,7 @@ export async function stageDone(stage, ctx) {
 }
 
 export async function pipelineStatus(pipeline, ctx) {
-  const state = await readState(ctx.kbRoot);
+  const state = await readState(ctx.kbRoot, { ...ctx, pipeline });
   const full = { ...ctx, state };
   const doneMap = new Map();
   const out = [];
