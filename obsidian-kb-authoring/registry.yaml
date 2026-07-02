@@ -224,6 +224,7 @@ pipelines:
         requires: [domains-contracts]
         done:
           exists: produces
+          noPlaceholder: true
       - id: deep-dive
         instruction: pipelines/ingest/deep-dive.md
         requires: [candidate-flows, coverage, backlinks]

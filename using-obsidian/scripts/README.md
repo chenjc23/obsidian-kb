@@ -7,11 +7,9 @@ It performs deterministic operations that are safer and more repeatable in code 
 - Resolve default paths.
 - Initialize `code-kb/`.
 - Build transient in-memory indexes for commands that need page metadata or links.
-- Search durable notes by title, aliases, frontmatter, wikilinks, sources, and body text.
 - Lint properties and links.
-- Inspect incoming and outgoing links.
 - Report knowledge base health.
-- Scaffold pages from templates (`scaffold`, `types`).
+- Emit page skeletons from templates for the agent to fill and write (`scaffold`, `types`).
 - Print registry-derived structure views on demand (`describe`).
 
 ## 结构单一来源
@@ -28,8 +26,6 @@ From this repository:
 node skills/using-obsidian/scripts/obsidian-kb.mjs resolve --json
 node skills/using-obsidian/scripts/obsidian-kb.mjs init
 node skills/using-obsidian/scripts/obsidian-kb.mjs lint
-node skills/using-obsidian/scripts/obsidian-kb.mjs links global/contracts/AllocateResource.md --json
-node skills/using-obsidian/scripts/obsidian-kb.mjs search "业务开通" --json
 node skills/using-obsidian/scripts/obsidian-kb.mjs report --json
 node skills/using-obsidian/scripts/obsidian-kb.mjs types --json
 node skills/using-obsidian/scripts/obsidian-kb.mjs describe

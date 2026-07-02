@@ -407,7 +407,7 @@ status: active
 
 ## 🛠️ Helper 命令
 
-项目带一个零依赖 Node.js helper，用于确定性机械动作，比如初始化目录、生成页面骨架、搜索、查链接、lint 和 report。
+项目带一个零依赖 Node.js helper，用于确定性机械动作，比如初始化目录、吐页面骨架（供 agent 填好后写入）、搜索、查链接、lint 和 report。
 
 ```text
 using-obsidian/scripts/obsidian-kb.mjs
@@ -420,12 +420,10 @@ node using-obsidian/scripts/obsidian-kb.mjs resolve --json
 node using-obsidian/scripts/obsidian-kb.mjs init
 node using-obsidian/scripts/obsidian-kb.mjs types
 node using-obsidian/scripts/obsidian-kb.mjs scaffold overview --repo {repo} --title {仓库名}
-node using-obsidian/scripts/obsidian-kb.mjs scaffold submodule --repo {repo} --topic {子模块主题}
-node using-obsidian/scripts/obsidian-kb.mjs scaffold flow --repo {repo} --topic {分析主题}
+node using-obsidian/scripts/obsidian-kb.mjs scaffold submodule --repo {repo} --topic {子模块主题} --member 上下文
+node using-obsidian/scripts/obsidian-kb.mjs scaffold flow --repo {repo} --topic {分析主题} --member 调用树
 node using-obsidian/scripts/obsidian-kb.mjs scaffold contract --partial --side producer \
   --title {契约名} --known {repo} --evidence "{path:func()}"
-node using-obsidian/scripts/obsidian-kb.mjs search "业务开通" --json
-node using-obsidian/scripts/obsidian-kb.mjs links global/contracts/AllocateResource.md --json
 node using-obsidian/scripts/obsidian-kb.mjs lint
 node using-obsidian/scripts/obsidian-kb.mjs report --json
 ```

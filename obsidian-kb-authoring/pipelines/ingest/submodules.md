@@ -1,6 +1,6 @@
 # submodules — 子模块拆解
 
-产出:`repos/{repo}/submodules/{topic}/` 七件套(先 `scaffold submodule --repo {repo} --topic {主题}`)。
+产出:`repos/{repo}/submodules/{topic}/` 七件套。逐件写:写哪件才 `scaffold submodule --repo {repo} --topic {主题} --member {成员}` 拿本件骨架,填好后 Write 到打印路径(成员:上下文/功能/数据结构/特性耦合/状态迁移规则/接口/规格约束)。骨架不落盘——每个 topic 文件夹里出现的都应是填好的成员页;适用成员写全,无对象状态机就不 scaffold `状态迁移规则`(按第 3 条),不要留空壳。
 
 1. 扫核心模块目录,读 index/barrel/export 与公共接口。
 2. 分析子模块间 import/include/注册依赖。

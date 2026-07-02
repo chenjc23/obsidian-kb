@@ -1,39 +1,45 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtemp, readFile } from 'node:fs/promises';
+import { mkdtemp, readFile, readdir } from 'node:fs/promises';
+import { existsSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { scaffoldPage, scaffoldPartialContract } from './scaffold.mjs';
 
-test('scaffoldPage writes an overview page with filled mechanical fields', async () => {
+test('scaffoldPage emits an overview skeleton without writing to disk', async () => {
   const root = await mkdtemp(path.join(tmpdir(), 'kb-'));
-  const res = await scaffoldPage({ kbRoot: root, type: 'overview', repo: 'order-service', title: '订单服务' });
-  assert.deepEqual(res.created, ['repos/order-service/overview.md']);
-  const txt = await readFile(path.join(root, res.created[0]), 'utf8');
-  assert.match(txt, /title: 订单服务/);
-  assert.match(txt, /repo: order-service/);
-  assert.doesNotMatch(txt, /\{\{/); // 无残留机械标记
+  const res = await scaffoldPage({ type: 'overview', repo: 'order-service', title: '订单服务' });
+  assert.equal(res.skeletons.length, 1);
+  const sk = res.skeletons[0];
+  assert.equal(sk.target, 'repos/order-service/overview.md');
+  assert.match(sk.content, /title: 订单服务/);
+  assert.match(sk.content, /repo: order-service/);
+  assert.doesNotMatch(sk.content, /\{\{/); // 无残留机械标记
+  // 不落盘：目标文件不应存在
+  assert.equal(existsSync(path.join(root, sk.target)), false);
+  // kbRoot 保持空
+  assert.equal((await readdir(root)).length, 0);
 });
 
-test('scaffoldPage flow generates six files', async () => {
+test('scaffoldPage flow --member emits only that member skeleton', async () => {
   const root = await mkdtemp(path.join(tmpdir(), 'kb-'));
-  const res = await scaffoldPage({ kbRoot: root, type: 'flow', repo: 'r', topic: 'T' });
-  assert.equal(res.created.length, 6);
+  const res = await scaffoldPage({ type: 'flow', repo: 'r', topic: 'T', member: '主干流程' });
+  assert.equal(res.skeletons.length, 1);
+  assert.equal(res.skeletons[0].target, 'repos/r/flows/T/主干流程.md');
+  assert.equal((await readdir(root)).length, 0);
 });
 
-test('scaffoldPage submodule generates the seven member files', async () => {
-  const root = await mkdtemp(path.join(tmpdir(), 'kb-'));
-  const res = await scaffoldPage({ kbRoot: root, type: 'submodule', repo: 'r', topic: 'T' });
-  const expected = [
-    'repos/r/submodules/T/上下文.md',
-    'repos/r/submodules/T/功能.md',
-    'repos/r/submodules/T/数据结构.md',
-    'repos/r/submodules/T/特性耦合.md',
-    'repos/r/submodules/T/状态迁移规则.md',
-    'repos/r/submodules/T/接口.md',
-    'repos/r/submodules/T/规格约束.md',
-  ].sort();
-  assert.deepEqual(res.created.sort(), expected);
+test('scaffoldPage submodule --member emits only that member skeleton', async () => {
+  const res = await scaffoldPage({ type: 'submodule', repo: 'r', topic: 'T', member: '上下文' });
+  assert.equal(res.skeletons.length, 1);
+  assert.equal(res.skeletons[0].target, 'repos/r/submodules/T/上下文.md');
+});
+
+test('scaffoldPage composite type without member throws', async () => {
+  await assert.rejects(
+    () => scaffoldPage({ type: 'submodule', repo: 'r', topic: 'T' }),
+    /成员|member/,
+  );
 });
 
 test('scaffoldPartialContract creates page and appends coverage row atomically', async () => {
@@ -48,12 +54,4 @@ test('scaffoldPartialContract creates page and appends coverage row atomically',
   assert.match(cov, /OrderPaid/);
   assert.match(cov, /待接合/);
   assert.ok(res.coverageRow);
-});
-
-test('scaffoldPage refuses existing file without force', async () => {
-  const root = await mkdtemp(path.join(tmpdir(), 'kb-'));
-  await scaffoldPage({ kbRoot: root, type: 'repo-usecase', repo: 'r', title: 'M' });
-  const res = await scaffoldPage({ kbRoot: root, type: 'repo-usecase', repo: 'r', title: 'M' });
-  assert.equal(res.skipped.length, 1);
-  assert.equal(res.created.length, 0);
 });

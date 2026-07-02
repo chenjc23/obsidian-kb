@@ -50,20 +50,21 @@ If the helper only resolves the default path and that path does not exist, perfo
 
 ### Helper Commands
 
-零依赖 helper（`scripts/obsidian-kb.mjs`）提供这些子命令，写页前优先用 `scaffold` 拿合规骨架：
+零依赖 helper（`scripts/obsidian-kb.mjs`）提供这些子命令，写页前用 `scaffold` 拿合规骨架文本：
 
 ```bash
 # 列出全部可 scaffold 的页型
 node {using-obsidian-skill-root}/scripts/obsidian-kb.mjs types
 
-# 按页型生成单页骨架（机械字段已填好，无 {{ }} 残留）
+# 按页型吐单页骨架（机械字段已填，无 {{ }} 残留）；不落盘，填好后 Write 到打印的目标路径
 node {…}/scripts/obsidian-kb.mjs scaffold overview --repo {repo} --title {仓库名} --kb-root {kb-root}
 
-# 子模块一次生成七件套（上下文/功能/数据结构/特性耦合/状态迁移规则/接口/规格约束）
-node {…}/scripts/obsidian-kb.mjs scaffold submodule --repo {repo} --topic {子模块主题} --kb-root {kb-root}
+# 复合型（submodule/flow）逐件吐：写哪件传 --member 吐哪件，不一次吐全套
+# submodule 成员：上下文/功能/数据结构/特性耦合/状态迁移规则/接口/规格约束
+node {…}/scripts/obsidian-kb.mjs scaffold submodule --repo {repo} --topic {子模块主题} --member 上下文 --kb-root {kb-root}
 
-# 深流程一次生成 6 件套（调用树/主干流程/分支主题/跨边界数据流/数据结构/自查报告）
-node {…}/scripts/obsidian-kb.mjs scaffold flow --repo {repo} --topic {分析主题} --kb-root {kb-root}
+# flow 成员：调用树/主干流程/分支主题/跨边界数据流/数据结构/自查报告（6 件跨 6 个 stage 写）
+node {…}/scripts/obsidian-kb.mjs scaffold flow --repo {repo} --topic {分析主题} --member 调用树 --kb-root {kb-root}
 
 # 单边契约：建 partial 页 + 自动在 global/architecture/coverage.md 记录待接合边
 node {…}/scripts/obsidian-kb.mjs scaffold contract --partial --side producer \
@@ -75,10 +76,10 @@ node {…}/scripts/obsidian-kb.mjs pipeline next --repo {repo} --kb-root {kb-roo
 node {…}/scripts/obsidian-kb.mjs pipeline done {stage} --repo {repo} --kb-root {kb-root}
 node {…}/scripts/obsidian-kb.mjs pipeline next --repo {repo} --pipeline deep-analysis --topic {主题} --kb-root {kb-root}
 
-# 其余：init / lint / links / search / report（页面结构单一来源 = obsidian-kb-authoring/templates/）
+# 其余：init / lint / report（页面结构单一来源 = obsidian-kb-authoring/templates/）
 ```
 
-`scaffold` 只生成页面骨架不填内容；机械字段（title/repo/created/updated）已填，其余 `<!-- 填:… -->` 由 agent 补。目标页已存在且未加 `--force` 时跳过，不覆盖人工内容。
+`scaffold` 只吐骨架文本、不落盘：机械字段（title/repo/created/updated）已填，其余 `<!-- 填:… -->` 由 agent 补齐后自己 `Write` 到打印的目标路径。文件只在被填好时才出现在磁盘,`pipeline` 的 `exists` 闸门因此可信。写入前自查目标页是否已存在——存在则合并、不覆盖人工内容。复合型（submodule/flow）逐件吐,须传 `--member`,写哪件吐哪件、不一次吐全套。`scaffold contract --partial` 例外：它是真写入(建 partial 页 + 记 coverage 待接合边)的原子操作。
 
 After discovering `{kb-root}`, route the task by intent rather than by the wording of the user's example. For read-only tasks, use `obsidian-kb-query`; for write-oriented tasks, use the smallest write skill that matches the intent.
 

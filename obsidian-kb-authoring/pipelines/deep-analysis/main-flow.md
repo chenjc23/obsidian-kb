@@ -1,6 +1,6 @@
 # main-flow — 主干流程分析
 
-产出:`repos/{repo}/flows/{topic}/主干流程.md`。以调用树为基线。
+产出:`repos/{repo}/flows/{topic}/主干流程.md`(先 `scaffold flow --repo {repo} --topic {主题} --member 主干流程` 拿本件骨架文本,填好后 Write)。以调用树为基线。
 
 1. 沿最常见/默认路径从入口走到最终返回,独立分析路径上每个函数。
 2. 每步含:函数签名与路径、入参出参类型、伪代码级逻辑(非一句话)、读写数据结构、状态变更、分支标记 `此处有 N 条分支路径,将在 branches 展开`。

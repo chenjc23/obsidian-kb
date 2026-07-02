@@ -10,38 +10,34 @@ import {
 } from './template.mjs';
 import { scaffoldableTypes } from './registry.mjs';
 
-async function writeIfAbsent({ kbRoot, relativePath, content, force }) {
-  const fullPath = path.join(kbRoot, relativePath);
-  if (existsSync(fullPath) && !force) {
-    return { written: false, relativePath };
+// 吐骨架文本,不落盘:agent 填好正文后自己 Write 到 target。
+// 文件只在被填好时才出现在磁盘,`exists` 闸门因此可信。
+// 复合型(七件套/六件套)逐件吐:写哪件传 --member 吐哪件,不一次吐全套。
+export async function scaffoldPage({ type, repo, title, topic, member }) {
+  const members = MEMBER_FILES[type] || [];
+  if (members.length > 0) {
+    if (!member || !members.includes(member)) {
+      throw new Error(`${type} 需指定成员 --member <${members.join('|')}>`);
+    }
+    return {
+      skeletons: [{
+        target: targetPath(type, { repo, topic, member }),
+        content: fillMechanical(loadTemplate(type, member), { title: title || topic, repo }),
+      }],
+    };
   }
-  await mkdir(path.dirname(fullPath), { recursive: true });
-  await writeFile(fullPath, content, 'utf8');
-  return { written: true, relativePath };
+  return {
+    skeletons: [{
+      target: targetPath(type, { repo, title, topic }),
+      content: fillMechanical(loadTemplate(type), { title, repo }),
+    }],
+  };
 }
 
-export async function scaffoldPage({ kbRoot, type, repo, title, topic, force = false }) {
-  const created = [];
-  const skipped = [];
-
-  const members = MEMBER_FILES[type] || [];
-  const targets = members.length > 0
-    ? members.map((member) => ({
-      relativePath: targetPath(type, { repo, topic, member }),
-      content: fillMechanical(loadTemplate(type, member), { title: title || topic, repo }),
-    }))
-    : [{
-      relativePath: targetPath(type, { repo, title, topic }),
-      content: fillMechanical(loadTemplate(type), { title, repo }),
-    }];
-
-  for (const t of targets) {
-    const res = await writeIfAbsent({ kbRoot, relativePath: t.relativePath, content: t.content, force });
-    if (res.written) created.push(res.relativePath);
-    else skipped.push(res.relativePath);
-  }
-
-  return { created, skipped };
+async function writeFileAt(kbRoot, relativePath, content) {
+  const full = path.join(kbRoot, relativePath);
+  await mkdir(path.dirname(full), { recursive: true });
+  await writeFile(full, content, 'utf8');
 }
 
 export async function scaffoldPartialContract({ kbRoot, title, side, known, evidence, missingGuess }) {
@@ -57,18 +53,13 @@ export async function scaffoldPartialContract({ kbRoot, title, side, known, evid
   const sideLine = new RegExp(`^${side}:\\r?\\n  - .*$`, 'm');
   page = page.replace(sideLine, `${side}:${nl}  - ${known}`);
   const contractPath = targetPath('contract', { title });
-  await writeIfAbsent({ kbRoot, relativePath: contractPath, content: page, force: true });
+  await writeFileAt(kbRoot, contractPath, page);
 
   // 2) 确保 coverage.md 存在。
   const coveragePath = targetPath('coverage', {});
   const coverageFull = path.join(kbRoot, coveragePath);
   if (!existsSync(coverageFull)) {
-    await writeIfAbsent({
-      kbRoot,
-      relativePath: coveragePath,
-      content: fillMechanical(loadTemplate('coverage'), {}),
-      force: false,
-    });
+    await writeFileAt(kbRoot, coveragePath, fillMechanical(loadTemplate('coverage'), {}));
   }
 
   // 3) 在「待接合的跨仓边」表后 append 一行。

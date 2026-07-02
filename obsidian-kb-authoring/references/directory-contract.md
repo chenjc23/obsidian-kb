@@ -16,7 +16,7 @@
 
 | 规则 | 唯一来源 | 怎么用 |
 |---|---|---|
-| **页面结构**（每页有哪些 section） | `obsidian-kb-authoring/templates/{type}.template.md` 真模板文件 | 新建页优先 `scaffold {type}` 生成页面骨架；lint 从模板反推必需 section；改结构改模板 |
+| **页面结构**（每页有哪些 section） | `obsidian-kb-authoring/templates/{type}.template.md` 真模板文件 | 新建页先 `scaffold {type}` 拿骨架文本填好再 Write；lint 从模板反推必需 section；改结构改模板 |
 | **frontmatter 字段/枚举/默认值** | [frontmatter-schema.md](frontmatter-schema.md) | 每次写 frontmatter 查它 |
 | **目录路径/落点** | `registry.yaml` 的 `types.*.target`（`describe tree` 看全树） | 决定文件落点查它；改落点改注册表 |
 | **放哪/是否新建/维护方式** | 本文件（directory-contract.md 叙事部分） | 取舍判断、增量约束查它 |

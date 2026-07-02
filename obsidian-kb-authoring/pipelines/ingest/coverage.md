@@ -1,6 +1,6 @@
 # coverage — 覆盖记录(只追加)
 
-产出/追加:`global/architecture/coverage.md`(不存在则 `scaffold coverage`)。
+产出/追加:`global/architecture/coverage.md`(不存在则 `scaffold coverage` 拿骨架文本、填好后 Write;已存在则直接追加)。本 stage 闸门为 `exists + noPlaceholder`,追加真实覆盖行时须清掉骨架里的 `<!-- 填 -->` 占位,否则判未完成。
 
 append 三类,不回改旧行:
 - 本仓覆盖度行(深度 = `只地形扫描` / `子模块已解析` / `流程已深挖`)。

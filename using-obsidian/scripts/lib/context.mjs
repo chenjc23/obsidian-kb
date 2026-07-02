@@ -5,16 +5,13 @@ export function today() {
 }
 
 export function parseArgs(args = []) {
-  const parsed = { positional: [], json: false, kbRoot: undefined, limit: 10, flags: {} };
+  const parsed = { positional: [], json: false, kbRoot: undefined, flags: {} };
   for (let index = 0; index < args.length; index += 1) {
     const value = args[index];
     if (value === '--json') {
       parsed.json = true;
     } else if (value === '--kb-root') {
       parsed.kbRoot = args[index + 1];
-      index += 1;
-    } else if (value === '--limit') {
-      parsed.limit = Number.parseInt(args[index + 1], 10);
       index += 1;
     } else if (value.startsWith('--')) {
       const key = value.slice(2);
@@ -39,7 +36,6 @@ export function resolveContext({ cwd = process.cwd(), args = [] } = {}) {
     workspaceRoot: cwd,
     kbRoot,
     json: parsed.json,
-    limit: Number.isFinite(parsed.limit) && parsed.limit > 0 ? parsed.limit : 10,
     positional: parsed.positional,
     flags: parsed.flags,
   };

@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { mkdtemp, readFile, rm, writeFile, mkdir } from 'node:fs/promises';
+import { existsSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { execFile } from 'node:child_process';
@@ -18,8 +19,6 @@ import {
   extractWikiLinks,
   buildIndex,
   lintKnowledgeBase,
-  getLinks,
-  searchKnowledgeBase,
   buildReport,
 } from './obsidian-kb.mjs';
 
@@ -255,71 +254,6 @@ See [[contracts/X]].
   }
 });
 
-test('getLinks returns incoming and outgoing links for a target', async () => {
-  const workspace = await makeTempWorkspace();
-  const kbRoot = path.join(workspace, 'code-kb');
-  try {
-    await initKnowledgeBase({ kbRoot });
-    await writeNote(kbRoot, 'domains/Domain A.md', `---
-title: Domain A
-type: domain
-repo: global
-confidence: high
-status: active
-sources:
-  - repos/a/src/domain.ts
----
-# Domain A
-`);
-    await writeNote(kbRoot, 'repos/repo-a/flows/Flow A.md', `---
-title: Flow A
-type: flow
-repo: global
-confidence: high
-status: active
-sources:
-  - repos/a/src/main.ts:start()
----
-# Flow A
-Uses [[domains/Domain A]].
-`);
-    const links = await getLinks({ kbRoot, target: 'domains/Domain A.md' });
-    assert.deepEqual(links.incoming, ['repos/repo-a/flows/Flow A.md']);
-    assert.deepEqual(links.outgoing, []);
-  } finally {
-    await rm(workspace, { recursive: true, force: true });
-  }
-});
-
-test('searchKnowledgeBase ranks durable notes without generated markdown indexes', async () => {
-  const workspace = await makeTempWorkspace();
-  const kbRoot = path.join(workspace, 'code-kb');
-  try {
-    await initKnowledgeBase({ kbRoot });
-    await writeNote(kbRoot, 'domains/Provisioning.md', `---
-title: Service Provisioning
-type: domain
-repo: global
-aliases:
-  - 业务开通
-confidence: high
-status: active
-sources:
-  - repos/order-service/src/orders/create.ts:createOrder()
----
-# Service Provisioning
-业务开通负责创建订单、预占资源并触发下游履约。
-`);
-
-    const result = await searchKnowledgeBase({ kbRoot, query: '业务开通', limit: 3 });
-
-    assert.equal(result.results[0].relativePath, 'domains/Provisioning.md');
-    assert.equal(result.results[0].matches.some((match) => match.startsWith('aliases:')), true);
-  } finally {
-    await rm(workspace, { recursive: true, force: true });
-  }
-});
-
 test('buildReport summarizes pages, confidence, and issue count', async () => {
   const workspace = await makeTempWorkspace();
   const kbRoot = path.join(workspace, 'code-kb');
@@ -364,10 +298,36 @@ test('pipeline next forwards --pipeline deep-analysis', async () => {
   }
 });
 
-async function stripPlaceholders(file) {
-  const t = await readFile(file, 'utf8');
-  await writeFile(file, t.replace(/<!--\s*填[\s\S]*?-->/g, '已填'), 'utf8');
+// 模拟 agent:从 scaffold 吐出的骨架里去占位后写入目标路径。
+async function writeFilledFromScaffold(kb, args) {
+  const { stdout } = await run(['scaffold', ...args, '--kb-root', kb, '--json']);
+  const { skeletons } = JSON.parse(stdout);
+  for (const sk of skeletons) {
+    const filled = sk.content.replace(/<!--\s*填[\s\S]*?-->/g, '已填');
+    const full = path.join(kb, sk.target);
+    await mkdir(path.dirname(full), { recursive: true });
+    await writeFile(full, filled, 'utf8');
+  }
 }
+
+test('scaffold emits skeleton without writing files', async () => {
+  const kb = await mkdtemp(path.join(tmpdir(), 'kb-'));
+  try {
+    const { stdout } = await run(['scaffold', 'overview', '--repo', 'R', '--title', 'R', '--kb-root', kb, '--json']);
+    const res = JSON.parse(stdout);
+    assert.equal(res.skeletons.length, 1);
+    assert.equal(res.skeletons[0].target, 'repos/R/overview.md');
+    assert.match(res.skeletons[0].content, /title: R/);
+    assert.equal(existsSync(path.join(kb, 'repos/R/overview.md')), false);
+    // 默认输出:目标路径 + 逐行原样骨架正文(非转义 JSON),供 agent 直接写入。
+    const plain = await run(['scaffold', 'overview', '--repo', 'R', '--title', 'R', '--kb-root', kb]);
+    assert.match(plain.stdout, /repos\/R\/overview\.md/);
+    const lines = plain.stdout.split('\n');
+    assert.ok(lines.includes('title: R'), '骨架正文须逐行原样输出');
+  } finally {
+    await rm(kb, { recursive: true, force: true });
+  }
+});
 
 test('smoke: init → scaffold terrain pages → pipeline status advances', async () => {
   const kb = await mkdtemp(path.join(tmpdir(), 'kb-'));
@@ -380,11 +340,9 @@ test('smoke: init → scaffold terrain pages → pipeline status advances', asyn
     assert.equal(st1.find((s) => s.id === 'terrain').state, 'ready');
     assert.equal(st1.find((s) => s.id === 'submodules').state, 'blocked');
 
-    // 生成 terrain 两页(scaffold + 去掉占位:写入无 <!-- 填 --> 的正文)
-    await run(['scaffold', 'overview', '--repo', 'R', '--title', 'R', '--kb-root', kb, '--force']);
-    await run(['scaffold', 'architecture', '--repo', 'R', '--title', 'R', '--kb-root', kb, '--force']);
-    await stripPlaceholders(path.join(kb, 'repos/R/overview.md'));
-    await stripPlaceholders(path.join(kb, 'repos/R/architecture.md'));
+    // 生成 terrain 两页:scaffold 吐骨架 → 去占位 → 写入(模拟 agent)
+    await writeFilledFromScaffold(kb, ['overview', '--repo', 'R', '--title', 'R']);
+    await writeFilledFromScaffold(kb, ['architecture', '--repo', 'R', '--title', 'R']);
 
     const after = await run(['pipeline', 'status', '--repo', 'R', '--kb-root', kb, '--json']);
     const st2 = JSON.parse(after.stdout);

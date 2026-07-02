@@ -1,12 +1,12 @@
 # 页面形状（Page Shapes）索引
 
-各 `type` 的页面骨架以 `obsidian-kb-authoring/templates/{type}.template.md` 为唯一来源。本文件只是路由索引：要写哪种页，先 `scaffold {type}` 拿骨架（或直接读对应模板），骨架里的 `<!-- 填:… -->` 内联提示承载写作指引。
+各 `type` 的页面骨架以 `obsidian-kb-authoring/templates/{type}.template.md` 为唯一来源。本文件只是路由索引：要写哪种页，先 `scaffold {type}` 拿骨架文本（或直接读对应模板），骨架里的 `<!-- 填:… -->` 内联提示承载写作指引；填好后自己 `Write` 到打印的目标路径。
 
 通用写作规则见 SKILL.md：中文 prose、保留代码标识符原文、结论先行（前三行说清这页为何重要）、一页一主题。所有页面 frontmatter 一律遵循 [frontmatter-schema.md](frontmatter-schema.md)。
 
 ## 页型索引
 
-各页型的用途、模板、刚性边界（必需 `## section`）由 `registry.yaml`（用途/模板）+ 各模板正文（`## section`）派生。要写哪种页，直接 `scaffold {type}` 拿骨架即可；需要完整的页型→用途→模板→必需 section 总表时运行：
+各页型的用途、模板、刚性边界（必需 `## section`）由 `registry.yaml`（用途/模板）+ 各模板正文（`## section`）派生。要写哪种页，直接 `scaffold {type}` 拿骨架文本填好再 Write 即可；需要完整的页型→用途→模板→必需 section 总表时运行：
 
 ```bash
 node using-obsidian/scripts/obsidian-kb.mjs describe shapes

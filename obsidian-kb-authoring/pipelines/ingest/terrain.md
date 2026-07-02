@@ -1,6 +1,6 @@
 # terrain — 仓库地形扫描
 
-产出:`repos/{repo}/overview.md` + `repos/{repo}/architecture.md`(先 `scaffold overview` / `scaffold architecture` 拿骨架)。
+产出:`repos/{repo}/overview.md` + `repos/{repo}/architecture.md`(先 `scaffold overview` / `scaffold architecture` 拿骨架文本,填好后 Write 到打印路径)。
 
 1. 信号驱动的快速地形扫描:先读顶层目录 + manifest/构建文件 + 入口文件,再沿 manifest/build 指向的源码根深入。跳过 `vendor`/`node_modules`/`build`/`dist`/`third_party`/`.git`。`generated/` 默认不深读实现,但 C/C++/通信仓要读其中的协议标识、service 接口、message/enum 定义与自动生成的 dispatch 元数据。目标是建立仓库形状、技术栈、分层、入口区域的认知,不遍历整棵树。
 2. 优先读构建/元数据文件(C/C++ 优先):`CMakeLists.txt`、`Makefile`、`conanfile.*`、`vcpkg.json`、Bazel `BUILD`、`README`、`package.json`、`go.mod`、`Cargo.toml`、`pyproject.toml`、`pom.xml`、`build.gradle`、`Dockerfile`。

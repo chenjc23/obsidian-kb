@@ -1,6 +1,6 @@
 # self-check — 自查补漏与链接
 
-产出:`repos/{repo}/flows/{topic}/自查报告.md`。deep-analysis 的完成门槛。
+产出:`repos/{repo}/flows/{topic}/自查报告.md`(先 `scaffold flow --repo {repo} --topic {主题} --member 自查报告` 拿本件骨架填好再 Write)。deep-analysis 的完成门槛。
 
 逐条检查:
 - 调用树每个函数都覆盖;每条分支覆盖(默认/else/错误/边界),关键分支完整分析或以证据列为低置信缺口。

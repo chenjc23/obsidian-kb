@@ -1,6 +1,6 @@
 # candidate-flows — 流程发现与排序(全量清单)
 
-产出:`repos/{repo}/candidate-flow.md`(先 `scaffold candidate-flow --repo {repo}`)。
+产出:`repos/{repo}/candidate-flow.md`(先 `scaffold candidate-flow --repo {repo}` 拿骨架文本,填好后 Write 到打印路径)。
 
 发现先于深挖:先尽可能枚举所有识别到的流程,再排深度分析顺序。大仓召回不足通常来自过早收敛,入口枚举、证据链确认、同质分支归并都完成后再收尾。
 

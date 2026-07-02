@@ -23,7 +23,7 @@ export {
   VALID_STATUS,
   lintKnowledgeBase,
 } from './lib/lint.mjs';
-export { getLinks, searchKnowledgeBase, buildReport } from './lib/query.mjs';
+export { buildReport } from './lib/query.mjs';
 export { describe, describeData } from './lib/describe.mjs';
 export { runCli, printResult } from './lib/cli.mjs';
 

@@ -1,6 +1,6 @@
 # cross-boundary — 跨消息边界与端到端数据流(契约提升)
 
-产出:`repos/{repo}/flows/{topic}/跨边界数据流.md`(不适用则在 `自查报告.md` 写明原因)。处理完后 `pipeline done cross-boundary --repo {repo} --pipeline deep-analysis`。
+产出:`repos/{repo}/flows/{topic}/跨边界数据流.md`(适用则先 `scaffold flow --repo {repo} --topic {主题} --member 跨边界数据流` 拿本件骨架填好再 Write;不适用则在 `自查报告.md` 写明原因)。处理完后 `pipeline done cross-boundary --repo {repo} --pipeline deep-analysis`。
 
 遇 TLV、协议帧、消息收发、socket、MQ、RPC、event、topic/handler dispatch、callback 等边界,跨整个 workspace 追到下游接收方或上游调用方,覆盖发送方和接收方完整处理逻辑(不止识别接口/topic/消息 ID)。
 

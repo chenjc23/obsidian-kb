@@ -21,7 +21,7 @@ repos/{repo}/flows/{分析主题}/
 └── 自查报告.md
 ```
 
-先 `scaffold flow --repo {repo} --topic {主题}` 一次拿全 6 件套骨架再填。
+每个 stage 写自己那件时才 `scaffold flow --repo {repo} --topic {主题} --member {成员}` 拿本件骨架文本,填好后 `Write` 到打印的目标路径(写前自查、不覆盖人工页)。不一次吐全套——6 件跨 6 个 stage 写,写哪件吐哪件。
 
 ## 执行循环
 

@@ -1,7 +1,7 @@
 import { resolveContext } from './context.mjs';
 import { initKnowledgeBase } from './init.mjs';
 import { lintKnowledgeBase } from './lint.mjs';
-import { getLinks, searchKnowledgeBase, buildReport } from './query.mjs';
+import { buildReport } from './query.mjs';
 import { scaffoldPage, scaffoldPartialContract, listTypes } from './scaffold.mjs';
 import { describe, describeData } from './describe.mjs';
 import { getPipeline, pipelineStatus, pipelineNext, markStageDone } from './pipeline.mjs';
@@ -27,9 +27,9 @@ function printResult(result, json) {
   }
 }
 
-const USAGE = 'node using-obsidian/scripts/obsidian-kb.mjs <resolve|init|lint|links|search|report|scaffold|types|describe|pipeline> [--kb-root <path>] [--limit <n>] [--json]\n'
+const USAGE = 'node using-obsidian/scripts/obsidian-kb.mjs <resolve|init|lint|report|scaffold|types|describe|pipeline> [--kb-root <path>] [--json]\n'
   + '  describe [types|views|shapes|tree] [--json]   # 打印 registry 派生的结构视图\n'
-  + '  scaffold <type> --repo <r> --title <t> [--topic <topic>] [--force]\n'
+  + '  scaffold <type> --repo <r> --title <t> [--topic <topic>] [--member <name>]  # 复合型(submodule/flow)须逐件 --member\n'
   + '  scaffold contract --partial --side <producer|consumer> --title <t> --known <repo> --evidence <e> [--missing-guess <repo>]\n'
   + '  pipeline <status|next|done <stage>> --repo <r> [--pipeline ingest|deep-analysis] [--topic <t>]';
 
@@ -49,20 +49,6 @@ export async function runCli() {
 
   if (command === 'lint') {
     printResult(await lintKnowledgeBase({ kbRoot: context.kbRoot }), context.json);
-    return;
-  }
-
-  if (command === 'links') {
-    const target = context.positional[0];
-    if (!target) throw new Error('links requires a target');
-    printResult(await getLinks({ kbRoot: context.kbRoot, target }), context.json);
-    return;
-  }
-
-  if (command === 'search') {
-    const query = context.positional.join(' ');
-    if (!query) throw new Error('search requires a query');
-    printResult(await searchKnowledgeBase({ kbRoot: context.kbRoot, query, limit: context.limit }), context.json);
     return;
   }
 
@@ -105,14 +91,21 @@ export async function runCli() {
       return;
     }
     const result = await scaffoldPage({
-      kbRoot: context.kbRoot,
       type,
       repo: flags.repo,
       title: flags.title,
       topic: flags.topic,
-      force: Boolean(flags.force),
+      member: flags.member,
     });
-    printResult(result, context.json);
+    if (context.json) {
+      console.log(JSON.stringify(result, null, 2));
+    } else {
+      // 每条骨架:目标路径 + 逐行原样正文,agent 填好后 Write 到该路径。
+      for (const sk of result.skeletons) {
+        console.log(`# → 填好写入: ${sk.target}`);
+        console.log(sk.content);
+      }
+    }
     return;
   }
 
