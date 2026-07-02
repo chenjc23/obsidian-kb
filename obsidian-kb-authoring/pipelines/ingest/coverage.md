@@ -8,3 +8,5 @@ append 三类,不回改旧行:
 - 已知盲区。
 
 接上某端时才把对应行翻 `已接合`。coverage 的机制与语义见 `references/directory-contract.md`,不在此复述。
+
+本轮 ingest 收尾还需 append `log.md`:记这轮扫了哪些仓、生成/更新了哪些页(只追加流水)。

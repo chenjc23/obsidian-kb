@@ -69,6 +69,7 @@ function validate(reg, file) {
         if (stage.instruction && !existsSync(path.join(adir, stage.instruction))) {
           throw new Error(`registry: pipeline ${pname} stage ${stage.id} instruction not found: ${stage.instruction}`);
         }
+        if (seen.has(stage.id)) throw new Error(`registry: pipeline ${pname} duplicate stage id: ${stage.id}`);
         seen.add(stage.id);
       }
     }
