@@ -61,7 +61,7 @@ test('parseYaml handles pipeline nesting: seq items with inline lists and nested
       - id: terrain
         produces: [repos/{repo}/overview.md, repos/{repo}/architecture.md]
         requires: []
-        instruction: pipelines/ingest/terrain.md
+        instructions: [pipelines/ingest/terrain.md, pipelines/ingest/overview.md]
         done:
           exists: produces
       - id: deep-dive
@@ -77,7 +77,7 @@ test('parseYaml handles pipeline nesting: seq items with inline lists and nested
   assert.equal(stages[0].id, 'terrain');
   assert.deepEqual(stages[0].produces, ['repos/{repo}/overview.md', 'repos/{repo}/architecture.md']);
   assert.deepEqual(stages[0].requires, []);
-  assert.equal(stages[0].instruction, 'pipelines/ingest/terrain.md');
+  assert.deepEqual(stages[0].instructions, ['pipelines/ingest/terrain.md', 'pipelines/ingest/overview.md']);
   assert.equal(stages[0].done.exists, 'produces');
   assert.equal(stages[1].done.tracksAllComplete, '已深挖');
   assert.deepEqual(stages[1].requires, ['terrain']);

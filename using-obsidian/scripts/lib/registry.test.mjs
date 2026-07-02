@@ -79,6 +79,33 @@ test('throws on duplicate stage id within a pipeline', async () => {
   assert.throws(() => loadRegistry({ force: true, file }), /duplicate stage id/);
 });
 
+test('pipeline stages accept instructions as a block list', async () => {
+  const file = await fixture(`${GOOD}pipelines:
+  p:
+    stages:
+      - id: a
+        instructions:
+          - pipelines/a.md
+          - pipelines/b.md
+`);
+  const root = path.dirname(file);
+  await mkdir(path.join(root, 'pipelines'), { recursive: true });
+  await writeFile(path.join(root, 'pipelines', 'a.md'), '# a\n');
+  await writeFile(path.join(root, 'pipelines', 'b.md'), '# b\n');
+  const reg = loadRegistry({ force: true, file });
+  assert.deepEqual(reg.pipelines.p.stages[0].instructions, ['pipelines/a.md', 'pipelines/b.md']);
+});
+
+test('throws when pipeline stage uses deprecated instruction field', async () => {
+  const file = await fixture(`${GOOD}pipelines:
+  p:
+    stages:
+      - id: a
+        instruction: pipelines/a.md
+`);
+  assert.throws(() => loadRegistry({ force: true, file }), /deprecated instruction/);
+});
+
 // ── 黄金对照：把页型集合与落点钉成字面快照；注册表若改动到这些值，必须同步更新此处 ──
 
 const CURRENT_VALID = ['use-case', 'domain', 'glossary', 'flow', 'candidate', 'contract',
@@ -149,9 +176,9 @@ test('GOLDEN: every pipeline stage instruction file exists', () => {
   const reg = loadRegistry({ force: true });
   for (const pdef of Object.values(reg.pipelines)) {
     for (const stage of pdef.stages) {
-      if (stage.instruction) {
-        assert.ok(existsSync(path.join(authoringDir(), stage.instruction)),
-          `instruction missing: ${stage.instruction}`);
+      for (const instruction of stage.instructions || []) {
+        assert.ok(existsSync(path.join(authoringDir(), instruction)),
+          `instruction missing: ${instruction}`);
       }
     }
   }

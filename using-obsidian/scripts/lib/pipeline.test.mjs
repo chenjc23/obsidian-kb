@@ -93,11 +93,39 @@ test('stageDone tracksAllComplete reads tracks file', async () => {
   assert.equal(await stageDone(stage, { kbRoot: kb, repo: 'R', pipelineName: 'ingest', state: {} }), true);
 });
 
+test('stageDone requires exists and tracksAllComplete when both are configured', async () => {
+  const kb = await mkdtemp(path.join(tmpdir(), 'kb-'));
+  await seedFile(kb, 'repos/R/candidate-flow.md',
+    '| 分析顺序 | 状态 |\n|---|---|\n| 1 | 已深挖 |\n');
+  const stage = {
+    id: 'deep-dive',
+    produces: ['repos/{repo}/flows/T/自查报告.md'],
+    tracks: 'repos/{repo}/candidate-flow.md',
+    done: { exists: 'produces', tracksAllComplete: '已深挖' },
+  };
+  assert.equal(await stageDone(stage, { kbRoot: kb, repo: 'R', topic: 'T', pipelineName: 'ingest', state: {} }), false);
+  await seedFile(kb, 'repos/R/flows/T/自查报告.md', '# ok\n');
+  assert.equal(await stageDone(stage, { kbRoot: kb, repo: 'R', topic: 'T', pipelineName: 'ingest', state: {} }), true);
+});
+
 test('stageDone instructionSelfReport reads state', async () => {
   const kb = await mkdtemp(path.join(tmpdir(), 'kb-'));
   const stage = { id: 'backlinks', done: { instructionSelfReport: true } };
   assert.equal(await stageDone(stage, { kbRoot: kb, repo: 'R', pipelineName: 'ingest', state: {} }), false);
   assert.equal(await stageDone(stage, { kbRoot: kb, repo: 'R', pipelineName: 'ingest', state: { ingest: { backlinks: true } } }), true);
+});
+
+test('stageDone requires instructionSelfReport and exists when both are configured', async () => {
+  const kb = await mkdtemp(path.join(tmpdir(), 'kb-'));
+  const stage = {
+    id: 'review',
+    produces: ['repos/{repo}/review.md'],
+    done: { instructionSelfReport: true, exists: 'produces' },
+  };
+  assert.equal(await stageDone(stage, { kbRoot: kb, repo: 'R', pipelineName: 'ingest', state: { ingest: { review: true } } }), false);
+  await seedFile(kb, 'repos/R/review.md', '# ok\n');
+  assert.equal(await stageDone(stage, { kbRoot: kb, repo: 'R', pipelineName: 'ingest', state: {} }), false);
+  assert.equal(await stageDone(stage, { kbRoot: kb, repo: 'R', pipelineName: 'ingest', state: { ingest: { review: true } } }), true);
 });
 
 test('stageDone exists: empty directory produces → false', async () => {
@@ -178,11 +206,24 @@ test('pipelineStatus ignores self-report state when pipeline shape changes', asy
 test('pipelineNext returns first ready stage with instruction body', async () => {
   const kb = await mkdtemp(path.join(tmpdir(), 'kb-'));
   const pipe = twoStagePipeline();
-  pipe.stages[0].instruction = 'pipelines/ingest/terrain.md';
+  pipe.stages[0].instructions = ['pipelines/ingest/terrain.md'];
   // instruction 正文从真实 authoring 目录读;terrain.md 由 P3 建。此处用不依赖文件的断言:
   const nx = await pipelineNext(pipe, { kbRoot: kb, repo: 'R', pipelineName: 'ingest' });
   assert.equal(nx.id, 'a');
   assert.ok('instruction' in nx);
+});
+
+test('pipelineNext concatenates multiple instruction files in order', async () => {
+  const kb = await mkdtemp(path.join(tmpdir(), 'kb-'));
+  const pipe = twoStagePipeline();
+  pipe.stages[0].instructions = [
+    'pipelines/ingest/terrain.md',
+    'pipelines/ingest/coverage.md',
+  ];
+  const nx = await pipelineNext(pipe, { kbRoot: kb, repo: 'R', pipelineName: 'ingest' });
+  assert.match(nx.instruction, /# terrain/);
+  assert.match(nx.instruction, /# coverage/);
+  assert.ok(nx.instruction.indexOf('# terrain') < nx.instruction.indexOf('# coverage'));
 });
 
 test('pipelineNext returns done when all stages complete', async () => {

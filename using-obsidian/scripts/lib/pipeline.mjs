@@ -122,19 +122,24 @@ function readdirSafe(dir) {
 export async function stageDone(stage, ctx) {
   const done = stage.done || {};
   if (done.instructionSelfReport) {
-    return ctx.state?.[ctx.pipelineName]?.[stage.id] === true;
+    if (ctx.state?.[ctx.pipelineName]?.[stage.id] !== true) return false;
   }
   if (done.tracksAllComplete) {
     const rel = fillPlaceholders(stage.tracks, ctx);
     const full = path.join(ctx.kbRoot, rel);
     if (!existsSync(full)) return false;
-    return tracksAllComplete(await readFile(full, 'utf8'), done.tracksAllComplete);
+    if (!tracksAllComplete(await readFile(full, 'utf8'), done.tracksAllComplete)) return false;
   }
-  // 默认档:exists。无 produces 声明时回退 self-report。
+  if (done.exists === 'produces') {
+    if (!producesExist(stage, ctx)) return false;
+  }
+  // 无 produces 声明且无显式 done 条件时回退 self-report。
   if (!stage.produces || stage.produces.length === 0) {
-    return ctx.state?.[ctx.pipelineName]?.[stage.id] === true;
+    if (Object.keys(done).length === 0) return ctx.state?.[ctx.pipelineName]?.[stage.id] === true;
+    return true;
   }
-  if (!producesExist(stage, ctx)) return false;
+  // 默认档:有 produces 但未声明 done.exists 时仍按产物存在判定。
+  if (done.exists == null && !producesExist(stage, ctx)) return false;
   return true;
 }
 
@@ -164,11 +169,11 @@ export async function pipelineNext(pipeline, ctx) {
     return anyBlocked ? { blocked: true, status } : { done: true };
   }
   const stage = pipeline.stages.find((s) => s.id === ready.id);
-  let instruction = '';
-  if (stage.instruction) {
-    const p = path.join(authoringDir(), stage.instruction);
-    instruction = existsSync(p) ? readFileSync(p, 'utf8') : `(instruction 文件缺失: ${stage.instruction})`;
-  }
+  const instructions = Array.isArray(stage.instructions) ? stage.instructions : [];
+  const instruction = instructions.map((instructionPath) => {
+    const p = path.join(authoringDir(), instructionPath);
+    return existsSync(p) ? readFileSync(p, 'utf8') : `(instruction 文件缺失: ${instructionPath})`;
+  }).join('\n\n');
   return { id: stage.id, instruction, produces: stage.produces || [] };
 }
 

@@ -66,8 +66,18 @@ function validate(reg, file) {
         for (const req of stage.requires || []) {
           if (!seen.has(req)) throw new Error(`registry: pipeline ${pname} stage ${stage.id} requires unknown/late stage: ${req}`);
         }
-        if (stage.instruction && !existsSync(path.join(adir, stage.instruction))) {
-          throw new Error(`registry: pipeline ${pname} stage ${stage.id} instruction not found: ${stage.instruction}`);
+        if (stage.instruction) {
+          throw new Error(`registry: pipeline ${pname} stage ${stage.id} uses deprecated instruction; use instructions list`);
+        }
+        if (stage.instructions != null) {
+          if (!Array.isArray(stage.instructions)) {
+            throw new Error(`registry: pipeline ${pname} stage ${stage.id} instructions must be a list`);
+          }
+          for (const instruction of stage.instructions) {
+            if (!existsSync(path.join(adir, instruction))) {
+              throw new Error(`registry: pipeline ${pname} stage ${stage.id} instruction not found: ${instruction}`);
+            }
+          }
         }
         if (seen.has(stage.id)) throw new Error(`registry: pipeline ${pname} duplicate stage id: ${stage.id}`);
         seen.add(stage.id);
