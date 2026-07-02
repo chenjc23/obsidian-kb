@@ -387,6 +387,13 @@ test('scaffold emits skeleton without writing files', async () => {
   }
 });
 
+test('scaffold rejects stray -- argument separator', async () => {
+  await assert.rejects(
+    run(['scaffold', 'flow', '--', '--topic', '静态MAC删除流程', 'repo', 'l2ss', '--member', '调用树']),
+    /Unexpected argument separator|--repo/,
+  );
+});
+
 test('smoke: init → scaffold terrain pages → pipeline status advances', async () => {
   const kb = await mkdtemp(path.join(tmpdir(), 'kb-'));
   try {

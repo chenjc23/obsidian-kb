@@ -29,6 +29,13 @@ test('scaffoldPage flow --member emits only that member skeleton', async () => {
   assert.equal((await readdir(root)).length, 0);
 });
 
+test('scaffoldPage flow requires repo', async () => {
+  await assert.rejects(
+    () => scaffoldPage({ type: 'flow', topic: 'T', member: '主干流程' }),
+    /--repo/,
+  );
+});
+
 test('scaffoldPage submodule --member emits only that member skeleton', async () => {
   const res = await scaffoldPage({ type: 'submodule', repo: 'r', topic: 'T', member: 'overview' });
   assert.equal(res.skeletons.length, 1);

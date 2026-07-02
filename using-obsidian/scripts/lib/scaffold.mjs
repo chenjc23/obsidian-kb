@@ -19,19 +19,35 @@ export async function scaffoldPage({ type, repo, title, topic, member }) {
     if (!member || !members.includes(member)) {
       throw new Error(`${type} 需指定成员 --member <${members.join('|')}>`);
     }
+    const target = targetPath(type, { repo, topic, member });
+    validateTargetInputs(target, { repo, title, topic });
     return {
       skeletons: [{
-        target: targetPath(type, { repo, topic, member }),
+        target,
         content: fillMechanical(loadTemplate(type, member), { title: title || topic, repo }),
       }],
     };
   }
+  const target = targetPath(type, { repo, title, topic });
+  validateTargetInputs(target, { repo, title, topic });
   return {
     skeletons: [{
-      target: targetPath(type, { repo, title, topic }),
+      target,
       content: fillMechanical(loadTemplate(type), { title, repo }),
     }],
   };
+}
+
+function validateTargetInputs(target, { repo, title, topic }) {
+  if (target.includes('repos/') && !repo) {
+    throw new Error('scaffold target requires --repo <repo>');
+  }
+  if (target.includes('{title}') && !title) {
+    throw new Error('scaffold target requires --title <title>');
+  }
+  if (target.includes('/submodules//') || target.includes('/flows//') || /\/(submodules|flows)\/\.md$/.test(target)) {
+    throw new Error('scaffold target requires --topic <topic>');
+  }
 }
 
 async function writeFileAt(kbRoot, relativePath, content) {

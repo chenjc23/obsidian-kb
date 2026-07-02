@@ -14,6 +14,8 @@ export function parseArgs(args = []) {
     } else if (value === '--kb-root') {
       parsed.kbRoot = args[index + 1];
       index += 1;
+    } else if (value === '--') {
+      throw new Error('Unexpected argument separator "--"; pass flags directly, e.g. --repo <repo> --topic <topic>');
     } else if (value.startsWith('--')) {
       const key = value.slice(2);
       const next = args[index + 1];
