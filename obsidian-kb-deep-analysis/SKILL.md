@@ -21,6 +21,8 @@ repos/{repo}/flows/{分析主题}/
 └── 自查报告.md
 ```
 
+用户主动要求 deep analysis 时,先从已 ingest 的 KB 中解析 `{repo}`:用函数名/路径/入口证据/流程名匹配 `repos/*/{candidate-flow,overview,architecture}.md` 和已有 `flows/`。高置信唯一匹配才自动写入该 `repos/{repo}/flows/`;不确定就先问用户放到哪个 repo。不要把当前目录名、`code-kb`、或猜测值默认当 `{repo}`。
+
 helper 脚本在**与本 skill 同级**的 `using-obsidian/scripts/obsidian-kb.mjs`(不在本 skill 目录),命令用法见 `using-obsidian`。每个 stage 写自己那件时才 `scaffold flow --repo {repo} --topic {主题} --member {成员}` 拿本件骨架文本,填好后 `Write` 到打印的目标路径(写前自查、不覆盖人工页)。不一次吐全套——6 件跨 6 个 stage 写,写哪件吐哪件。
 
 ## 执行循环
