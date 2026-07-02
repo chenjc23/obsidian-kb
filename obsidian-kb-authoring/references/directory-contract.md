@@ -29,7 +29,7 @@
 目录结构由 `registry.yaml` 的 `types.*.target` 决定（落点唯一来源）。要看完整目录树运行：
 
 ```bash
-node using-obsidian/scripts/obsidian-kb.mjs describe tree
+node {using-obsidian-skill-root}/scripts/obsidian-kb.mjs describe tree
 ```
 
 `{title}`/`{repo}`/`{topic}` 为占位。视图归属、增量"只新增不改旧"、三种维护方式等叙事见下方 `页面取舍` / `维护方式`。

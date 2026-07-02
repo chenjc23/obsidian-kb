@@ -9,7 +9,7 @@
 各页型的用途、模板、刚性边界（必需 `## section`）由 `registry.yaml`（用途/模板）+ 各模板正文（`## section`）派生。要写哪种页，直接 `scaffold {type}` 拿骨架文本填好再 Write 即可；需要完整的页型→用途→模板→必需 section 总表时运行：
 
 ```bash
-node using-obsidian/scripts/obsidian-kb.mjs describe shapes
+node {using-obsidian-skill-root}/scripts/obsidian-kb.mjs describe shapes
 ```
 
 ## 几条不在模板里、但要记住的语义约定

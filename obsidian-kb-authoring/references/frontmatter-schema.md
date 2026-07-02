@@ -86,7 +86,7 @@ aliases:
 
 ## 枚举值
 
-**`type`** 的合法取值 = `registry.yaml` 的规范页型（`types` 键，别名除外）；`confidence`/`status` 取值 = `registry.yaml` 的 `schema` 段。完整可读枚举运行 `node using-obsidian/scripts/obsidian-kb.mjs describe types`。
+**`type`** 的合法取值 = `registry.yaml` 的规范页型（`types` 键，别名除外）；`confidence`/`status` 取值 = `registry.yaml` 的 `schema` 段。完整可读枚举运行 `node {using-obsidian-skill-root}/scripts/obsidian-kb.mjs describe types`。
 
 **`confidence`：**
 - `high`：被显式源码或稳定架构笔记直接支撑。

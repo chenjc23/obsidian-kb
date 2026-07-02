@@ -44,7 +44,7 @@
 映射的**唯一来源**是 `registry.yaml` 的 `types.*.view`。需要可读的 `type → 视图` 全表时运行：
 
 ```bash
-node using-obsidian/scripts/obsidian-kb.mjs describe views
+node {using-obsidian-skill-root}/scripts/obsidian-kb.mjs describe views
 ```
 
 ## 查询入口（设计自检用）
