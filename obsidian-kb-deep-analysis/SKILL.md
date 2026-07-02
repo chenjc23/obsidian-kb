@@ -15,7 +15,7 @@ description: Use for deep analysis of a specific function, algorithm, business f
 repos/{repo}/flows/{分析主题}/
 ├── 调用树.md
 ├── 主干流程.md
-├── {分支主题}.md
+├── 分支主题.md
 ├── 跨边界数据流.md
 ├── 数据结构.md
 └── 自查报告.md
@@ -25,10 +25,9 @@ helper 脚本在**与本 skill 同级**的 `using-obsidian/scripts/obsidian-kb.m
 
 ## 执行循环
 
-1. `pipeline next --repo {repo} --pipeline deep-analysis --topic {主题}` 拿下一个 ready stage + instruction。
-2. 按 instruction 追踪源码、写对应页。
-3. 无产物的自查型 stage(branches / cross-boundary / data-structures)处理完后 `pipeline done {stage} --repo {repo} --pipeline deep-analysis` 标记。
-4. 回到第 1 步,直到 `pipeline status --pipeline deep-analysis` 全绿。
+1. `pipeline next --repo {repo} --pipeline deep-analysis --topic {主题}` 拿**唯一**下一个 ready stage + instruction——一次只做一件,不并行、不批量铺开六件(stage 已串成链,同一时刻只有一个 ready)。
+2. 按 instruction 追踪源码,`scaffold flow --member {成员}` 拿骨架、填好、Write 落盘。
+3. 回到第 1 步,直到 `pipeline status --pipeline deep-analysis` 全绿。六件全走 exists 闸门,文件落盘即自动判 done,无需手动 `pipeline done`。
 
 - 默认连续跑完所有 stage,phase 间不暂停(除非用户显式要求逐步评审)。
 - 每个 stage 独立落盘后再进下一个,保证部分结果可检视、可恢复。
@@ -36,4 +35,4 @@ helper 脚本在**与本 skill 同级**的 `using-obsidian/scripts/obsidian-kb.m
 
 ## 完成判据
 
-文件夹必须含 `调用树.md`、`主干流程.md`、`自查报告.md`;`跨边界数据流.md`/`数据结构.md`/`{分支主题}.md` 按适用性产出,不适用时在 `自查报告.md` 写明原因(不静默省略)。
+文件夹必须含全部六件:`调用树.md`、`主干流程.md`、`分支主题.md`、`跨边界数据流.md`、`数据结构.md`、`自查报告.md`。不适用的成员也须生成,标 `confidence: low` 并在正文一句注明不适用(不静默省略、不缺文件)。

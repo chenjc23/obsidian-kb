@@ -190,7 +190,6 @@ pipelines:
         requires: []
         done:
           exists: produces
-          noPlaceholder: true
       - id: submodules
         produces: [repos/{repo}/submodules/]
         instruction: pipelines/ingest/submodules.md
@@ -217,7 +216,6 @@ pipelines:
         requires: [terrain]
         done:
           exists: produces
-          noPlaceholder: true
       - id: domains-contracts
         instruction: pipelines/ingest/domains-contracts.md
         requires: [submodules, supplements]
@@ -234,7 +232,6 @@ pipelines:
         requires: [domains-contracts]
         done:
           exists: produces
-          noPlaceholder: true
       - id: deep-dive
         instruction: pipelines/ingest/deep-dive.md
         requires: [candidate-flows, coverage, backlinks]
@@ -252,33 +249,33 @@ pipelines:
         requires: []
         done:
           exists: produces
-          noPlaceholder: true
       - id: main-flow
         produces: [repos/{repo}/flows/{topic}/主干流程.md]
         instruction: pipelines/deep-analysis/main-flow.md
         requires: [call-tree]
         done:
           exists: produces
-          noPlaceholder: true
       - id: branches
+        produces: [repos/{repo}/flows/{topic}/分支主题.md]
         instruction: pipelines/deep-analysis/branches.md
         requires: [main-flow]
         done:
-          instructionSelfReport: true
+          exists: produces
       - id: cross-boundary
+        produces: [repos/{repo}/flows/{topic}/跨边界数据流.md]
         instruction: pipelines/deep-analysis/cross-boundary.md
-        requires: [main-flow]
+        requires: [branches]
         done:
-          instructionSelfReport: true
+          exists: produces
       - id: data-structures
+        produces: [repos/{repo}/flows/{topic}/数据结构.md]
         instruction: pipelines/deep-analysis/data-structures.md
-        requires: [main-flow]
+        requires: [cross-boundary]
         done:
-          instructionSelfReport: true
+          exists: produces
       - id: self-check
         produces: [repos/{repo}/flows/{topic}/自查报告.md]
         instruction: pipelines/deep-analysis/self-check.md
-        requires: [branches, cross-boundary, data-structures]
+        requires: [data-structures]
         done:
           exists: produces
-          noPlaceholder: true

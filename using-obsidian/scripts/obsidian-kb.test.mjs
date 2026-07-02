@@ -316,6 +316,33 @@ test('pipeline next forwards --pipeline deep-analysis', async () => {
   }
 });
 
+test('smoke: deep-analysis 六件串行,前件落盘才解锁下件(exists 闸门,不并行)', async () => {
+  const kb = await mkdtemp(path.join(tmpdir(), 'kb-'));
+  try {
+    await run(['init', '--kb-root', kb]);
+    const stOf = async (id) => JSON.parse((await run(['pipeline', 'status', '--repo', 'R',
+      '--pipeline', 'deep-analysis', '--topic', 'T', '--kb-root', kb, '--json'])).stdout)
+      .find((s) => s.id === id).state;
+
+    // 串行链:初始只有 call-tree ready,后续成员全 blocked
+    assert.equal(await stOf('call-tree'), 'ready');
+    assert.equal(await stOf('branches'), 'blocked');
+
+    const members = ['调用树', '主干流程', '分支主题', '跨边界数据流', '数据结构', '自查报告'];
+    const ids = ['call-tree', 'main-flow', 'branches', 'cross-boundary', 'data-structures', 'self-check'];
+    for (let i = 0; i < members.length; i += 1) {
+      // eslint-disable-next-line no-await-in-loop
+      assert.equal(await stOf(ids[i]), 'ready', `${ids[i]} 应在前序落盘后才 ready`);
+      // eslint-disable-next-line no-await-in-loop
+      await writeFilledFromScaffold(kb, ['flow', '--repo', 'R', '--topic', 'T', '--member', members[i]]);
+      // eslint-disable-next-line no-await-in-loop
+      assert.equal(await stOf(ids[i]), 'done', `${ids[i]} 落盘后应 done`);
+    }
+  } finally {
+    await rm(kb, { recursive: true, force: true });
+  }
+});
+
 // 模拟 agent:从 scaffold 吐出的骨架里去占位后写入目标路径。
 async function writeFilledFromScaffold(kb, args) {
   const { stdout } = await run(['scaffold', ...args, '--kb-root', kb, '--json']);

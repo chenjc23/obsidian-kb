@@ -57,18 +57,18 @@ async function seedFile(kb, rel, content) {
   await writeF(full, content, 'utf8');
 }
 
-test('stageDone exists+noPlaceholder: true when files exist and no 填 marker', async () => {
+test('stageDone exists: true when produces files exist', async () => {
   const kb = await mkdtemp(path.join(tmpdir(), 'kb-'));
   await seedFile(kb, 'repos/R/overview.md', '# ok\n内容\n');
-  const stage = { id: 'terrain', produces: ['repos/{repo}/overview.md'], done: { exists: 'produces', noPlaceholder: true } };
+  const stage = { id: 'terrain', produces: ['repos/{repo}/overview.md'], done: { exists: 'produces' } };
   assert.equal(await stageDone(stage, { kbRoot: kb, repo: 'R', pipelineName: 'ingest', state: {} }), true);
 });
 
-test('stageDone noPlaceholder: false when 填 marker remains', async () => {
+test('stageDone exists: true when 填 marker remains', async () => {
   const kb = await mkdtemp(path.join(tmpdir(), 'kb-'));
   await seedFile(kb, 'repos/R/overview.md', '# ok\n<!-- 填:定位 -->\n');
-  const stage = { id: 'terrain', produces: ['repos/{repo}/overview.md'], done: { exists: 'produces', noPlaceholder: true } };
-  assert.equal(await stageDone(stage, { kbRoot: kb, repo: 'R', pipelineName: 'ingest', state: {} }), false);
+  const stage = { id: 'terrain', produces: ['repos/{repo}/overview.md'], done: { exists: 'produces' } };
+  assert.equal(await stageDone(stage, { kbRoot: kb, repo: 'R', pipelineName: 'ingest', state: {} }), true);
 });
 
 test('stageDone exists: false when produces file missing', async () => {

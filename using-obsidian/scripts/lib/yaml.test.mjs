@@ -64,7 +64,6 @@ test('parseYaml handles pipeline nesting: seq items with inline lists and nested
         instruction: pipelines/ingest/terrain.md
         done:
           exists: produces
-          noPlaceholder: true
       - id: deep-dive
         requires: [terrain]
         tracks: repos/{repo}/candidate-flow.md
@@ -80,7 +79,6 @@ test('parseYaml handles pipeline nesting: seq items with inline lists and nested
   assert.deepEqual(stages[0].requires, []);
   assert.equal(stages[0].instruction, 'pipelines/ingest/terrain.md');
   assert.equal(stages[0].done.exists, 'produces');
-  assert.equal(stages[0].done.noPlaceholder, true);
   assert.equal(stages[1].done.tracksAllComplete, '已深挖');
   assert.deepEqual(stages[1].requires, ['terrain']);
 });

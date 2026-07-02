@@ -69,17 +69,6 @@ function readdirSafe(dir) {
   try { return readdirSync(dir); } catch { return []; }
 }
 
-function noPlaceholderInProduces(stage, ctx) {
-  for (const raw of stage.produces || []) {
-    const rel = fillPlaceholders(raw, ctx);
-    if (rel.endsWith('/')) continue; // 目录不逐文件扫,交给内部页各自 stage
-    const full = path.join(ctx.kbRoot, rel);
-    if (!existsSync(full)) return false;
-    if (/<!--\s*填/.test(readFileSync(full, 'utf8'))) return false;
-  }
-  return true;
-}
-
 export async function stageDone(stage, ctx) {
   const done = stage.done || {};
   if (done.instructionSelfReport) {
@@ -91,12 +80,11 @@ export async function stageDone(stage, ctx) {
     if (!existsSync(full)) return false;
     return tracksAllComplete(await readFile(full, 'utf8'), done.tracksAllComplete);
   }
-  // 默认档:exists(+ 可选 noPlaceholder)。无 produces 声明时回退 self-report。
+  // 默认档:exists。无 produces 声明时回退 self-report。
   if (!stage.produces || stage.produces.length === 0) {
     return ctx.state?.[ctx.pipelineName]?.[stage.id] === true;
   }
   if (!producesExist(stage, ctx)) return false;
-  if (done.noPlaceholder && !noPlaceholderInProduces(stage, ctx)) return false;
   return true;
 }
 

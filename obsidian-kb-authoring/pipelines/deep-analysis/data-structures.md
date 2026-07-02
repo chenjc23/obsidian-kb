@@ -1,6 +1,6 @@
 # data-structures — 数据结构提升与视图接线
 
-产出:`repos/{repo}/flows/{topic}/数据结构.md`(适用则先 `scaffold flow --repo {repo} --topic {主题} --member 数据结构` 拿本件骨架填好再 Write;不适用则在 `自查报告.md` 写明)。处理完后 `pipeline done data-structures --repo {repo} --pipeline deep-analysis`。
+产出:`repos/{repo}/flows/{topic}/数据结构.md`(**必生成**)。先 `scaffold flow --repo {repo} --topic {主题} --member 数据结构` 拿本件骨架填好再 Write;本流程未涉及数据结构时仍生成该页,标 `confidence: low`,正文注明。exists 闸门自动判完成,无需手动 `pipeline done`。
 
 把深挖中浮现的可复用知识提升到正确视图层:
 
